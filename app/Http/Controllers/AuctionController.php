@@ -2,43 +2,63 @@
 
 namespace App\Http\Controllers;
 
+use Log;
 use App\Models\User;
 use App\Models\Auction;
 use Illuminate\Http\Request;
+use App\Jobs\UpdateAuctionStatus;
 use Illuminate\Support\Facades\Auth;
 
 class AuctionController extends Controller
 {
-    public function startAuction($id)
+    public function fetchAuctions(Request $request)
     {
-        $auction = Auction::findOrFail($id);
+        $query = Auction::query();
 
-        // Cek apakah lelang sudah memiliki koi
-        if ($auction->koi()->count() == 0) {
-            return response()->json(['error' => 'Lelang belum memiliki koi.'], 400);
+        // Filter status
+        if ($request->has('status') && $request->status != 'all') {
+            $query->where('status', $request->status);
         }
 
-        // Cek waktu saat ini
-        $currentTime = now();
-
-        // Ubah status lelang berdasarkan waktu
-        if ($auction->start_time > $currentTime) {
-            // Waktu sekarang belum mencapai waktu mulai, status jadi 'ready'
-            $auction->status = 'ready';
-        } elseif ($auction->start_time <= $currentTime && $auction->end_time > $currentTime) {
-            // Waktu sekarang di antara waktu mulai dan selesai, status 'on going'
-            $auction->status = 'on going';
-        } elseif ($auction->end_time <= $currentTime) {
-            // Waktu sudah melewati waktu selesai, status jadi 'complete'
-            $auction->status = 'complete';
+        // Filter kategori
+        if ($request->has('category') && $request->category != 'all') {
+            $query->where('category_id', $request->category);
         }
 
-        // Simpan perubahan
-        $auction->save();
+        // Filter search
+        if ($request->has('search') && $request->search != '') {
+            $query->where('title', 'like', '%' . $request->search . '%')
+                ->orWhere('description', 'like', '%' . $request->search . '%');
+        }
 
-        return response()->json(['success' => 'Lelang telah dimulai.']);
+        // Sorting
+        if ($request->has('sort')) {
+            $query->orderBy('created_at', $request->sort);
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+
+        // Pagination
+        $auctions = $query->paginate(6);
+
+        return view('auctions.partials.list', compact('auctions'))->render();
     }
 
+    public function startAuction(Request $request, $auctionCode)
+    {
+        // \Log::info('Start Auction button pressed for Auction Code: ' . $auctionCode);
+
+        // Cari auction berdasarkan auction_code
+        $auction = Auction::where('auction_code', $auctionCode)->firstOrFail();
+
+        // Dispatch job untuk memperbarui status auction
+        UpdateAuctionStatus::dispatch($auction->id);
+
+        // \Log::info('Job dispatched for Auction Code: ' . $auctionCode);
+
+        // Redirect ke halaman sebelumnya dengan pesan sukses
+        return redirect()->back()->with('success', 'Auction is being started!');
+    }
 
     public function onGoingAuctions()
     {
@@ -49,11 +69,40 @@ class AuctionController extends Controller
         return view('auctions.ongoing', compact('auctions'));
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $auctions = Auction::where('status', 'draft')->get();  // Menampilkan hanya draft
+        // Ambil hanya lelang milik user yang sedang login
+        $query = Auction::where('user_id', Auth::id());
+
+        // Filter search berdasarkan title atau description
+        if ($request->has('search') && $request->search != '') {
+            $query->where('title', 'like', '%' . $request->search . '%')
+                ->orWhere('description', 'like', '%' . $request->search . '%');
+        }
+
+        // Filter berdasarkan jenis
+        if ($request->has('jenis') && $request->jenis != 'all') {
+            $query->where('jenis', $request->jenis);
+        }
+
+        // Filter berdasarkan status
+        if ($request->has('status') && $request->status != 'all') {
+            $query->where('status', $request->status);
+        }
+
+        // Sorting
+        if ($request->has('sort')) {
+            $query->orderBy('created_at', $request->sort);
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+
+        // Pagination
+        $auctions = $query->paginate(8);
+
         return view('auctions.index', compact('auctions'));
     }
+
     public function create()
     {
         return view('auctions.create');
@@ -71,11 +120,32 @@ class AuctionController extends Controller
         ]);
 
         // Proses upload banner jika ada file yang diunggah
-        if ($request->hasFile('banner')) {
-            $bannerPath = $request->file('banner')->store('banner_auctions', 'public');
-        } else {
-            $bannerPath = null;
-        }
+        $bannerPath = $request->hasFile('banner') ? $request->file('banner')->store('banner_auctions', 'public') : null;
+
+        // Tentukan prefix berdasarkan jenis lelang
+        $prefix = match ($request->input('jenis')) {
+            'reguler' => 'RG',
+            'azukari' => 'AZ',
+            'keeping_contest' => 'KC',
+            'grow_out' => 'GO',
+            default => 'XX',
+        };
+
+        // Format untuk tahun dan bulan
+        $tahunBulan = date('ym');
+
+        // Generate nomor urut auction berdasarkan jenis dan tanggal
+        $maxAuction = Auction::where('jenis', $request->input('jenis'))
+            ->whereYear('created_at', date('Y'))
+            ->whereMonth('created_at', date('m'))
+            ->max('auction_code');
+
+        // Ambil nomor urut dari kode lelang terakhir (3 digit terakhir)
+        $nomorUrut = $maxAuction ? intval(substr($maxAuction, -3)) + 1 : 1;
+        $formattedUrut = str_pad($nomorUrut, 3, '0', STR_PAD_LEFT);
+
+        // Buat kode lelang (auction_code)
+        $auctionCode = $prefix . $tahunBulan . $formattedUrut;
 
         // Simpan data lelang ke database
         Auction::create([
@@ -85,57 +155,70 @@ class AuctionController extends Controller
             'start_time' => $request->input('start_time'),
             'end_time' => $request->input('end_time'),
             'status' => 'draft',
-            'auction_code' => 'RG' . date('ymd') . str_pad(Auction::max('id') + 1, 3, '0', STR_PAD_LEFT),
+            'auction_code' => $auctionCode, // Set auction_code di sini
             'banner' => $bannerPath,
-            'user_id' => Auth::id(), // Pastikan user_id dimasukkan
+            'user_id' => Auth::id(),
         ]);
 
         return redirect()->route('auctions.index')->with('success', 'Auction created successfully!');
     }
-    /**
-     * Display the specified resource.
-     */
-    public function show(Auction $auction)
+
+
+    public function show($auctionCode)
     {
-        return view('auctions.show');
-        // diisi list koi
+        $auction = Auction::where('auction_code', $auctionCode)->firstOrFail();
+
+        // Pastikan user yang sedang login adalah pemilik lelang
+        if (Auth::id() !== $auction->user_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        return view('auctions.show', compact('auction'));
     }
+
+
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Auction $auction, $auctionCode)
+    public function edit($auctionCode)
     {
+        // Cari auction berdasarkan auction_code
         $auction = Auction::where('auction_code', $auctionCode)->firstOrFail();
+
+        // Pastikan user yang sedang login adalah pemilik lelang
+        if (Auth::id() !== $auction->user_id) {
+            abort(403, 'Unauthorized action.');
+        }
 
         return view('auctions.edit', compact('auction'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, $auctionCode)
     {
-        // Validasi input dari form
+        $auction = Auction::where('auction_code', $auctionCode)->firstOrFail();
+
+        // Pastikan user yang sedang login adalah pemilik lelang
+        if (Auth::id() !== $auction->user_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Validasi data dari request
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string|max:1000',
-            'jenis' => 'required|string',
             'start_time' => 'required|date',
             'end_time' => 'nullable|date',
             'contest_time' => 'nullable|date',
-            'banner' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048' // Validasi untuk banner
+            'banner' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
-        // Cek apakah end_time kosong
+        // Cek jika end_time tidak diisi, otomatis tambahkan 24 jam dari start_time
         if (empty($validated['end_time'])) {
-            $validated['end_time'] = date('Y-m-d H:i:s', strtotime($validated['start_time'] . ' +1 day'));
+            $validated['end_time'] = \Carbon\Carbon::parse($validated['start_time'])->addDay();
         }
 
-        // Cari lelang berdasarkan kode
-        $auction = Auction::where('auction_code', $auctionCode)->firstOrFail();
-
-        // Jika ada banner baru yang di-upload
+        // Proses upload banner jika ada
         if ($request->hasFile('banner')) {
             $file = $request->file('banner');
             $filename = time() . '.' . $file->getClientOriginalExtension();
@@ -146,6 +229,7 @@ class AuctionController extends Controller
         // Update data lelang
         $auction->update($validated);
 
+        // Redirect ke halaman index dengan pesan sukses
         return redirect()->route('auctions.index')->with('success', 'Lelang berhasil diperbarui!');
     }
 
@@ -153,8 +237,15 @@ class AuctionController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Auction $auction)
+    public function destroy($auctionCode)
     {
+        $auction = Auction::where('auction_code', $auctionCode)->firstOrFail();
+
+        // Pastikan user yang sedang login adalah pemilik lelang
+        if (Auth::id() !== $auction->user_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $auction->delete();
         return response()->json(['success' => 'Lelang berhasil dihapus.']);
     }

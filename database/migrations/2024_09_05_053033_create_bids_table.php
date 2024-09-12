@@ -9,13 +9,16 @@ return new class extends Migration
     {
         Schema::create('bids', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('auction_id')->constrained(); // Foreign key ke auctions
-            $table->foreignId('koi_id')->constrained(); // Foreign key ke koi
-            $table->foreignId('user_id')->constrained(); // Foreign key ke users (bidder)
-            $table->decimal('bid_amount', 15, 2);
-            $table->boolean('is_winner')->default(false);
+            $table->string('koi_id'); // Foreign key dari tabel kois
+            $table->unsignedBigInteger('user_id'); // Foreign key dari tabel users
+            $table->decimal('amount', 10, 2); // Bid amount
             $table->timestamps();
+        
+            // Foreign key constraints
+            $table->foreign('koi_id')->references('id')->on('kois')->onDelete('cascade');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
+        
     }
 
     public function down(): void

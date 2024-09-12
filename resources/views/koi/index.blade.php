@@ -1,120 +1,130 @@
+<!-- resources/views/koi/index.blade.php -->
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-zinc-800 dark:text-zinc-200 leading-tight">
-            {{ __('Daftar Koi untuk Lelang #') . $auction_id }}
-        </h2>
+        <div class="flex justify-between items-center">
+            <!-- Tombol Kembali ke Daftar Lelang -->
+            <a href="{{ route('auctions.index') }}"
+                class="inline-flex items-center px-4 py-2 bg-gray-600 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-gray-300 focus:bg-gray-700 dark:focus:bg-gray-300 active:bg-gray-800 dark:active:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-800 transition ease-in-out duration-150">
+                <i class="fa-solid fa-arrow-left"></i> &nbsp;LELANGKU
+            </a>
+            <h2 class="font-semibold text-xl text-center text-zinc-800 dark:text-zinc-200 leading-tight">
+                {{ __('Daftar Koi Lelang ') . $auction_code }}
+            </h2>
+
+            <div class="flex space-x-4">
+                @if ($auction->status === 'draft')
+                    <!-- Tombol tambah Koi jika status lelang adalah 'draft' -->
+                    <a href="{{ route('koi.create', ['auction_code' => $auction->auction_code]) }}"
+                        class="inline-flex items-center px-4 py-2 bg-zinc-800 dark:bg-zinc-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-zinc-800 uppercase tracking-widest hover:bg-zinc-700 dark:hover:bg-white focus:bg-zinc-700 dark:focus:bg-white active:bg-zinc-900 dark:active:bg-zinc-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-800 transition ease-in-out duration-150">
+                        {{ __('+ Ikan') }}
+                    </a>
+                @else
+                    <span class="text-red-500 text-sm">
+                        {{ __('Lelang sudah berjalan atau selesai, tidak bisa menambah Koi.') }}
+                    </span>
+                @endif
+            </div>
+        </div>
     </x-slot>
 
-    <div class="py-8">
-        <div class="container mx-auto px-4">
-            @if ($kois->isEmpty())
-                <p class="text-zinc-600 dark:text-zinc-400">{{ __('Belum ada koi di lelang ini.') }}</p>
-            @else
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    @foreach ($kois as $koi)
-                        <div class="relative border rounded-lg p-4 dark:bg-zinc-700">
-                            <!-- Tombol delete di kanan atas -->
-                            <button
-                                class="absolute top-2 right-2 bg-zinc-500 text-white rounded-full px-2 py-1 delete-koi-btn transition-transform transform hover:scale-110 active:scale-100"
-                                style="z-index: 99" data-koi-id="{{ $koi->id }}"
-                                data-koi-name="{{ $koi->jenis_koi }}">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
 
-                            <!-- Carousel untuk gambar dan video -->
-                            <div x-data="{
-                                activeSlide: 0,
-                                slides: [
-                                    @foreach ($koi->media as $media)
-                                    '{{ asset('storage/' . $media->url_media) }}', @endforeach
-                                ]
-                            }" class="relative w-full overflow-hidden rounded-lg shadow-lg">
-                                <!-- Carousel wrapper -->
-                                <div class="relative h-64">
-                                    <template x-for="(slide, index) in slides" :key="index">
-                                        <div x-show="activeSlide === index" class="absolute inset-0">
-                                            <template x-if="slide.endsWith('.mp4')">
-                                                <video controls class="w-full h-full object-cover rounded-lg">
-                                                    <source :src="slide" type="video/mp4">
-                                                    Your browser does not support the video tag.
-                                                </video>
-                                            </template>
-                                            <template x-if="!slide.endsWith('.mp4')">
-                                                <img :src="slide" alt="Koi Media"
-                                                    class="w-full h-full object-cover rounded-lg">
-                                            </template>
-                                        </div>
-                                    </template>
-                                </div>
 
-                                <!-- Slider controls -->
-                                <div class="absolute inset-0 flex items-center justify-between px-4">
-                                    <button
-                                        @click="activeSlide = activeSlide === 0 ? slides.length - 1 : activeSlide - 1"
-                                        class="bg-black bg-opacity-50 text-white p-2 rounded-full">
-                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                                            xmlns="http://www.w3.org/2000/svg">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M15 19l-7-7 7-7"></path>
-                                        </svg>
-                                    </button>
-                                    <button
-                                        @click="activeSlide = activeSlide === slides.length - 1 ? 0 : activeSlide + 1"
-                                        class="bg-black bg-opacity-50 text-white p-2 rounded-full">
-                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                                            xmlns="http://www.w3.org/2000/svg">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M9 5l7 7-7 7"></path>
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
 
-                            <!-- Detail Koi -->
-                            <h3 class="text-lg font-semibold mt-4">{{ $koi->jenis_koi }}</h3>
-                            <p class="text-sm">{{ __('Ukuran: ') . $koi->ukuran }} cm</p>
-                            <p class="text-sm">{{ __('Gender: ') . ucfirst($koi->gender) }}</p>
-                            <p class="text-sm">
-                                {{ __('Open Bid: Rp') . number_format($koi->open_bid * 1000, 0, ',', '.') }}</p>
-                            <p class="text-sm">
-                                {{ __('Kelipatan Bid: Rp') . number_format($koi->kelipatan_bid * 1000, 0, ',', '.') }}
-                            </p>
-                            @if ($koi->buy_it_now)
-                                <p class="text-sm">
-                                    {{ __('Buy It Now: Rp') . number_format($koi->buy_it_now * 1000, 0, ',', '.') }}
-                                </p>
-                            @endif
+    <div class="py-6" x-data="{ open: false }">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+            <div class="p-4 sm:p-8 bg-white dark:bg-zinc-800 shadow sm:rounded-lg">
+                <div class="flex items-center space-x-4 mb-6">
+                    <!-- Pencarian Koi -->
+                    <input type="text" id="searchKoi" placeholder="Cari Koi..."
+                        class="border border-gray-300 rounded-md p-2 w-1/3" oninput="filterKois()" />
 
-                            <!-- Tombol Sertifikat -->
-                            @if ($koi->certificates->isNotEmpty())
-                                <div class="mt-4">
-                                    @foreach ($koi->certificates as $index => $certificate)
-                                        <button
-                                            onclick="openModal('{{ asset('storage/' . $certificate->url_gambar) }}')"
-                                            class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm">
-                                            Sertifikat {{ $index + 1 }}
-                                        </button>
-                                    @endforeach
-                                </div>
-                            @endif
-                        </div>
-                    @endforeach
+                    <!-- Filter Jenis Koi -->
+                    <select id="filterJenisKoi" class="border border-gray-300 rounded-md p-2 w-1/3"
+                        onchange="filterKois()">
+                        <option value="">{{ __('Semua Jenis') }}</option>
+                        <option value="Kohaku">Kohaku</option>
+                        <option value="Asagi">Asagi</option>
+                        <option value="Showa">Showa</option>
+                        <option value="Shiro Utsuri">Shiro Utsuri</option>
+                        <!-- Tambahkan opsi lainnya -->
+                    </select>
+
+                    <!-- Filter Gender Koi -->
+                    <select id="filterGenderKoi" class="border border-gray-300 rounded-md p-2 w-1/3"
+                        onchange="filterKois()">
+                        <option value="">{{ __('Semua Gender') }}</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Unchecked">Unchecked</option>
+                    </select>
                 </div>
-            @endif
+
+                <div class="container mx-auto px-4">
+                    @if ($kois->isEmpty())
+                        <p class="text-zinc-600 dark:text-zinc-400">{{ $message ?? __('Belum ada koi di lelang ini.') }}
+                        </p>
+                    @else
+                        <div id="koiContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            @foreach ($kois as $koi)
+                                @include('koi.partials.koi_item', ['koi' => $koi])
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+
+            </div>
         </div>
     </div>
 
-    <!-- Modal untuk Sertifikat -->
-    <div id="certModal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50">
-        <div class="bg-white dark:bg-zinc-800 p-4 rounded-lg max-w-md w-full">
-            <button onclick="closeModal()" class="text-right text-red-500 font-bold">X</button>
-            <img id="certImage" src="" alt="Certificate Image" class="w-full mt-4 rounded-lg">
-        </div>
-    </div>
+
 
     <!-- Modal and Alpine.js Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        function filterKois() {
+            // Ambil nilai input filter
+            const searchKoi = document.getElementById('searchKoi').value.toLowerCase();
+            const filterJenisKoi = document.getElementById('filterJenisKoi').value;
+            const filterGenderKoi = document.getElementById('filterGenderKoi').value;
+
+            // Ambil semua item Koi yang ada di halaman
+            const koiItems = document.querySelectorAll('.koi-item');
+            let isAnyVisible = false;
+
+            koiItems.forEach(item => {
+                const jenis = item.getAttribute('data-jenis').toLowerCase();
+                const gender = item.getAttribute('data-gender').toLowerCase();
+                const searchData = item.getAttribute('data-search').toLowerCase();
+
+                let isVisible = true;
+
+                // Cek berdasarkan pencarian teks
+                if (searchKoi && !searchData.includes(searchKoi)) {
+                    isVisible = false;
+                }
+
+                // Cek berdasarkan filter jenis koi
+                if (filterJenisKoi && jenis !== filterJenisKoi.toLowerCase()) {
+                    isVisible = false;
+                }
+
+                // Cek berdasarkan filter gender koi
+                if (filterGenderKoi && gender !== filterGenderKoi.toLowerCase()) {
+                    isVisible = false;
+                }
+
+                // Tampilkan atau sembunyikan elemen berdasarkan hasil filter
+                item.style.display = isVisible ? 'block' : 'none';
+
+                if (isVisible) {
+                    isAnyVisible = true;
+                }
+            });
+
+            // Tampilkan pesan "Data tidak ditemukan" jika tidak ada elemen yang terlihat
+            document.getElementById('noDataMessage').style.display = isAnyVisible ? 'none' : 'block';
+        }
+
         function openModal(imageUrl) {
             document.getElementById('certImage').src = imageUrl;
             document.getElementById('certModal').classList.remove('hidden');
@@ -124,7 +134,7 @@
             document.getElementById('certModal').classList.add('hidden');
         }
 
-        // Fungsi untuk menangani tombol hapus dan sweetalert
+        // Fungsi delete untuk Koi
         document.querySelectorAll('.delete-koi-btn').forEach(button => {
             button.addEventListener('click', function() {
                 const koiId = this.getAttribute('data-koi-id');
@@ -141,7 +151,6 @@
                     cancelButtonText: 'No'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        // Lakukan penghapusan via form atau AJAX
                         deleteKoi(koiId);
                     }
                 });
@@ -149,8 +158,6 @@
         });
 
         function deleteKoi(koiId) {
-            console.log(`Deleting koi with ID: ${koiId}`); // Debugging
-
             fetch(`/koi/${koiId}`, {
                     method: 'DELETE',
                     headers: {
@@ -160,15 +167,11 @@
                 })
                 .then(response => response.json())
                 .then(data => {
-                    console.log(data); // Debugging untuk response
                     if (data.success) {
-                        location.reload(); // Reload halaman jika sukses
+                        location.reload();
                     } else {
                         Swal.fire('Error', 'Gagal menghapus Koi', 'error');
                     }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
                 });
         }
     </script>

@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('auctions', function (Blueprint $table) {
-            $table->text('banner')->nullable()->after('contest_time'); // Menambahkan kolom banner setelah contest_time
+            $table->timestamp('contest_time')->after('end_time')->nullable();
         });
     }
 
@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('auctions', function (Blueprint $table) {
-            $table->dropColumn('banner');
+        Schema::table('kois', function (Blueprint $table) {
+            //
         });
     }
 };

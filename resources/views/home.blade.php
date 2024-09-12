@@ -13,7 +13,12 @@
                     </button>
                 </form>
             </div>
-
+            <!-- Menampilkan waktu server -->
+            <div class="ml-4">
+                <span class="text-sm text-zinc-600 dark:text-zinc-400">
+                    Waktu Server: {{ \Carbon\Carbon::now()->toDateTimeString() }}
+                </span>
+            </div>
 
             <a href="{{ route('auctions.create') }}"
                 class="ml-4 inline-flex items-center px-4 py-2 bg-zinc-500 dark:bg-zinc-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-zinc-800 uppercase tracking-widest hover:bg-zinc-600 dark:hover:bg-zinc-300 focus:bg-zinc-600 dark:focus:bg-zinc-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
@@ -27,7 +32,8 @@
             <div class="p-4 sm:p-8 bg-white dark:bg-zinc-800 shadow sm:rounded-lg">
                 <!-- Banner Utama dengan Carousel -->
                 <div class="container mx-auto px-4">
-                    <p class="text-center font-extralight mb-2 text-gray-400">Dimensi banner yang direkomendasikan: 1280px x 320px</p>
+                    <p class="text-center font-extralight mb-2 text-gray-400">Dimensi banner yang direkomendasikan:
+                        1280px x 320px</p>
                     <div x-data="{ activeSlide: 0, slides: ['{{ asset('storage/banner1.jpg') }}', '{{ asset('storage/banner2.jpg') }}', '{{ asset('storage/banner3.jpg') }}'] }" class="relative w-full overflow-hidden rounded-lg shadow-lg">
                         <!-- Carousel wrapper -->
                         <div class="relative h-64">
@@ -72,7 +78,7 @@
                             </button>
                         </div>
                     </div>
-                    
+
                 </div>
 
                 <!-- Kategori Pilihan -->

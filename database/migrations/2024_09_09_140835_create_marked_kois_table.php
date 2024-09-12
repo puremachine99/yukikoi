@@ -13,10 +13,14 @@ return new class extends Migration
     {
         Schema::create('marked_kois', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained(); // User yang tandain koi
-            $table->foreignId('koi_id')->constrained(); // Koi yang ditandai
+            $table->string('koi_id'); // Kolom koi_id sebagai string, agar sesuai dengan kolom id di tabel kois
+            $table->unsignedBigInteger('user_id'); // Foreign key dari tabel users
             $table->timestamps();
-        });        
+
+            // Foreign key constraint
+            $table->foreign('koi_id')->references('id')->on('kois')->onDelete('cascade');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+        });
     }
 
     /**

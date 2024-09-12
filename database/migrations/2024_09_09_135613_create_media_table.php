@@ -12,13 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('media', function (Blueprint $table) {
-            $table->id(); 
-            $table->foreignId('koi_id')->constrained(); // Foreign key ke koi
-            $table->string('url_media'); // URL untuk foto atau video
-            $table->enum('media_type', ['photo', 'video']); // Menyimpan jenis media, foto atau video
-            $table->timestamps();
+            $table->id(); // Primary key untuk media
+            $table->string('koi_id'); // Foreign key dari tabel koi (id dari tabel kois)
+            $table->string('url_media'); // URL atau path media
+            $table->enum('media_type', ['photo', 'video']); // Jenis media (foto atau video)
+            $table->timestamps(); // Kolom created_at dan updated_at
+            // Foreign key constraint untuk koi_id
+            $table->foreign('koi_id')->references('id')->on('kois')->onDelete('cascade');
         });
-        
     }
 
     /**

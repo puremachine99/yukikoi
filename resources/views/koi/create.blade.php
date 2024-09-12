@@ -12,16 +12,20 @@
                     <form action="{{ route('koi.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <input type="hidden" name="auction_code" value="{{ $auction_code }}">
-                        <input type="hidden" name="auction_id" value="{{ $auction_id }}">
+
                         <!-- Wrapper untuk form koi dinamis -->
                         <div id="koiFormWrapper" class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <!-- Form Koi pertama -->
                             <div class="koi-form p-4 bg-white dark:bg-zinc-800 rounded-lg shadow-md">
                                 <h3 class="text-lg font-semibold mb-4">Koi A</h3>
+                                <!-- Input Judul Koi -->
+                                <div class="mb-4">
+                                    <x-input-label for="judul_koi" :value="__('Judul Koi')" />
+                                    <x-text-input name="judul[]" placeholder="Masukkan judul untuk koi"
+                                        class="block w-full" />
+                                </div>
 
-                                <!-- Kode Ikan (hidden) -->
-                                <input type="hidden" name="kode_ikan[]" value="A">
-
+                                <input type="hidden" name="kode_ikan[]" value="{{ $newKoiCode }}">
                                 <!-- Jenis Koi -->
                                 <div class="mb-4">
                                     <x-input-label for="jenis_koi" :value="__('Jenis Koi')" />
@@ -33,28 +37,41 @@
                                         <option value="Showa Sanshoku (Showa)">Showa</option>
                                         <option value="Doitsu">Doitsu</option>
                                         <option value="Taisho Sanshoku (Sanke)">Sanke (Taisho Sansoku)</option>
-                                        <!-- Separator: Koi Lainnya -->
-                                        <option disabled>--- Koi Lainnya ---</option>
+                                        <option value="Tancho">Tancho</option>
+
+                                        <!-- Separator: Varietas -->
+                                        <option disabled>--- Varietas ---</option>
                                         <option value="Bekko">Bekko</option>
                                         <option value="Goshiki">Goshiki</option>
+                                        <option value="Koromo">Koromo</option>
+                                        <option value="Kujaku">Kujaku</option>
+                                        <option value="Shiro Utsuri (Shiro)">Shiro Utsuri (Shiro)</option>
+                                        <option value="Shusui">Shusui</option>
+                                        <option value="Ochiba">Ochiba</option>
+                                        <option value="Hi/Ki Utsurimono">Hi/Ki Utsurimono</option>
                                         <option value="Hikari Moyomono">Hikari Moyomono</option>
                                         <option value="Hikari Mujimono">Hikari Mujimono</option>
                                         <option value="Hikari Utsurimono">Hikari Utsurimono</option>
-                                        <option value="Hi/Ki Utsurimono">Hi/Ki Utsurimono</option>
+                                        <option value="Kawarimono A">Kawarimono A</option>
+                                        <option value="Kawarimono B">Kawarimono B</option>
                                         <option value="Kinginrin A">Kinginrin A</option>
                                         <option value="Kinginrin B">Kinginrin B</option>
                                         <option value="Kinginrin C">Kinginrin C</option>
-                                        <option value="Kawarimono A">Kawarimono A</option>
-                                        <option value="Kawarimono B">Kawarimono B</option>
-                                        <option value="Koromo">Koromo</option>
-                                        <option value="Kujaku">Kujaku</option>
-                                        <option value="Ochiba">Ochiba</option>
-                                        <option value="Shiro Utsuri (Shiro)">Shiro Utsuri (Shiro)</option>
-                                        <option value="Shusui">Shusui</option>
 
+                                        <!-- Separator: Sub Varietas -->
+                                        <option disabled>--- Sub Varietas ---</option>
+                                        <option value="Shiro Bekko">Shiro Bekko</option>
+                                        <option value="Ki Bekko">Ki Bekko</option>
+                                        <option value="Aka Bekko">Aka Bekko</option>
+                                        <option value="Ai Goromo">Ai Goromo</option>
+                                        <option value="Sumi Goromo">Sumi Goromo</option>
+                                        <option value="Budo Goromo">Budo Goromo</option>
+                                        <option value="Tancho Kohaku">Tancho Kohaku</option>
+                                        <option value="Tancho Sanke">Tancho Sanke</option>
+                                        <option value="Tancho Showa">Tancho Showa</option>
                                     </x-select>
-
                                 </div>
+
 
                                 <!-- Ukuran -->
                                 <div class="mb-4">
@@ -65,12 +82,25 @@
                                 <!-- Gender -->
                                 <div class="mb-4">
                                     <x-input-label :value="__('Gender')" />
-                                    <div class="flex space-x-4">
-                                        <x-radio name="gender[0]" value="Male" /> Male
-                                        <x-radio name="gender[0]" value="Female" /> Female
-                                        <x-radio name="gender[0]" value="Unchecked" checked /> Unchecked
+                                    <div class="space-y-2">
+                                        <label class="inline-flex items-center">
+                                            <input type="radio" name="gender[0]" value="Male"
+                                                class="form-radio h-4 w-4 text-indigo-600 transition duration-150 ease-in-out">
+                                            <span class="ml-2 text-zinc-700 dark:text-zinc-200">Male</span>
+                                        </label>
+                                        <label class="inline-flex items-center ml-2">
+                                            <input type="radio" name="gender[0]" value="Female"
+                                                class="form-radio h-4 w-4 text-indigo-600 transition duration-150 ease-in-out">
+                                            <span class="ml-2 text-zinc-700 dark:text-zinc-200">Female</span>
+                                        </label>
+                                        <label class="inline-flex items-center ml-2">
+                                            <input type="radio" name="gender[0]" value="Unchecked" checked
+                                                class="form-radio h-4 w-4 text-indigo-600 transition duration-150 ease-in-out">
+                                            <span class="ml-2 text-zinc-700 dark:text-zinc-200">Unchecked</span>
+                                        </label>
                                     </div>
                                 </div>
+
 
                                 <!-- Open Bid -->
                                 <div class="mb-4">
@@ -93,10 +123,25 @@
                                         placeholder="1000 untuk Rp1.000.000" />
                                 </div>
 
+                                <!-- Input Keterangan -->
+                                <div class="mb-4">
+                                    <x-input-label for="keterangan" :value="__('Keterangan')" />
+                                    <textarea name="keterangan[]" rows="2" placeholder="Deskripsi tentang koi"
+                                        class="block w-full border-zinc-300 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-300 rounded-md shadow-sm focus:ring focus:ring-opacity-50 focus:border-indigo-300 focus:ring-indigo-200 dark:focus:ring-indigo-700"></textarea>
+                                </div>
+
+                                <!-- Input Breeder -->
+                                <div class="mb-4">
+                                    <x-input-label for="breeder" :value="__('Breeder')" />
+                                    <x-text-input name="breeder[]" placeholder="Nama Breeder Koi"
+                                        class="block w-full" />
+                                </div>
+
                                 <!-- Upload Video -->
                                 <div class="mb-4">
                                     <x-input-label for="video_koi" :value="__('Video Koi (Max 1)')" />
-                                    <x-file-input name="video_koi[0]" class="block w-full video-koi" accept="video/*" />
+                                    <x-file-input name="video_koi[0]" class="block w-full video-koi"
+                                        accept="video/*" />
                                     <!-- Preview video -->
                                     <div class="preview-video mt-2"></div>
                                 </div>
@@ -184,7 +229,7 @@
             newKoiForm.querySelector('h3').textContent = `Koi ${getKoiCode(totalForms)}`; // Update heading
 
             // Update semua "name" dengan index baru
-            let inputs = newKoiForm.querySelectorAll('input, select');
+            let inputs = newKoiForm.querySelectorAll('input, select, textarea');
             inputs.forEach(input => {
                 let name = input.getAttribute('name');
                 if (name.includes('[0]')) {

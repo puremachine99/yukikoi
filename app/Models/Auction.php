@@ -11,6 +11,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Auction extends Model
 {
     use HasFactory;
+    protected $primaryKey = 'auction_code';
+    public $incrementing = false; // Karena primary key-nya bukan integer
+    protected $keyType = 'string';
     protected $fillable = [
        'title', 'description', 'jenis', 'start_time', 'end_time', 'status', 'auction_code', 'banner', 'user_id'
     ];
@@ -45,7 +48,7 @@ class Auction extends Model
     // Relasi ke Koi (satu lelang punya banyak koi)
     public function koi()
     {
-        return $this->hasMany(Koi::class);
+        return $this->hasMany(Koi::class, 'auction_code', 'auction_code');
     }
 
     // Relasi ke Bid (satu lelang punya banyak bid)

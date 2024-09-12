@@ -16,17 +16,32 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 // Rute umum
 Route::get('/', [HomeController::class, 'index'])->name('home');
-// Rute untuk lelang (Auction)
-Route::middleware('auth')->resource('auctions', AuctionController::class)->except(['show']);
-Route::get('/auctions/ongoing', [AuctionController::class, 'onGoingAuctions'])->name('auctions.ongoing');
-Route::get('/auctions/{auction}', [AuctionController::class, 'show'])->name('auctions.show');
-Route::middleware('auth')->post('/auctions/{auction}/start', [AuctionController::class, 'startAuction'])->name('auctions.start');
 
-// Rute lelang Koi 
-Route::middleware('auth')->resource('koi', KoiController::class)->except(['show']);
-Route::middleware('auth')->get('/koi/create', [KoiController::class, 'create'])->name('koi.create');
-Route::get('/koi/{auction_id}', [KoiController::class, 'index'])->name('koi.index');
-Route::delete('/koi/{id}', [KoiController::class, 'destroy'])->name('koi.destroy');
+// Rute Auction
+Route::middleware(['auth'])->group(function () {
+    Route::get('/auctions', [AuctionController::class, 'index'])->name('auctions.index');
+    Route::get('/auctions/create', [AuctionController::class, 'create'])->name('auctions.create');
+    Route::post('/auctions', [AuctionController::class, 'store'])->name('auctions.store');
+    Route::get('/auctions/{auction_code}/edit', [AuctionController::class, 'edit'])->name('auctions.edit');
+    Route::put('/auctions/{auction_code}', [AuctionController::class, 'update'])->name('auctions.update');
+    Route::delete('/auctions/{auction_code}', [AuctionController::class, 'destroy'])->name('auctions.destroy');
+    Route::get('/auctions/{auction_code}', [AuctionController::class, 'show'])->name('auctions.show');
+    Route::post('/auctions/{auction_code}/start', [AuctionController::class, 'startAuction'])->name('auctions.start');
+});
+
+Route::get('/auctions/ongoing', [AuctionController::class, 'onGoingAuctions'])->name('auctions.ongoing');
+Route::get('/fetch-auctions', [AuctionController::class, 'fetchAuctions'])->name('fetch.auctions');
+// Akhir Rute Auction
+
+// Rute Koi
+Route::middleware(['auth'])->group(function () {
+    Route::get('/koi/{auction_code}', [KoiController::class, 'index'])->name('koi.index');
+    Route::get('/koi/create/{auction_code}', [KoiController::class, 'create'])->name('koi.create');
+    Route::post('/koi', [KoiController::class, 'store'])->name('koi.store');
+    Route::get('/koi/{auction_code}/edit', [KoiController::class, 'edit'])->name('koi.edit');
+    Route::put('/koi/{auction_code}', [KoiController::class, 'update'])->name('koi.update');
+    Route::delete('/koi/{auction_code}', [KoiController::class, 'destroy'])->name('koi.destroy');
+});
 
 // Rute untuk bid (umum dan khusus login)
 Route::middleware('auth')->resource('bid', BidController::class)->except(['show']);
