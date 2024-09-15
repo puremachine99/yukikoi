@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Koi;
 use App\Models\Media;
 use App\Models\Auction;
+use App\Models\MarkedKoi;
 use App\Models\Certificate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -126,7 +127,7 @@ class KoiController extends Controller
         }
 
         return redirect()->route('koi.index', ['auction_code' => $request->auction_code])
-                     ->with('success', 'Data Koi berhasil disimpan!');
+            ->with('success', 'Data Koi berhasil disimpan!');
     }
 
     /**
@@ -164,10 +165,45 @@ class KoiController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show($id)
     {
-        //
+        // Ambil koi beserta relasinya
+        $koi = Koi::with([
+            'auction.user',  // Auction dan relasinya ke User
+            'media',         // Media terkait koi
+            'certificates',  // Sertifikat koi
+            'bid',           // Bid yang terkait
+        ])->findOrFail($id);
+
+        // Ambil koi lain di lelang yang sama berdasarkan auction_code
+        $koisInSameAuction = Koi::where('auction_code', $koi->auction_code)
+            ->where('id', '!=', $koi->id) // Kecualikan koi ini
+            ->with(['media' => function ($query) {
+                $query->where('media_type', 'photo'); // Ambil hanya media yang berupa foto
+            }])
+            ->get();
+
+        // Ambil ikan sejenis berdasarkan category
+        $koisSameCategory = Koi::where('jenis_koi', $koi->category)
+            ->where('id', '!=', $koi->id) // Kecualikan koi ini
+            ->with(['media' => function ($query) {
+                $query->where('media_type', 'photo'); // Ambil hanya media yang berupa foto
+            }])
+            ->get();
+
+        // Ambil ikan dari seller prioritas (dummy, bisa diganti dengan logika sesuai)
+        // $prioritySellersKois = Koi::whereHas('user', function ($query) {
+        //     $query->where('priority', true); // Hanya seller prioritas
+        // })
+        //     ->with(['media' => function ($query) {
+        //         $query->where('media_type', 'photo'); // Ambil hanya media yang berupa foto
+        //     }])
+        //     ->get();
+
+        // Kembalikan data ke view
+        return view('koi.show', compact('koi', 'koisInSameAuction', 'koisSameCategory',)); //'prioritySellersKois'));
     }
+
 
     /**
      * Show the form for editing the specified resource.

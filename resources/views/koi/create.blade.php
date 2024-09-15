@@ -1,8 +1,15 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-zinc-800 dark:text-zinc-200 leading-tight">
-            {{ __('Tambah Koi Lelang #') . $auction_code }}
-        </h2>
+        <div class="flex justify-between items-center">
+            <a href="{{ route('koi.index', ['auction_code' => $auction_code]) }}"
+                class="inline-flex items-center px-4 py-2 bg-zinc-800 dark:bg-zinc-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-zinc-800 uppercase tracking-widest hover:bg-zinc-700 dark:hover:bg-white focus:bg-zinc-700 dark:focus:bg-white active:bg-zinc-900 dark:active:bg-zinc-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-800 transition ease-in-out duration-150">
+                <i class="fas fa-arrow-left mr-2"></i> List Koi
+            </a>
+
+            <h2 class="font-semibold text-xl text-zinc-800 dark:text-zinc-200 leading-tight">
+                {{ __('Tambah Koi Lelang #') . $auction_code }}
+            </h2>
+        </div>
     </x-slot>
 
     <div class="py-8">
@@ -127,7 +134,7 @@
                                 <div class="mb-4">
                                     <x-input-label for="keterangan" :value="__('Keterangan')" />
                                     <textarea name="keterangan[]" rows="2" placeholder="Deskripsi tentang koi"
-                                        class="block w-full border-zinc-300 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-300 rounded-md shadow-sm focus:ring focus:ring-opacity-50 focus:border-indigo-300 focus:ring-indigo-200 dark:focus:ring-indigo-700"></textarea>
+                                        class="block w-full border-zinc-300 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-300 rounded-md shadow-sm focus:ring focus:ring-opacity-50 focus:border-indigo-300 focus:ring-indigo-200 dark:focus:ring-indigo-700"></textarea>
                                 </div>
 
                                 <!-- Input Breeder -->

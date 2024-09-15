@@ -10,20 +10,20 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Carbon\Carbon;
 
-class UpdateAuctionStatus implements ShouldQueue
+class UpdateAuctionStatus
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable, SerializesModels;
 
-    protected $auctionId;
+    protected $auctionCode;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct($auctionId)
+    public function __construct($auctionCode)
     {
-        $this->auctionId = $auctionId;
+        $this->auctionCode = $auctionCode;
     }
 
     /**
@@ -33,25 +33,26 @@ class UpdateAuctionStatus implements ShouldQueue
      */
     public function handle()
     {
+        // Cari auction berdasarkan kode lelang
+        $auction = Auction::where('auction_code', $this->auctionCode)->firstOrFail();
         $now = Carbon::now();
 
-        // Cari auction berdasarkan ID
-        $auction = Auction::findOrFail($this->auctionId);
-
-        // Mengubah status menjadi 'ready' jika sekarang kurang dari start_time
-        if ($now < $auction->start_time && $auction->status === 'draft') {
-            $auction->status = 'ready';
-        }
-        // Mengubah status menjadi 'on going' jika sekarang antara start_time dan end_time
-        elseif ($now >= $auction->start_time && $now <= $auction->end_time && $auction->status !== 'completed') {
-            $auction->status = 'on going';
-        }
-        // Mengubah status menjadi 'completed' jika sekarang lebih dari end_time
-        elseif ($now > $auction->end_time && $auction->status !== 'completed') {
-            $auction->status = 'completed';
+        // Abaikan status 'draft' dan 'completed'
+        if (in_array($auction->status, ['draft', 'completed'])) {
+            return;
         }
 
-        // Simpan perubahan status
-        $auction->save();
+        // Jika status 'ready'
+        if ($auction->status === 'ready') {
+            if ($now >= $auction->start_time) {
+                $auction->status = 'on going';
+                $auction->save();
+            }
+        } elseif ($auction->status === 'on going') {
+            if ($now >= $auction->end_time) {
+                $auction->status = 'completed';
+                $auction->save();
+            }
+        }
     }
 }

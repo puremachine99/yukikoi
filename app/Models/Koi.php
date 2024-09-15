@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Ember;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Koi extends Model
 {
@@ -46,5 +47,15 @@ class Koi extends Model
     public function certificates()
     {
         return $this->hasMany(Certificate::class, 'koi_id', 'id');
+    }
+
+    public function bid()
+    {
+        return $this->hasMany(Bid::class, 'koi_id', 'user_id');
+    }
+
+    public function ember()
+    {
+        return $this->belongsToMany(Ember::class);
     }
 }

@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('marked_kois', function (Blueprint $table) {
+        Schema::create('embers', function (Blueprint $table) {
             $table->id();
             $table->string('koi_id'); // Kolom koi_id sebagai string, agar sesuai dengan kolom id di tabel kois
             $table->unsignedBigInteger('user_id'); // Foreign key dari tabel users
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('marked_kois');
+        Schema::dropIfExists('embers');
     }
 };

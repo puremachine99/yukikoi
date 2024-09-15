@@ -7,7 +7,10 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\AuctionController;
+use App\Http\Controllers\EmberController;
+use App\Http\Controllers\IkanController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\MarkedKoiController;
 
 
 
@@ -16,7 +19,7 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 // Rute umum
 Route::get('/', [HomeController::class, 'index'])->name('home');
-
+Route::post('/inember', [EmberController::class, 'store'])->name('ember.store');
 // Rute Auction
 Route::middleware(['auth'])->group(function () {
     Route::get('/auctions', [AuctionController::class, 'index'])->name('auctions.index');
@@ -31,6 +34,9 @@ Route::middleware(['auth'])->group(function () {
 
 Route::get('/auctions/ongoing', [AuctionController::class, 'onGoingAuctions'])->name('auctions.ongoing');
 Route::get('/fetch-auctions', [AuctionController::class, 'fetchAuctions'])->name('fetch.auctions');
+Route::post('/auctions/status', [AuctionController::class, 'checkStatus'])->name('auctions.checkStatus');
+
+
 // Akhir Rute Auction
 
 // Rute Koi
@@ -41,6 +47,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/koi/{auction_code}/edit', [KoiController::class, 'edit'])->name('koi.edit');
     Route::put('/koi/{auction_code}', [KoiController::class, 'update'])->name('koi.update');
     Route::delete('/koi/{auction_code}', [KoiController::class, 'destroy'])->name('koi.destroy');
+    Route::get('/koi/{id}/bid', [KoiController::class, 'show'])->name('koi.show');
 });
 
 // Rute untuk bid (umum dan khusus login)
@@ -50,14 +57,20 @@ Route::middleware('auth')->post('/bids/{auction}/{koi}', [BidController::class, 
 
 // Rute Media
 
+// Rute Ikan
+Route::resource('ikan', IkanController::class);
+
+
 // Rute profile (umum dan login)
-Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
 Route::middleware('auth')->group(function () {
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::post('/profile/become-seller', [ProfileController::class, 'becomeSeller'])->name('profile.becomeSeller');
 });
+Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
+Route::get('/profile/{id}', [ProfileController::class, 'show'])->name('profile.show');
+
 
 // Resource routes for other controllers
 Route::resource('users', UserController::class);

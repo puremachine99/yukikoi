@@ -12,7 +12,7 @@ class Bid extends Model
         'auction_id',
         'koi_id',
         'user_id',
-        'bid_amount',
+        'amount',
         'is_winner'
     ];
 

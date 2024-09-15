@@ -15,8 +15,12 @@
                     <x-nav-link :href="route('home')" :active="request()->routeIs('home')">
                         {{ __('Home') }}
                     </x-nav-link>
+                    {{-- <x-nav-link :href="route('ikan')" :active="request()->routeIs('ikan.index')"> --}}
+                    <x-nav-link>
+                        {{ __('Koi') }}
+                    </x-nav-link>
                     <x-nav-link :href="route('auctions.ongoing')" :active="request()->routeIs('auctions.ongoing')">
-                        {{ __('Live Lelang') }}
+                        {{ __('Emberku') }}
                     </x-nav-link>
 
 
@@ -57,7 +61,7 @@
 
                         <x-slot name="content">
                             <!-- Profile Link -->
-                            <x-dropdown-link :href="route('profile.edit')">
+                            <x-dropdown-link :href="route('profile.index')">
                                 {{ __('Profile') }}
                             </x-dropdown-link>
                             <!-- Lelangku Link -->

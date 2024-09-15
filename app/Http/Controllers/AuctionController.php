@@ -3,14 +3,26 @@
 namespace App\Http\Controllers;
 
 use Log;
+use App\Models\Koi;
 use App\Models\User;
 use App\Models\Auction;
+use App\Models\MarkedKoi;
 use Illuminate\Http\Request;
 use App\Jobs\UpdateAuctionStatus;
+use App\Models\Ember;
 use Illuminate\Support\Facades\Auth;
 
 class AuctionController extends Controller
 {
+
+    // AuctionController.php
+    public function checkStatus()
+    {
+        // Mengambil status dan auction_code dari database
+        $auctions = Auction::select('auction_code', 'status')->get();
+        return view('test', compact('auctions'));
+    }
+
     public function fetchAuctions(Request $request)
     {
         $query = Auction::query();
@@ -44,21 +56,18 @@ class AuctionController extends Controller
         return view('auctions.partials.list', compact('auctions'))->render();
     }
 
-    public function startAuction(Request $request, $auctionCode)
-    {
-        // \Log::info('Start Auction button pressed for Auction Code: ' . $auctionCode);
+    public function startAuction($auction_code)
+{
+    $auction = Auction::where('auction_code', $auction_code)->firstOrFail();
 
-        // Cari auction berdasarkan auction_code
-        $auction = Auction::where('auction_code', $auctionCode)->firstOrFail();
-
-        // Dispatch job untuk memperbarui status auction
-        UpdateAuctionStatus::dispatch($auction->id);
-
-        // \Log::info('Job dispatched for Auction Code: ' . $auctionCode);
-
-        // Redirect ke halaman sebelumnya dengan pesan sukses
-        return redirect()->back()->with('success', 'Auction is being started!');
+    // Ubah status dari 'draft' menjadi 'ready'
+    if ($auction->status === 'draft') {
+        $auction->status = 'ready';
+        $auction->save();
     }
+
+    return redirect()->route('auctions.index')->with('success', 'Lelang berhasil dimulai!');
+}
 
     public function onGoingAuctions()
     {
@@ -163,21 +172,25 @@ class AuctionController extends Controller
         return redirect()->route('auctions.index')->with('success', 'Auction created successfully!');
     }
 
-
-    public function show($auctionCode)
+    public function show($auction_code)
     {
-        $auction = Auction::where('auction_code', $auctionCode)->firstOrFail();
+        // Ambil data auction berdasarkan auction_code dan relasi ke user dan koi
+        $auction = Auction::where('auction_code', $auction_code)
+            ->with(['user', 'koi']) // Ambil relasi ke user dan koi
+            ->firstOrFail();
 
-        // Pastikan user yang sedang login adalah pemilik lelang
-        if (Auth::id() !== $auction->user_id) {
-            abort(403, 'Unauthorized action.');
-        }
+        // Ambil data koi dari lelang yang sedang berlangsung
+        $kois = $auction->koi;
 
-        return view('auctions.show', compact('auction'));
+        // Ambil user ID yang sedang login
+        $user_id = Auth::id();
+
+        // Ambil koi yang sudah di-mark oleh user
+        $ember = Ember::where('user_id', $user_id)->pluck('koi_id')->toArray();
+
+        // Kembalikan view dengan data auction, koi, dan user pemilik lelang
+        return view('auctions.show', compact('kois', 'auction', 'auction_code','ember'));
     }
-
-
-
     /**
      * Show the form for editing the specified resource.
      */
@@ -233,10 +246,6 @@ class AuctionController extends Controller
         return redirect()->route('auctions.index')->with('success', 'Lelang berhasil diperbarui!');
     }
 
-
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy($auctionCode)
     {
         $auction = Auction::where('auction_code', $auctionCode)->firstOrFail();

@@ -63,7 +63,7 @@ class User extends Authenticatable
         return $this->hasMany(Bid::class);
     }
     
-    public function markedKois()
+    public function embers()
     {
         return $this->belongsToMany(Koi::class, 'marked_kois')->withTimestamps();
     }

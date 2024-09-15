@@ -50,7 +50,7 @@
                             </option>
                             <option value="ready" {{ request('status') == 'ready' ? 'selected' : '' }}>Ready
                             </option>
-                            <option value="on_going" {{ request('status') == 'on_going' ? 'selected' : '' }}>On
+                            <option value="on going" {{ request('status') == 'on going' ? 'selected' : '' }}>On
                                 Going</option>
                             <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>
                                 Completed</option>
@@ -72,7 +72,7 @@
                 </div>
 
                 <!-- Bagian Daftar Lelang -->
-                <div id="auction-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div id="auction-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     @if ($auctions->isEmpty())
                         <p class="text-center col-span-4 text-zinc-600 dark:text-zinc-400">Tidak ada data.</p>
                     @else
@@ -108,9 +108,6 @@
                                 success: function(response) {
                                     // Update daftar lelang (bagian #auction-list)
                                     $('#auction-list').html($(response).find('#auction-list').html());
-
-                                    // Update pagination (bagian pagination)
-                                    $('.mt-4').html($(response).find('.mt-4').html());
                                 },
                                 error: function(xhr) {
                                     alert("Gagal mengambil data lelang.");
@@ -129,6 +126,20 @@
 
     <!-- Script untuk SweetAlert Konfirmasi Hapus -->
     <script>
+        document.querySelector('#searchInput').addEventListener('input', function() {
+            let searchTerm = this.value.toLowerCase();
+    
+            // Periksa apakah .auction-item ada di DOM
+            document.querySelectorAll('.auction-item').forEach(function(item) {
+                let searchData = item.getAttribute('data-search').toLowerCase(); // Pastikan data-search juga lowercase
+                if (searchData.includes(searchTerm)) {
+                    item.style.display = ''; // Tampilkan item
+                } else {
+                    item.style.display = 'none'; // Sembunyikan item
+                }
+            });
+        });
+    
         function deleteAuction(auctionId) {
             // Tampilkan modal konfirmasi dengan SweetAlert
             Swal.fire({
@@ -147,16 +158,17 @@
                     if (inputValue !== 'Hapus') {
                         Swal.showValidationMessage(
                             `Masukkan kata "Hapus" dengan benar untuk menghapus!`
-                        )
+                        );
+                        return false;
                     }
                 }
             }).then((result) => {
-                if (result.isConfirmed) {
+                if (result.isConfirmed && result.value === 'Hapus') {
                     // Lakukan aksi penghapusan dengan fetch
                     fetch(`/auctions/${auctionId}`, {
                             method: 'DELETE',
                             headers: {
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}', // CSRF Token dari Laravel
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), // CSRF Token dari Laravel
                                 'Content-Type': 'application/json'
                             }
                         })
@@ -186,7 +198,8 @@
                             console.error(error);
                         });
                 }
-            })
+            });
         }
     </script>
+    
 </x-app-layout>

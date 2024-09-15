@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('media', function (Blueprint $table) {
             $table->id(); // Primary key untuk media
             $table->string('koi_id'); // Foreign key dari tabel koi (id dari tabel kois)
-            $table->string('url_media'); // URL atau path media
-            $table->enum('media_type', ['photo', 'video']); // Jenis media (foto atau video)
-            $table->timestamps(); // Kolom created_at dan updated_at
+            $table->string('url_media'); 
+            $table->enum('media_type', ['photo', 'video']); 
+            $table->timestamps(); 
             // Foreign key constraint untuk koi_id
             $table->foreign('koi_id')->references('id')->on('kois')->onDelete('cascade');
         });

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Koi;
+use App\Models\User;
 use Illuminate\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,12 +22,36 @@ class ProfileController extends Controller
 
         return Redirect::route('profile.edit')->with('status', 'Anda sekarang menjadi seller!');
     }
-    public function show()
+    public function index(): RedirectResponse
     {
-        $user = auth()->user();  // Mendapatkan user yang sedang login
-        return view('profile.show', compact('user'));
+
+        $user = Auth::user();
+        return Redirect::route('profile.show', $user->id);
     }
 
+    public function show($id)
+    {
+        // Ambil user beserta lelang dan koi yang dimiliki
+        $user = User::with([
+            'auctions.koi.media' // Ambil auctions, koi dalam auction, dan media koi
+        ])->findOrFail($id);
+    
+        // Ambil lelang-lelang dari user beserta total keuntungannya
+        $auctions = $user->auctions;
+    
+        // Ambil koi-koi dari lelang yang dimiliki oleh user
+        $kois = Koi::whereHas('auction', function ($query) use ($user) {
+            $query->where('user_id', $user->id);
+        })->with(['media' => function ($query) {
+            $query->where('media_type', 'photo'); // Hanya ambil media yang berupa foto
+        }])->get();
+        
+        
+    
+        // Kembalikan data ke view
+        return view('profile.show', compact('user', 'kois', 'auctions'));
+    }
+    
 
     /**
      * Display the user's profile form.

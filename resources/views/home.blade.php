@@ -113,7 +113,7 @@
                                 {{ __('Tidak ada lelang yang sedang berlangsung.') }}</p>
                         @else
                             @foreach ($auctions as $auction)
-                                <a href="{{ route('auctions.show', ['auction' => $auction->id]) }}"
+                                <a href="{{ route('auctions.show', ['auction_code' => $auction->auction_code]) }}"
                                     class="block border rounded-lg p-4 dark:bg-zinc-700 hover:shadow-lg transition">
                                     <!-- Gambar Banner atau Placeholder -->
                                     @if ($auction->banner)

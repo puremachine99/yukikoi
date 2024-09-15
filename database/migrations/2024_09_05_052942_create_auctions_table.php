@@ -12,10 +12,11 @@ return new class extends Migration
             $table->string('auction_code')->primary(); // Primary key adalah auction_code
             $table->string('title');
             $table->text('description');
-            $table->string('jenis');
-            $table->enum('status', ['draft', 'ready', 'on going', 'completed'])->default('draft');
+            $table->enum('jenis',['reguler','keeping contest','grow out','azukari'])->default('reguler');
+            $table->enum('status', ['draft', 'pending', 'rejected', 'ready', 'on going', 'completed'])->default('draft');
             $table->timestamp('start_time');
-            $table->timestamp('end_time')->nullable();
+            $table->datetime('end_time')->nullable();
+            $table->dateTime('contest_time')->nullable();
             $table->string('banner')->nullable();
             $table->unsignedBigInteger('user_id'); // Foreign key ke users table
             $table->timestamps();
