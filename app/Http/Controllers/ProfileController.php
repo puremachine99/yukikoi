@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Bid;
 use App\Models\Koi;
 use App\Models\User;
+use App\Models\Auction;
 use Illuminate\View\View;
+use App\Models\Certificate;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\RedirectResponse;
@@ -22,6 +26,7 @@ class ProfileController extends Controller
 
         return Redirect::route('profile.edit')->with('status', 'Anda sekarang menjadi seller!');
     }
+
     public function index(): RedirectResponse
     {
 
@@ -31,42 +36,115 @@ class ProfileController extends Controller
 
     public function show($id)
     {
-        // Ambil user beserta lelang dan koi yang dimiliki
+        // Ambil user beserta auctions, kois, bids, dan media dengan eager loading
         $user = User::with([
-            'auctions.koi.media' // Ambil auctions, koi dalam auction, dan media koi
+            'auctions.koi.media' => function ($query) {
+                $query->where('media_type', 'photo'); // Hanya media yang berupa foto
+            },
+            'auctions.koi.bids' => function ($query) {
+                $query->latest(); // Urutkan bid dari yang terakhir
+            }
         ])->findOrFail($id);
-    
-        // Ambil lelang-lelang dari user beserta total keuntungannya
-        $auctions = $user->auctions;
-    
-        // Ambil koi-koi dari lelang yang dimiliki oleh user
-        $kois = Koi::whereHas('auction', function ($query) use ($user) {
-            $query->where('user_id', $user->id);
-        })->with(['media' => function ($query) {
-            $query->where('media_type', 'photo'); // Hanya ambil media yang berupa foto
-        }])->get();
-        
-        
-    
-        // Kembalikan data ke view
-        return view('profile.show', compact('user', 'kois', 'auctions'));
-    }
-    
 
-    /**
-     * Display the user's profile form.
-     */
+        // Ambil semua lelang yang dimiliki oleh user
+        $auctions = $user->auctions;
+
+        // Eager load koi, media, dan bids untuk lelang yang dimiliki user
+        $kois = Koi::whereHas('auction', function ($query) use ($user) {
+            $query->where('user_id', $user->id)
+                ->whereIn('status', ['on going', 'ready', 'completed']); // Filter status lelang
+        })->with([
+            'media' => function ($query) {
+                $query->where('media_type', 'photo'); // Hanya media yang berupa foto
+            },
+            'bids' => function ($query) {
+                $query->latest(); // Urutkan bid dari yang terakhir
+            }
+        ])->get();
+
+        // Hitung jumlah total bid, total bid terakhir, dan periksa pemenang atau bid BIN
+        $totalBids = $kois->mapWithKeys(function ($koi) {
+            $winnerBid = $koi->bids->firstWhere('is_win', true); // Ambil bid yang menjadi pemenang
+
+            return [
+                $koi->id => [
+                    'total_bids' => $koi->bids->count(),
+                    'latest_bid' => $koi->bids->isNotEmpty() ? $koi->bids->first()->amount : $koi->open_bid,
+                    'has_winner' => $winnerBid ? true : false,
+                    'winner_name' => $winnerBid ? $winnerBid->user->name : null,
+                ]
+            ];
+        });
+
+        // Hitung total keuntungan per auction berdasarkan latest_bid dari tiap koi
+        $auctions = $auctions->map(function ($auction) {
+            $totalProfit = $auction->koi->sum(function ($koi) {
+                if ($koi->bids->isNotEmpty()) {
+                    return optional($koi->bids->first())->amount ?? 0;
+                }
+                return 0;
+            });
+            $auction->total_profit = $totalProfit;
+            return $auction;
+        });
+
+        // Statistik user (misalnya, ini untuk ditampilkan di view)
+        $userStats = [
+            'lelang_dibuat' => Auction::where('user_id', $user->id)->count(),
+            'lelang_diikuti' => Bid::where('user_id', $user->id)
+                ->whereHas('koi.auction')
+                ->distinct('koi_id')
+                ->count(), // Jumlah lelang yang diikuti user
+            'koi_dimenangkan' => Bid::where('user_id', $user->id)
+                ->where('is_win', true)
+                ->count(), // Jumlah koi yang dimenangkan
+            'jumlah_koi' => $kois->count(), // Jumlah koi yang dimiliki user
+            'jumlah_sertifikat' => Certificate::whereHas('koi.auction', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })->count(), // Jumlah sertifikat koi
+            'jumlah_pengeluaran' => Bid::where('user_id', $user->id)
+                ->where('is_win', true)
+                ->sum('amount'), // Total uang yang dihabiskan untuk membeli koi
+
+            // Tambahan statistik
+            'koi_terdaftar' => Koi::whereHas('auction', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })->count(), // Jumlah koi terlelang
+            'koi_terlelang' => Bid::whereHas('koi.auction', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })->where('is_win', true)->count(), // Jumlah koi terlelang
+
+            'jumlah_pendapatan' => Bid::whereHas('koi.auction', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })->sum('amount'), // Jumlah total pendapatan dari lelang
+
+            'jumlah_kontest_diikuti' => Auction::where('user_id', $user->id)
+                ->whereIn('jenis', ['keeping_contest', 'grow_out'])
+                ->count(), // Jumlah kontes (KC/GO) yang diikuti
+
+            'jumlah_sniping' => Bid::where('user_id', $user->id)
+                ->where('is_sniping', true)
+                ->count(), // Jumlah bid yang dilakukan dalam waktu sniping
+
+            'jumlah_menang_sniping' => Bid::where('user_id', $user->id)
+                ->where('is_win', true)
+                ->where('is_sniping', true)
+                ->count(), // Jumlah menang bid dalam waktu sniping
+        ];
+
+        // Kirim data ke view
+        return view('profile.show', compact('user', 'kois', 'auctions', 'totalBids', 'userStats'));
+    }
+
 
     public function edit(Request $request): View
     {
-        return view('profile.edit', [
-            'user' => $request->user(),
-        ]);
+        $user = $request->user();
+        $addresses = $user->addresses; // Pastikan relasi sudah ada di model User
+
+        return view('profile.edit', compact('user', 'addresses'));
     }
 
-    /**
-     * Update the user's profile information.
-     */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
         $user = $request->user();
@@ -91,7 +169,7 @@ class ProfileController extends Controller
             $profileFile = $user->profile_photo;
         }
 
-        // Update user information
+        // Update user information, including bio and social contacts
         $user->update([
             'name' => $request->name,
             'email' => $request->email,
@@ -102,6 +180,10 @@ class ProfileController extends Controller
             'nik' => $request->nik,
             'ktp_photo' => $ktpFile,
             'profile_photo' => $profileFile,
+            'bio' => $request->bio,
+            'whatsapp' => $request->whatsapp,
+            'instagram' => $request->instagram,
+            'youtube' => $request->youtube,
         ]);
 
         // Reset email_verified_at jika email diubah
@@ -114,9 +196,6 @@ class ProfileController extends Controller
 
 
 
-    /**
-     * Delete the user's account.
-     */
     public function destroy(Request $request): RedirectResponse
     {
         $request->validateWithBag('userDeletion', [

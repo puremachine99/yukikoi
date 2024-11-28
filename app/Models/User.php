@@ -10,6 +10,19 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
+    // Role constant biar ceknya enak
+    const ROLE_GUEST = 'guest';
+    const ROLE_BIDDER = 'bidder';
+    const ROLE_SELLER = 'seller';
+    const ROLE_PRIORITY_SELLER = 'priority_seller';
+    const ROLE_ADMIN = 'admin';
+
+    // Verifikasi role pengguna
+    public function isRole($role)
+    {
+        return $this->role === $role;
+    }
+
     use HasFactory, Notifiable;
 
     /**
@@ -20,6 +33,8 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'instagram',
+        'youtube',
         'password',
         'farm_name',
         'address',
@@ -28,6 +43,7 @@ class User extends Authenticatable
         'nik',
         'profile_photo',
         'is_seller',
+        'bio',
     ];
 
     /**
@@ -62,9 +78,47 @@ class User extends Authenticatable
     {
         return $this->hasMany(Bid::class);
     }
-    
+
     public function embers()
     {
         return $this->belongsToMany(Koi::class, 'marked_kois')->withTimestamps();
+    }
+
+    // follow dan follower
+    public function followers()
+    {
+        return $this->belongsToMany(User::class, 'follows', 'following_id', 'follower_id');
+    }
+
+    // ambil user2 yang di follow kamu
+    public function followings()
+    {
+        return $this->belongsToMany(User::class, 'follows', 'follower_id', 'following_id');
+    }
+
+    // cek user follow user lain gak?
+    public function isFollowing($userId)
+    {
+        return $this->followings()->where('following_id', $userId)->exists();
+    }
+
+    // Cek jika user difollow orang lain
+    public function isFollowedBy($userId)
+    {
+        return $this->followers()->where('follower_id', $userId)->exists();
+    }
+
+    public function isPrioritySeller()
+    {
+        return $this->is_priority_seller && $this->subscription_end > now();
+    }
+
+    public function subscriptions()
+    {
+        return $this->hasMany(Subscription::class);
+    }
+    public function addresses()
+    {
+        return $this->hasMany(UserAddress::class);
     }
 }

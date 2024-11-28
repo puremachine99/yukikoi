@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,21 +17,19 @@ class Bid extends Model
         'is_winner'
     ];
 
-    // Relasi ke Auction
+    // Model Bid
     public function auction()
     {
         return $this->belongsTo(Auction::class);
     }
 
-    // Relasi ke Koi
     public function koi()
     {
-        return $this->belongsTo(Koi::class);
+        return $this->belongsTo(Koi::class, 'koi_id', 'id');
     }
 
-    // Relasi ke User (bidder)
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class,'user_id');
     }
 }

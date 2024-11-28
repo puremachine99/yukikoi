@@ -6,7 +6,7 @@
 
         <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
             {{ __("Update your account's profile information and email address.") }}
-        </p> 
+        </p>
     </header>
 
     <form id="send-verification" method="post" action="{{ route('verification.send') }}">
@@ -22,7 +22,7 @@
                 alt="Profile Photo" class="object-cover mb-4" style="height: 100px; width: auto;">
         </div>
         <div>
-            <x-input-label for="profile_photo" :value="__('Profile Photo')" />
+            <x-input-label for="profile_photo" :value="__('Farm Logo')" />
             <input id="profile_photo" name="profile_photo" type="file" class="mt-1 block w-full" accept="image/*"
                 onchange="previewProfilePhoto(event)" />
             <x-input-error class="mt-2" :messages="$errors->get('profile_photo')" />
@@ -41,13 +41,35 @@
                 required autocomplete="username" />
             <x-input-error class="mt-2" :messages="$errors->get('email')" />
         </div>
+        <div>
+            <x-input-label for="instagram" :value="__('Instagram')" />
+            <x-text-input id="instagram" name="instagram" type="text" class="mt-1 block w-full" :value="old('instagram', $user->instagram)"
+                autocomplete="instagram" />
+            <x-input-error class="mt-2" :messages="$errors->get('instagram')" />
+        </div>
 
+        <div>
+            <x-input-label for="youtube" :value="__('YouTube')" />
+            <x-text-input id="youtube" name="youtube" type="text" class="mt-1 block w-full" :value="old('youtube', $user->youtube)"
+                autocomplete="youtube" />
+            <x-input-error class="mt-2" :messages="$errors->get('youtube')" />
+        </div>
         <!-- Tambahkan Field Baru di Sini -->
         <div>
             <x-input-label for="farm_name" :value="__('Farm Name')" />
             <x-text-input id="farm_name" name="farm_name" type="text" class="mt-1 block w-full" :value="old('farm_name', $user->farm_name)"
                 required autocomplete="farm-name" />
             <x-input-error class="mt-2" :messages="$errors->get('farm_name')" />
+        </div>
+        {{-- bio --}}
+        <div>
+            <x-input-label for="bio" :value="__('Bio')" />
+            <x-textarea id="bio" name="bio" rows="3" maxlength="160" class="mt-1 block w-full"
+                oninput="updateCharacterCount()">{{ old('bio', $user->bio) }}</x-textarea>
+            <div class="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+                <span id="charCount">160</span> karakter tersisa.
+            </div>
+            <x-input-error class="mt-2" :messages="$errors->get('bio')" />
         </div>
 
         <div>
@@ -65,8 +87,8 @@
         </div>
         <div>
             <x-input-label for="nik" :value="__('NIK')" />
-            <x-text-input id="nik" name="nik" type="text" maxlength="16" class="mt-1 block w-full" :value="old('nik', $user->nik)"
-                required autocomplete="nik" />
+            <x-text-input id="nik" name="nik" type="text" maxlength="16" class="mt-1 block w-full"
+                :value="old('nik', $user->nik)" required autocomplete="nik" />
             <x-input-error class="mt-2" :messages="$errors->get('nik')" />
         </div>
 
@@ -124,5 +146,18 @@
             output.src = reader.result;
         };
         reader.readAsDataURL(event.target.files[0]);
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        // Inisialisasi jumlah karakter saat halaman dimuat
+        updateCharacterCount();
+    });
+
+    function updateCharacterCount() {
+        const bio = document.getElementById('bio');
+        const charCount = document.getElementById('charCount');
+        const maxLength = bio.getAttribute('maxlength');
+        const currentLength = bio.value.length;
+        charCount.textContent = maxLength - currentLength;
     }
 </script>

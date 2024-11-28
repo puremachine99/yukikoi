@@ -1,13 +1,13 @@
-<div class="koi-item relative border rounded-lg p-4 dark:bg-zinc-700 dark:border-zinc-600" data-jenis="{{ strtolower($koi->jenis_koi) }}"
-    data-gender="{{ strtolower($koi->gender) }}"
+<div class="koi-item relative border rounded-lg p-4 dark:bg-zinc-700 dark:border-zinc-600"
+    data-jenis="{{ strtolower($koi->jenis_koi) }}" data-gender="{{ strtolower($koi->gender) }}"
     data-search="{{ strtolower($koi->judul) }} {{ strtolower($koi->jenis_koi) }} {{ strtolower($koi->gender) }} {{ strtolower($koi->ukuran) }} {{ strtolower($koi->breeder) }}">
-  <!-- Carousel untuk gambar -->
+    <!-- Carousel untuk gambar -->
     <div x-data="{
         activeSlide: 0,
         slides: [
             @foreach ($koi->media->where('media_type', 'photo') as $media)
                 '{{ asset('storage/' . $media->url_media) }}', @endforeach
-            ]
+        ]
         }" class="relative w-full overflow-visible rounded-lg shadow-lg">
         <!-- Carousel wrapper -->
         <div class="relative" style="height: 460px">
@@ -76,9 +76,10 @@
     </div>
 
     <!-- Detail Koi -->
-    <h3 class="text-lg font-semibold mt-4 uppercase">{{ $koi->kode_ikan }}. {{ $koi->judul }} {{ $koi->ukuran }}
-        cm
-        - [{{ $koi->gender }}]</h3>
+    <a href="{{ route('koi.show', ['id' => $koi->id]) }}">
+        <h3 class="text-lg font-semibold mt-4 uppercase">{{ $koi->kode_ikan }}. {{ $koi->judul }}
+            {{ $koi->ukuran }} cm - [{{ $koi->gender }}]</h3>
+    </a>
     <p class="text-sm">{{ __('Jenis: ') . $koi->jenis_koi }}</p> <!-- Jenis Koi ditambahkan sebagai detail -->
     <hr class="mb-2 mt-2 text-zinc-600 dark:text-zinc-300">
     <!-- Kolom 2 baris untuk Open Bid dan Kelipatan Bid -->

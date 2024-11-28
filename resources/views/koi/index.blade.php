@@ -27,9 +27,6 @@
         </div>
     </x-slot>
 
-
-
-
     <div class="py-6" x-data="{ open: false }">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
             <div class="p-4 sm:p-8 bg-white dark:bg-zinc-800 shadow sm:rounded-lg">
@@ -38,7 +35,7 @@
                     <input type="text" id="searchKoi" placeholder="Cari Koi..."
                         class="border border-gray-300 dark:border-zinc-600 rounded-md p-2 w-1/3 dark:bg-zinc-800 dark:text-zinc-100"
                         oninput="filterKois()" />
-                
+
                     <!-- Filter Jenis Koi -->
                     <select id="filterJenisKoi"
                         class="border border-gray-300 dark:border-zinc-600 rounded-md p-2 w-1/3 dark:bg-zinc-800 dark:text-zinc-100"
@@ -50,7 +47,7 @@
                         <option value="Shiro Utsuri">Shiro Utsuri</option>
                         <!-- Tambahkan opsi lainnya -->
                     </select>
-                
+
                     <!-- Filter Gender Koi -->
                     <select id="filterGenderKoi"
                         class="border border-gray-300 dark:border-zinc-600 rounded-md p-2 w-1/3 dark:bg-zinc-800 dark:text-zinc-100"
@@ -61,7 +58,7 @@
                         <option value="Unchecked">Unchecked</option>
                     </select>
                 </div>
-                
+
 
                 <div class="container mx-auto px-4">
                     @if ($kois->isEmpty())
@@ -91,51 +88,51 @@
             const searchKoi = document.getElementById('searchKoi').value.toLowerCase();
             const filterJenisKoi = document.getElementById('filterJenisKoi').value;
             const filterGenderKoi = document.getElementById('filterGenderKoi').value;
-    
+
             // Ambil semua item Koi yang ada di halaman
             const koiItems = document.querySelectorAll('.koi-item');
             let isAnyVisible = false;
-    
+
             koiItems.forEach(item => {
                 const jenis = item.getAttribute('data-jenis').toLowerCase();
                 const gender = item.getAttribute('data-gender').toLowerCase();
                 const searchData = item.getAttribute('data-search').toLowerCase();
-    
+
                 let isVisible = true;
-    
+
                 // Cek berdasarkan pencarian teks
                 if (searchKoi && !searchData.includes(searchKoi)) {
                     isVisible = false;
                 }
-    
+
                 // Cek berdasarkan filter jenis koi
                 if (filterJenisKoi && jenis !== filterJenisKoi.toLowerCase()) {
                     isVisible = false;
                 }
-    
+
                 // Cek berdasarkan filter gender koi
                 if (filterGenderKoi && gender !== filterGenderKoi.toLowerCase()) {
                     isVisible = false;
                 }
-    
+
                 // Tampilkan atau sembunyikan elemen berdasarkan hasil filter
                 item.style.display = isVisible ? 'block' : 'none';
-    
+
                 if (isVisible) {
                     isAnyVisible = true;
                 }
             });
-    
+
             // Tampilkan pesan "Data tidak ditemukan" jika tidak ada elemen yang terlihat
             document.getElementById('noDataMessage').style.display = isAnyVisible ? 'none' : 'block';
         }
-    
+
         // Fungsi delete untuk Koi
         document.querySelectorAll('.delete-koi-btn').forEach(button => {
             button.addEventListener('click', function() {
                 const koiId = this.getAttribute('data-koi-id');
                 const koiName = this.getAttribute('data-koi-name');
-    
+
                 Swal.fire({
                     title: 'Yakin mau hapus ikan?',
                     text: `Nama Koi: ${koiName}`,
@@ -152,7 +149,7 @@
                 });
             });
         });
-    
+
         function deleteKoi(koiId) {
             fetch(`/koi/${koiId}`, {
                     method: 'DELETE',
@@ -170,7 +167,7 @@
                     }
                 });
         }
-    
+
         let scrollPosition = 0;
         // Script to handle tooltip display on hover
         document.querySelectorAll('button').forEach(button => {
@@ -187,20 +184,20 @@
                 }
             });
         });
-    
+
         function openModal(imageUrl) {
             scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
             document.getElementById('certImage').src = imageUrl;
             document.getElementById('certModal').classList.remove('hidden');
             document.body.style.overflow = 'hidden';
         }
-    
+
         function closeModal() {
             document.getElementById('certModal').classList.add('hidden');
             document.body.style.overflow = '';
             window.scrollTo(0, scrollPosition);
         }
-    
+
         function openVideoModal(videoUrl) {
             scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
             var video = document.getElementById('modalVideo');
@@ -210,7 +207,7 @@
             document.getElementById('videoModal').classList.remove('hidden');
             document.body.style.overflow = 'hidden';
         }
-    
+
         function closeVideoModal() {
             var video = document.getElementById('modalVideo');
             video.pause();
@@ -220,5 +217,5 @@
             window.scrollTo(0, scrollPosition);
         }
     </script>
-    
+
 </x-app-layout>

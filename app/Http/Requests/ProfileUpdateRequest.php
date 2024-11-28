@@ -16,8 +16,8 @@ class ProfileUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'profile_photo' => ['nullable', 'image', 'mimes:png,jpg', 'max:2048'],
-            'ktp_photo' => ['nullable', 'image', 'mimes:png,jpg', 'max:2048'],
+            'profile_photo' => ['nullable', 'image', 'mimes:png,jpg', 'max:1024'],
+            'ktp_photo' => ['nullable', 'image', 'mimes:png,jpg', 'max:1024'],
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $this->user()->id],
             'farm_name' => ['required', 'string', 'max:255'],

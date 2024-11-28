@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Bid;
 use App\Models\Koi;
 use App\Models\Media;
 use App\Models\Auction;
@@ -165,15 +166,49 @@ class KoiController extends Controller
     /**
      * Display the specified resource.
      */
+
+
     public function show($id)
     {
-        // Ambil koi beserta relasinya
+        // Ambil Koi dengan eager loading yang lebih lengkap dan filter khusus pada auction, bids, dan chats
         $koi = Koi::with([
-            'auction.user',  // Auction dan relasinya ke User
+            'auction' => function ($query) {
+                $query->with('user:id,name,phone_number,city,farm_name,address'); // Relasi Auction dan User
+            },
+            'bids' => function ($query) {
+                $query->with('user:id,name,phone_number,profile_photo') // Relasi Bids dan User
+                    ->orderBy('created_at', 'asc'); // Urutkan bids
+            },
+            'chats' => function ($query) {
+                $query->with('user:id,name,profile_photo') // Relasi Chats dan User
+                    ->orderBy('created_at', 'asc'); // Urutkan chats
+            },
             'media',         // Media terkait koi
             'certificates',  // Sertifikat koi
-            'bid',           // Bid yang terkait
-        ])->findOrFail($id);
+        ])
+            ->findOrFail($id); // Dapatkan koi yang sesuai
+
+        // Ambil waktu saat ini
+        $currentDate = \Carbon\Carbon::now();
+
+        // Hitung end_time yang sudah ditambahkan dengan extra_time
+        $adjustedEndTime = \Carbon\Carbon::parse($koi->auction->end_time)
+            ->addMinutes($koi->auction->extra_time);
+
+        // Cek apakah lelang sedang berlangsung
+        $isAuctionOngoing = $adjustedEndTime > $currentDate && $koi->auction->start_time <= $currentDate;
+
+        // Cek apakah lelang berstatus ready tetapi belum dimulai
+        $isAuctionReady = $koi->auction->status === 'ready' && $koi->auction->start_time > $currentDate;
+
+        // Cek apakah sudah ada yang melakukan BIN
+        $isBIN = $koi->bids->where('is_bin', true)->isNotEmpty();
+
+        // Ambil bid terakhir untuk menentukan pemenang (jika ada)
+        $winner = $isBIN ? $koi->bids->where('is_bin', true)->first() : $koi->bids->first();
+
+        // Gabungkan bids dan chats lalu urutkan berdasarkan created_at
+        $history = $koi->bids->concat($koi->chats)->sortBy('created_at');
 
         // Ambil koi lain di lelang yang sama berdasarkan auction_code
         $koisInSameAuction = Koi::where('auction_code', $koi->auction_code)
@@ -184,25 +219,23 @@ class KoiController extends Controller
             ->get();
 
         // Ambil ikan sejenis berdasarkan category
-        $koisSameCategory = Koi::where('jenis_koi', $koi->category)
+        $koisSameCategory = Koi::where('jenis_koi', $koi->jenis_koi)
             ->where('id', '!=', $koi->id) // Kecualikan koi ini
+            ->whereHas('auction', function ($query) {
+                $query->where('status', 'on going'); // Pastikan lelang berstatus on going
+            })
             ->with(['media' => function ($query) {
                 $query->where('media_type', 'photo'); // Ambil hanya media yang berupa foto
             }])
             ->get();
 
-        // Ambil ikan dari seller prioritas (dummy, bisa diganti dengan logika sesuai)
-        // $prioritySellersKois = Koi::whereHas('user', function ($query) {
-        //     $query->where('priority', true); // Hanya seller prioritas
-        // })
-        //     ->with(['media' => function ($query) {
-        //         $query->where('media_type', 'photo'); // Ambil hanya media yang berupa foto
-        //     }])
-        //     ->get();
+        // Cek apakah user yang login adalah seller dari koi ini
+        $isSeller = Auth::id() == $koi->auction->user_id;
 
-        // Kembalikan data ke view
-        return view('koi.show', compact('koi', 'koisInSameAuction', 'koisSameCategory',)); //'prioritySellersKois'));
+        return view('koi.show', compact('koi', 'koisInSameAuction', 'koisSameCategory', 'isAuctionOngoing', 'isAuctionReady', 'winner', 'history', 'isBIN', 'isSeller'));
     }
+
+
 
 
     /**

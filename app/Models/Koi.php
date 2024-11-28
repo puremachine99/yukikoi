@@ -31,31 +31,48 @@ class Koi extends Model
         'breeder', // Breeder info (optional)
     ];
 
-    // Relationship to Auction
+    // Model Koi
     public function auction()
     {
         return $this->belongsTo(Auction::class, 'auction_code', 'auction_code');
     }
 
-    // Relationship to Media
     public function media()
     {
         return $this->hasMany(Media::class, 'koi_id', 'id');
     }
 
-    // Relationship to Certificates
     public function certificates()
     {
         return $this->hasMany(Certificate::class, 'koi_id', 'id');
     }
 
-    public function bid()
+    public function bids()
     {
-        return $this->hasMany(Bid::class, 'koi_id', 'user_id');
+        return $this->hasMany(Bid::class, 'koi_id', 'id');
     }
 
     public function ember()
     {
         return $this->belongsToMany(Ember::class);
+    }
+
+    public function chats()
+    {
+        return $this->hasMany(Chat::class);
+    }
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class, 'koi_id');
+    }
+
+    public function likes()
+    {
+        return $this->hasMany(Like::class, 'koi_id');
+    }
+
+    public function views()
+    {
+        return $this->hasMany(Lihat::class, 'koi_id');
     }
 }

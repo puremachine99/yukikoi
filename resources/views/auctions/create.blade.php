@@ -51,10 +51,11 @@
                         <!-- Jenis Lelang -->
                         <div class="mb-4">
                             <x-select-option :options="[
-                                'reguler' => 'Reguler',
-                                'azukari' => 'Azukari',
-                                'keeping_contest' => 'Keeping Contest',
-                                'grow_out' => 'Grow Out',
+                                'reguler' => 'Reguler (Fee +5%)',
+                                'priority' => 'Lelang Reguler Prioritas (Fee +7.5%)',
+                                'azukari' => 'Azukari (Fee +7.5%)',
+                                'keeping_contest' => 'Keeping Contest (Fee +7.5%)',
+                                'grow_out' => 'Grow Out (Fee +7.5%)',
                             ]" id="jenis" name="jenis"
                                 onchange="toggleContestTime()">
                                 {{ __('Jenis Lelang') }}
