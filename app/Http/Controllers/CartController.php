@@ -142,7 +142,7 @@ class CartController extends Controller
             $transaction->status = 'pending';
             $transaction->external_id = $externalId;
             $transaction->checkout_link = $invoice['invoice_url'];
-            $transaction->save();
+            // $transaction->save();
 
             // Group carts by seller
             $groupedCarts = $cartItems->groupBy(fn($cart) => $cart->koi->auction->user->farm_name ?? 'Tanpa Nama');
@@ -193,30 +193,30 @@ class CartController extends Controller
                     }
 
                     // Buat instance TransactionItem
-                    // $transactionItem = [
-                    //     'transaction_id' => $transaction->id,
-                    //     'koi_id' => $cart->koi_id,
-                    //     'price' => $cart->price,
-                    //     'farm' => $cart->koi->auction->user->farm_name,
-                    //     'shipping_fee' => $request->input("shipping_fees.{$seller}") ?? 0,
-                    //     'shipping_address' => $shippingAddress,
-                    //     'farm_owner_name' => $recipientName,
-                    //     'farm_phone_number' => $phoneNumber,
-                    //     'shipping_group' => $shippingGroup,
-                    // ];
-                    // $transactionItemsArray[] = $transactionItem;
+                    $transactionItem = [
+                        'transaction_id' => $transaction->id,
+                        'koi_id' => $cart->koi_id,
+                        'price' => $cart->price,
+                        'farm' => $cart->koi->auction->user->farm_name,
+                        'shipping_fee' => $request->input("shipping_fees.{$seller}") ?? 0,
+                        'shipping_address' => $shippingAddress,
+                        'farm_owner_name' => $recipientName,
+                        'farm_phone_number' => $phoneNumber,
+                        'shipping_group' => $shippingGroup,
+                    ];
+                    $transactionItemsArray[] = $transactionItem;
                     // Simpan TransactionItem
-                    $transactionItem = new TransactionItem();
-                    $transactionItem->transaction_id = $transaction->id;
-                    $transactionItem->koi_id = $cart->koi_id;
-                    $transactionItem->price = $cart->price;
-                    $transactionItem->farm = $cart->koi->auction->user->farm_name;
-                    $transactionItem->shipping_fee = $request->input("shipping_fees.{$seller}") ?? 0;
-                    $transactionItem->shipping_address = $shippingAddress;
-                    $transactionItem->farm_owner_name = $recipientName;
-                    $transactionItem->farm_phone_number = $phoneNumber;
-                    $transactionItem->shipping_group = $shippingGroup;
-                    $transactionItem->save();
+                    // $transactionItem = new TransactionItem();
+                    // $transactionItem->transaction_id = $transaction->id;
+                    // $transactionItem->koi_id = $cart->koi_id;
+                    // $transactionItem->price = $cart->price;
+                    // $transactionItem->farm = $cart->koi->auction->user->farm_name;
+                    // $transactionItem->shipping_fee = $request->input("shipping_fees.{$seller}") ?? 0;
+                    // $transactionItem->shipping_address = $shippingAddress;
+                    // $transactionItem->farm_owner_name = $recipientName;
+                    // $transactionItem->farm_phone_number = $phoneNumber;
+                    // $transactionItem->shipping_group = $shippingGroup;
+                    // $transactionItem->save();
                 }
             }
 
@@ -233,7 +233,7 @@ class CartController extends Controller
                 'totalAmount' => $totalAmount,      // Total biaya
                 'groupedCarts' => $groupedCarts,    // Grup item per penjual
                 'transaction' => $transaction,      // Simulasi data transaksi
-                //'transactionItems' => $transactionItemsArray,      // Simulasi data transaksi
+                'transactionItems' => $transactionItemsArray,      // Simulasi data transaksi
                 'invoice' => $invoice,              // Simulasi invoice Xendit
             ]);
         } catch (\Exception $e) {

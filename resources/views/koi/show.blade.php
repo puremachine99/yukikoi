@@ -197,14 +197,24 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            fetch(`/koi/{{ $koi->id }}/view`, {
+            const koiId = "{{ $koi->id }}"; // Pastikan $koi sudah tersedia di blade
+            fetch(`/koi/${koiId}/view`, {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                     'Content-Type': 'application/json'
                 }
+            }).then(response => {
+                if (response.ok) {
+                    console.log("View activity recorded successfully");
+                } else {
+                    console.error("Failed to record view activity");
+                }
+            }).catch(error => {
+                console.error("Error:", error);
             });
         });
+
         scrollToBottom();
         // Variabel bid
         const loggedInUserId = parseInt('{{ auth()->id() }}');
@@ -772,7 +782,7 @@
             document.getElementById('minus-btn').addEventListener('click', function() {
                 let currentBid = parseInt(bidAmountInput.value);
                 let minimumBid = parseInt(bidAmountInput.getAttribute(
-                'min')); // Ambil nilai minimum dari attribute 'min'
+                    'min')); // Ambil nilai minimum dari attribute 'min'
 
                 if (currentBid - increment >= minimumBid) {
                     bidAmountInput.value = currentBid - increment;

@@ -117,8 +117,31 @@ class User extends Authenticatable
     {
         return $this->hasMany(Subscription::class);
     }
+
     public function addresses()
     {
         return $this->hasMany(UserAddress::class);
+    }
+
+    public function achievements()
+    {
+        return $this->belongsToMany(Achievement::class, 'user_achievements');
+    }
+    public function checkAndAssignAchievements()
+    {
+        $achievements = Achievement::all();
+        foreach ($achievements as $achievement) {
+            // Evaluasi condition
+            if ($this->evaluateAchievementCondition($achievement->condition)) {
+                // Tambahkan achievement ke user
+                $this->achievements()->syncWithoutDetaching([$achievement->id]);
+            }
+        }
+    }
+
+    protected function evaluateAchievementCondition($condition)
+    {
+        // Contoh parsing condition (gunakan eval untuk hal simpel, atau buat parser sendiri untuk complex)
+        return eval("return {$condition};");
     }
 }

@@ -148,8 +148,6 @@
                     </select>
                 </div> --}}
 
-
-
                 <div class="container mx-auto px-4">
                     @if ($kois->isEmpty())
                         <p class="text-zinc-600 dark:text-zinc-400">
@@ -205,48 +203,10 @@
             window.location.href = url;
         }
 
-        function markKoi(koiId, button) {
-            console.log("Menandai Koi dengan ID:", koiId); // Memastikan koiId diterima dengan benar
-            $.ajax({
-                url: "{{ route('ember.store') }}",
-                method: "POST",
-                data: {
-                    _token: "{{ csrf_token() }}",
-                    koi_id: koiId, // Gunakan koiId dari parameter
-                },
-                success: function(response) {
-                    console.log("Response diterima:", response);
-                    if (response.status === 'success' || response.status === 'already_marked') {
-                        // Disable the button if marked successfully or if it's already marked
-                        $(button).prop('disabled', true).addClass('opacity-50 cursor-not-allowed');
-                    }
-                },
-                error: function(jqXHR, textStatus, errorThrown) {
-                    console.error("Terjadi kesalahan:", textStatus, errorThrown); // Log error jika terjadi
-                }
-            });
-        }
-
-
-
 
 
         let scrollPosition = 0;
-        // Script to handle tooltip display on hover
-        document.querySelectorAll('button').forEach(button => {
-            button.addEventListener('mouseenter', () => {
-                const tooltip = button.querySelector('.tooltip-text');
-                if (tooltip) {
-                    tooltip.classList.remove('hidden');
-                }
-            });
-            button.addEventListener('mouseleave', () => {
-                const tooltip = button.querySelector('.tooltip-text');
-                if (tooltip) {
-                    tooltip.classList.add('hidden');
-                }
-            });
-        });
+
 
         function openModal(imageUrl) {
             scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
@@ -296,27 +256,6 @@
 
         // Mengambil end_time dari database dalam format Y-m-d H:i:s
         var endTime = new Date("{{ $auction->end_time }}".replace(/-/g, '/')).getTime();
-
-        var countdownInterval = setInterval(function() {
-            var now = new Date().getTime();
-            var distance = endTime - now;
-
-            // Perhitungan hari, jam, menit, detik dari sisa waktu
-            var days = Math.floor(distance / (1000 * 60 * 60 * 24));
-            var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            var seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-            // Jika sisa waktu masih ada, tampilkan countdown
-            if (distance > 0) {
-                document.getElementById("countdown").innerHTML = days + " hari, " + hours + ":" + minutes + ":" +
-                    seconds + "";
-            } else {
-                // Jika waktu habis, hentikan countdown dan tampilkan "Lelang Berakhir"
-                clearInterval(countdownInterval);
-                document.getElementById("countdown").innerHTML = now + "  |  " + endTime;
-            }
-        }, 1000);
 
         document.addEventListener("DOMContentLoaded", function() {
             // Get elements for filters and koi items

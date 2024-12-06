@@ -65,9 +65,9 @@
                         <p class="text-zinc-600 dark:text-zinc-400">{{ $message ?? __('Belum ada koi di lelang ini.') }}
                         </p>
                     @else
-                        <div id="koiContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div id="koiContainer" class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             @foreach ($kois as $koi)
-                                @include('koi.partials.koi_item', ['koi' => $koi])
+                                <x-koi-card :koi="$koi" :url="route('koi.show', ['id' => $koi->id])" :totalBids="$totalBids[$koi->id] ?? []" />
                             @endforeach
                         </div>
                     @endif

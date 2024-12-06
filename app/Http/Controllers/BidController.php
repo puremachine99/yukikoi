@@ -8,11 +8,14 @@ use App\Models\Koi;
 use App\Models\Cart;
 use App\Events\PlaceBid;
 use App\Events\AuctionWon;
+use App\Models\Achievement;
 use App\Models\Transaction;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Events\ExtraTimeAdded;
 use Xendit\Invoice\InvoiceApi;
+use App\Models\UserAchievement;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Xendit\Invoice\CreateInvoiceRequest;
@@ -130,6 +133,9 @@ class BidController extends Controller
         // Broadcast untuk notifikasi ke semua pengguna di halaman lelang
         broadcast(new AuctionWon($bid))->toOthers();
 
+        // Trigger Achievement terkait BIN
+        $this->checkAchievement($user, $bid);
+
         return response()->json([
             'success' => true,
             'message' => 'BIN berhasil, koi telah dimasukkan ke keranjang',
@@ -137,7 +143,46 @@ class BidController extends Controller
         ]);
     }
 
+    // Tambahkan fungsi untuk evaluasi achievement terkait BIN
+    private function checkAchievement($user, $bid)
+    {
+        // Ambil jumlah BIN yang sudah dilakukan oleh user
+        $binCount = Bid::where('user_id', $user->id)->where('is_bin', true)->count();
 
+        // Achievement terkait BIN
+        $achievements = Achievement::whereIn('condition', ['bin_rookie', 'bin_pro', 'bin_master'])->get();
+
+        foreach ($achievements as $achievement) {
+            switch ($achievement->condition) {
+                case 'bin_rookie': // ID 70
+                    if ($binCount >= 10) {
+                        UserAchievement::firstOrCreate([
+                            'user_id' => $user->id,
+                            'achievement_id' => $achievement->id,
+                        ]);
+                    }
+                    break;
+
+                case 'bin_pro': // ID 71
+                    if ($binCount >= 50) {
+                        UserAchievement::firstOrCreate([
+                            'user_id' => $user->id,
+                            'achievement_id' => $achievement->id,
+                        ]);
+                    }
+                    break;
+
+                case 'bin_master': // ID 72
+                    if ($binCount >= 100) {
+                        UserAchievement::firstOrCreate([
+                            'user_id' => $user->id,
+                            'achievement_id' => $achievement->id,
+                        ]);
+                    }
+                    break;
+            }
+        }
+    }
 
     public function checkBid(Request $request)
     {

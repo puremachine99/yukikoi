@@ -3,6 +3,86 @@
         #socialShare {
             display: none;
         }
+
+        .metallic {
+            background: linear-gradient(45deg,
+                    rgba(153, 153, 153, 0.5) 5%,
+                    rgba(255, 255, 255, 0.5) 10%,
+                    rgba(204, 204, 204, 0.5) 30%,
+                    rgba(221, 221, 221, 0.5) 50%,
+                    rgba(204, 204, 204, 0.5) 70%,
+                    rgba(255, 255, 255, 0.5) 80%,
+                    rgba(153, 153, 153, 0.5) 95%);
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .metallic-button:hover {
+            transform: translateY(-2px);
+        }
+
+        @font-face {
+            font-family: 'OnsenJapanDemoRegular';
+            src: url('/fonts/OnsenJapanDemoRegular.ttf') format('truetype');
+        }
+
+        .vertical-text {
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+            letter-spacing: -0.2rem;
+            z-index: 99;
+            /* Adjust spacing between letters if needed */
+        }
+
+        .vertical-text-jp {
+            font-family: 'OnsenJapanDemoRegular', sans-serif;
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+            letter-spacing: -0.2rem;
+            z-index: 99;
+        }
+
+        .watermarked-image {
+            position: relative;
+            display: inline-block;
+            overflow: hidden;
+        }
+
+        .koi-image {
+            width: 100%;
+            height: auto;
+        }
+
+        .watermark-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.1;
+            /* Adjust opacity to make it look like a watermark */
+            pointer-events: none;
+            /* Make watermark unclickable */
+        }
+
+        .watermark-logo {
+            width: 80%;
+            /* Adjust size as needed */
+            max-width: 500px;
+            height: auto;
+            filter: grayscale(100%);
+            /* Optional: make the watermark grayscale */
+        }
+
+
+        .text-outline {
+            text-shadow: -1px -1px 0 #000,
+                1px -1px 0 #000,
+                -1px 1px 0 #000,
+                1px 1px 0 #000;
+        }
     </style>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-zinc-800 dark:text-zinc-200 leading-tight">
@@ -161,13 +241,24 @@
 
                         <!-- Badge Achievement -->
                         <h2 class="text-md"><b>Achievement :</b></h2>
-                        <div class="mt-4 flex justify-start">
-
-                            <img src="{{ asset('images/kc.png') }}" alt="Achievement Badge"
-                                class="w-auto h-16 mx-auto">
-                            <img src="{{ asset('images/az.png') }}" alt="Achievement Badge"
-                                class="w-auto h-16 mx-auto">
+                        <div class="grid grid-cols-1 gap-4">
+                            @foreach ($user->achievements as $achievement)
+                                <div class="flex items-center p-2 rounded-lg shadow-md metallic"
+                                    style="background-color: {{ $achievement->badge_color }};">
+                                    <!-- Icon Section (1/4) -->
+                                    <div class="w-1/4 flex justify-center border-r-2">
+                                        <i class="fa-solid {{ $achievement->icon }} text-2xl text-slate-800"></i>
+                                    </div>
+                                    <!-- Details Section (3/4) -->
+                                    <div class="w-3/4 pl-3  justify-start items-start ">
+                                        <h3 class="text-md font-semibold text-slate-800">{{ $achievement->name }}</h3>
+                                        <p class="text-xs text-slate-800 opacity-80">{{ $achievement->description }}</p>
+                                    </div>
+                                </div>
+                            @endforeach
                         </div>
+
+
                     </div>
                 </div>
 
@@ -211,135 +302,10 @@
                                 {{ __('Ikan Koi yang Dimiliki Seller') }}</h2>
                             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 @foreach ($kois as $koi)
-                                    <div class="block bg-white dark:bg-zinc-800 rounded-lg shadow-md overflow-hidden relative card-navigate"
-                                        data-url="{{ route('koi.show', ['id' => $koi->id]) }}">
-                                        <div class="relative">
-                                            <img src="{{ asset('storage/' . $koi->media->first()->url_media) }}"
-                                                alt="Koi Image" class="object-cover w-full h-96">
-
-                                            <div
-                                                class="absolute group top-60 right-0 bg-white dark:bg-zinc-700 p-1 px-2 rounded-l-lg shadow-md w-20">
-                                                <!-- Status Lelang dan Jumlah Bids -->
-                                                <div class="text-sm text-gray-700 dark:text-gray-200 mb-1">
-                                                    <span
-                                                        class="font-semibold {{ $koi->auction->status == 'ready' ? 'text-blue-600' : ($koi->auction->status == 'on going' ? ($totalBids[(string) $koi->id]['has_winner'] ? 'text-yellow-600' : 'text-red-600') : 'text-green-500') }}">
-                                                        {{ $koi->auction->status == 'ready' ? 'Belum dimulai' : ($koi->auction->status == 'on going' ? ($totalBids[(string) $koi->id]['has_winner'] ? 'Done' : 'On Going') : 'Complete') }}
-                                                    </span>
-                                                    <div class="text-sm text-gray-700 dark:text-gray-200">
-                                                        <span>{{ $totalBids[(string) $koi->id]['total_bids'] ?? 0 }}x
-                                                            Bids</span>
-                                                    </div>
-                                                </div>
-
-                                                <span
-                                                    class="absolute bottom-full mb-1 w-max px-1 py-0.5 text-xs text-white bg-black rounded hidden group-hover:block transform -translate-x-1/2 left-1/2">
-                                                    {{ $koi->auction->status == 'ready' ? 'Belum Mulai' : ($koi->auction->status == 'on going' ? ($totalBids[(string) $koi->id]['has_winner'] ? 'Pemenang BIN' : 'Sedang Berlangsung') : 'Lelang Selesai') }}
-                                                </span>
-                                            </div>
-
-                                            <!-- Kapsul Jenis Lelang dengan Tooltip -->
-                                            <div x-data="{ showTooltip: false }" @mouseover="showTooltip = true"
-                                                @mouseleave="showTooltip = false"
-                                                class="absolute top-2 right-2 p-2 rounded-full shadow-md text-center text-sm w-12 cursor-pointer {{ $koi->auction->jenis == 'reguler' ? 'bg-gray-500' : ($koi->auction->jenis == 'azukari' ? 'bg-red-500' : ($koi->auction->jenis == 'keeping_contest' ? 'bg-orange-500' : 'bg-blue-500')) }}">
-                                                <span
-                                                    class="font-semibold text-white">{{ $koi->auction->jenis == 'reguler' ? 'RG' : ($koi->auction->jenis == 'azukari' ? 'AZ' : ($koi->auction->jenis == 'keeping_contest' ? 'KC' : 'GO')) }}</span>
-
-                                                <div x-show="showTooltip" x-transition
-                                                    class="absolute top-full mt-1 w-max px-2 py-1 text-xs text-white bg-black rounded transform -translate-x-1/2 left-1/2">
-                                                    {{ $koi->auction->jenis == 'reguler' ? 'Reguler' : ($koi->auction->jenis == 'azukari' ? 'Azukari' : ($koi->auction->jenis == 'keeping_contest' ? 'Keeping Contest' : 'Grow Out')) }}
-                                                </div>
-                                            </div>
-
-                                            <div
-                                                class="absolute bottom-2 left-2 bg-red-500 text-white p-1 rounded-full shadow-md text-center text-xs w-36">
-                                                <span id="countdown-{{ $koi->id }}"
-                                                    class="font-semibold">00:00</span>
-                                            </div>
-                                        </div>
-
-                                        <!-- Informasi Koi -->
-                                        <div class="p-4">
-                                            <h3
-                                                class="text-lg font-semibold text-gray-700 dark:text-gray-200 truncate">
-                                                {{ $koi->judul }} [{{ Str::ucfirst($koi->gender) }}, {{ $koi->ukuran }} cm]</h3>
-
-                                            <div class="flex justify-between items-center mt-2">
-                                                <!-- Views -->
-                                                <button
-                                                    class="relative group flex items-center text-gray-500 dark:text-gray-400 transition-transform hover:text-blue-600 koi-action">
-                                                    <i class="fa-solid fa-eye mr-1"></i>
-                                                    <span>12</span> <!-- Placeholder untuk jumlah view -->
-                                                    <span
-                                                        class="absolute bottom-full mb-2 w-max px-2 py-1 text-xs text-white bg-black rounded hidden group-hover:block transform -translate-x-1/2 left-1/2">Dilihat
-                                                        12 kali</span>
-                                                </button>
-
-                                                <!-- Likes -->
-                                                <button
-                                                    class="relative group flex items-center text-gray-500 dark:text-gray-400 transition-transform hover:text-red-600 koi-action">
-                                                    <i class="fa-solid fa-heart mr-1"></i>
-                                                    <span>5</span> <!-- Placeholder untuk jumlah likes -->
-                                                    <span
-                                                        class="absolute bottom-full mb-2 w-max px-2 py-1 text-xs text-white bg-black rounded hidden group-hover:block transform -translate-x-1/2 left-1/2">Disukai
-                                                        5 kali</span>
-                                                </button>
-                                            </div>
-
-                                            <hr class="mt-3 mb-3">
-
-                                            <div
-                                                class="flex justify-between text-sm text-gray-500 dark:text-gray-400 mt-2">
-                                                <span class="uppercase">{{ $koi->jenis_koi ?? '-' }}</span>
-                                            </div>
-
-                                            <div class="mt-2">
-                                                <p class="text-sm flex space-x-2">Sertifikat:
-                                                    @if ($koi->certificates->isNotEmpty())
-                                                        @foreach ($koi->certificates as $index => $certificate)
-                                                            <a href="#"
-                                                                onclick="openModal('{{ asset('storage/' . $certificate->url_gambar) }}')"
-                                                                class="bg-yellow-500 hover:bg-yellow-600 text-white text-center w-5 h-5 rounded-full flex items-center justify-center focus:ring-2 focus:ring-yellow-500">
-                                                                {{ $index + 1 }}
-                                                            </a>
-                                                        @endforeach
-                                                    @else
-                                                        Tidak tersedia
-                                                    @endif
-                                                </p>
-                                            </div>
-
-                                            <div class="grid grid-cols-2 gap-2 mt-3 text-sm">
-                                                <div class="text-gray-600 dark:text-gray-300">
-                                                    <span>OB:</span>
-                                                    <span
-                                                        class="font-semibold">{{ number_format($koi->open_bid, 0, ',', '.') }}</span>
-                                                </div>
-                                                <div class="text-gray-600 dark:text-gray-300">
-                                                    <span>KB:</span>
-                                                    <span
-                                                        class="font-semibold">{{ number_format($koi->kelipatan_bid, 0, ',', '.') }}</span>
-                                                </div>
-                                                <div class="text-blue-600 font-semibold">
-                                                    Last Bid:
-                                                    <span>{{ number_format($totalBids[(string) $koi->id]['latest_bid'] ?? $koi->open_bid, 0, ',', '.') }}</span>
-                                                </div>
-                                                @if (!empty($totalBids[(string) $koi->id]['has_winner']) && $totalBids[(string) $koi->id]['has_winner'])
-                                                    <div class="text-yellow-600 font-semibold">
-                                                        Winner:
-                                                        <span>{{ $totalBids[(string) $koi->id]['winner_name'] ?? 'N/A' }}</span>
-                                                    </div>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <x-koi-card :koi="$koi" :total-bids="$totalBids" />
                                 @endforeach
-
-
-
                             </div>
                         </div>
-
-
 
                         <!-- Lelang Tab Content -->
                         <div x-show="activeTab === 'lelang'">
@@ -420,6 +386,7 @@
 
                             </div>
                         </div>
+
                         <!-- Statistik Tab Content -->
                         <div x-show="activeTab === 'statistik'">
                             <h2 class="text-xl font-semibold text-zinc-800 dark:text-zinc-200 leading-tight mb-4">
@@ -530,22 +497,41 @@
             kois.forEach((koi) => {
                 if (koi.auction.status === 'on going') {
                     const countdownElement = document.getElementById(`countdown-${koi.id}`);
-                    const endTime = new Date("{{ $koi->auction->end_time }}".replace(/-/g, '/')).getTime();
+                    const countdownWrapper = document.getElementById(`countdown-wrapper-${koi.id}`);
+
+                    // Ensure the DOM elements exist before proceeding
+                    if (!countdownElement || !countdownWrapper) {
+                        // console.warn(`Countdown elements not found for koi ID: ${koi.id}`);
+                        return;
+                    }
+
+                    const endTime = new Date(koi.auction.end_time.replace(/-/g, '/')).getTime();
 
                     const countdownInterval = setInterval(() => {
                         const now = new Date().getTime();
                         const distance = endTime - now;
 
-                        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-                        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 *
-                            60));
-                        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
                         if (distance > 0) {
+                            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 *
+                                60 * 60));
+                            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                            // Update countdown display
                             countdownElement.innerHTML =
                                 `${days > 0 ? days + ' hari, ' : ''}${hours}:${minutes}:${seconds}`;
+
+                            // Adjust styles based on remaining time
+                            if (distance <= 60 * 60 * 1000) { // Less than 1 hour
+                                countdownWrapper.classList.remove("bg-yellow-500", "text-black");
+                                countdownWrapper.classList.add("bg-red-500", "text-white");
+                            } else {
+                                countdownWrapper.classList.remove("bg-red-500", "text-white");
+                                countdownWrapper.classList.add("bg-yellow-500", "text-black");
+                            }
                         } else {
+                            // Stop the countdown and update text
                             clearInterval(countdownInterval);
                             countdownElement.innerHTML = 'Lelang Berakhir';
                         }
@@ -608,21 +594,21 @@
                 Swal.fire({
                     title: 'Browser tidak mendukung fitur berbagi',
                     html: `
-    <p>Kamu bisa membagikan profil ini melalui:</p>
-    <div style="display: flex; justify-content: space-around; margin-top: 10px;">
-        <a href="https://www.facebook.com/sharer/sharer.php?u={{ route('profile.show', $user->id) }}" target="_blank"
-            class="swal2-styled"
-            style="background-color: #3b5998; padding: 10px; border-radius: 5px; color: white;">Facebook</a>
+                    <p>Kamu bisa membagikan profil ini melalui:</p>
+                    <div style="display: flex; justify-content: space-around; margin-top: 10px;">
+                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ route('profile.show', $user->id) }}" target="_blank"
+                            class="swal2-styled"
+                            style="background-color: #3b5998; padding: 10px; border-radius: 5px; color: white;">Facebook</a>
 
-        <a href="https://twitter.com/intent/tweet?url={{ route('profile.show', $user->id) }}&text=Check out this profile on Yuki Koi Auction!"
-            target="_blank" class="swal2-styled"
-            style="background-color: #1da1f2; padding: 10px; border-radius: 5px; color: white;">Twitter</a>
+                        <a href="https://twitter.com/intent/tweet?url={{ route('profile.show', $user->id) }}&text=Check out this profile on Yuki Koi Auction!"
+                            target="_blank" class="swal2-styled"
+                            style="background-color: #1da1f2; padding: 10px; border-radius: 5px; color: white;">Twitter</a>
 
-        <a href="https://api.whatsapp.com/send?text=Check out this profile on Yuki Koi Auction! {{ route('profile.show', $user->id) }}"
-            target="_blank" class="swal2-styled"
-            style="background-color: #25d366; padding: 10px; border-radius: 5px; color: white;">WhatsApp</a>
-    </div>
-    `,
+                        <a href="https://api.whatsapp.com/send?text=Check out this profile on Yuki Koi Auction! {{ route('profile.show', $user->id) }}"
+                            target="_blank" class="swal2-styled"
+                            style="background-color: #25d366; padding: 10px; border-radius: 5px; color: white;">WhatsApp</a>
+                    </div>
+                    `,
                     showCancelButton: false,
                     showConfirmButton: false
                 });

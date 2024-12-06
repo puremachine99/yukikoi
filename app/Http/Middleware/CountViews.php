@@ -3,30 +3,38 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use App\Models\Lihat;
+use App\Models\Activity;
+use App\Models\UserActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Symfony\Component\HttpFoundation\Response;
 
 class CountViews
 {
     public function handle(Request $request, Closure $next)
     {
-        // get koi_id dari route parameter
+        // Get koi_id from route parameter
         $koiId = $request->route('id');
 
-        // gak login gak kecatet
-        $userId = Auth::check() ? Auth::id() : null;
+        // Check if the user is logged in
+        if (Auth::check()) {
+            $userId = Auth::id();
 
-        // Cek apakah sudah ada record di tabel 'lihats' untuk user dan koi ini
-        if (!Lihat::where('user_id', $userId)->where('koi_id', $koiId)->exists()) {
-            // Tambahkan data baru ke tabel lihats
-            Lihat::create([
-                'user_id' => $userId,
-                'koi_id' => $koiId,
-            ]);
+            // Check if a view record already exists for the user and koi
+            $activityExists = UserActivity::where('user_id', $userId)
+                ->where('koi_id', $koiId)
+                ->where('activity_type', 'view')
+                ->exists();
+
+            if (!$activityExists) {
+                // Add a new "view" activity to the activities table
+                UserActivity::create([
+                    'user_id' => $userId,
+                    'koi_id' => $koiId,
+                    'activity_type' => 'view',
+                ]);
+            }
         }
 
-        return $next($request);
+        return $next($request); // Proceed to the next middleware or controller
     }
 }

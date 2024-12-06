@@ -16,19 +16,55 @@ class KoiController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index($auction_code)
+    public function index(Request $request, $auction_code)
     {
+        $userId = Auth::id(); // ID user yang sedang login
+
         // Ambil data auction berdasarkan auction_code
         $auction = Auction::where('auction_code', $auction_code)->firstOrFail();
 
-        // Ambil koi berdasarkan auction_code
-        $kois = Koi::where('auction_code', $auction_code)->get();
+        // Ambil semua koi berdasarkan auction_code dengan eager loading
+        $kois = Koi::where('auction_code', $auction_code)
+            ->with([
+                'media' => function ($query) {
+                    $query->where('media_type', 'photo'); // Hanya ambil media dengan tipe foto
+                },
+                'bids' => function ($query) {
+                    $query->latest(); // Urutkan bids dari yang terbaru
+                },
+                'auction', // Relasi data lelang
+                'likes' => function ($query) use ($userId) {
+                    $query->where('user_id', $userId); // Ambil hanya likes dari user yang login
+                },
+            ])
+            ->withCount(['views', 'likes']) // Hitung jumlah views dan likes
+            ->get();
 
-        // Kembalikan view dengan data koi, baik ada data maupun tidak
-        return view('koi.index', compact('kois', 'auction', 'auction_code'));
+        // Tandai apakah koi sudah di-like oleh user yang login
+        $kois->each(function ($koi) use ($userId) {
+            $koi->user_liked = $koi->likes->contains('user_id', $userId); // Cek apakah user_id ada di likes
+        });
+
+        // Buat data summary untuk bids
+        $totalBids = $kois->mapWithKeys(function ($koi) {
+            $winnerBid = $koi->bids->firstWhere('is_win', true); // Ambil bid yang menjadi pemenang
+
+            return [
+                $koi->id => [
+                    'total_bids' => $koi->bids->count(),
+                    'latest_bid' => $koi->bids->isNotEmpty() ? $koi->bids->first()->amount : $koi->open_bid,
+                    'has_winner' => $winnerBid ? true : false,
+                    'winner_name' => optional(optional($winnerBid)->user)->name, // Hindari error jika user null
+                ],
+            ];
+        });
+
+        // Tambahkan algoritma preferensi feed jika diperlukan
+        // Misalnya menampilkan koi berdasarkan kategori atau popularitas
+
+        // Kembalikan view dengan data koi, auction, dan totalBids
+        return view('koi.index', compact('kois', 'auction', 'auction_code', 'totalBids'));
     }
-
-
 
     /**
      * Show the form for creating a new resource.

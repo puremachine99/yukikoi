@@ -19,7 +19,7 @@ class TransactionController extends Controller
         $status = $request->query('status', 'all');
 
         // Ambil user yang sedang login
-        $user = auth()->user();
+        $user =Auth::user();
 
         // Query transaksi berdasarkan status
         $transactions = Transaction::with([
@@ -152,7 +152,7 @@ class TransactionController extends Controller
     public function payBatch(Request $request)
     {
         $transactionIds = $request->input('transaction_ids', []);
-        $user = auth()->user();
+        $user =Auth::user();
 
         // Validasi transaksi
         $transactions = Transaction::whereIn('id', $transactionIds)

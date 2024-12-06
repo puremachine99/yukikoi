@@ -18,22 +18,29 @@
                     <x-nav-link :href="route('live.index')" :active="request()->routeIs('live.index')">
                         {{ __('Live Lelang') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('live.event')" :active="request()->routeIs('live.event')">
+                        {{ __('Live Event') }}
+                    </x-nav-link>
                     <x-nav-link>
                         {{ __('Market') }}
                     </x-nav-link>
                 </div>
             </div>
-            
+
             @auth
                 <!-- Settings Dropdown for Desktop -->
                 <div class="hidden sm:flex sm:items-center sm:ms-6">
                     <!-- Notification Dropdown -->
                     <x-dropdown align="right" width="96">
                         <x-slot name="trigger">
-                            <button class="inline-flex items-end px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-zinc-500 dark:text-zinc-400 bg-white dark:bg-zinc-800 hover:text-zinc-700 dark:hover:text-zinc-300 focus:outline-none transition ease-in-out duration-150 relative" style="margin-right: 20px;">
+                            <button
+                                class="inline-flex items-end px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-zinc-500 dark:text-zinc-400 bg-white dark:bg-zinc-800 hover:text-zinc-700 dark:hover:text-zinc-300 focus:outline-none transition ease-in-out duration-150 relative"
+                                style="margin-right: 20px;">
                                 <div class="relative flex items-center justify-end w-96">
                                     <i class="fa-solid fa-bell text-lg"></i>
-                                    <span class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full" style="transform: translate(50%, -50%);">
+                                    <span
+                                        class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full"
+                                        style="transform: translate(50%, -50%);">
                                         4
                                     </span>
                                 </div>
@@ -43,22 +50,30 @@
                             <!-- Notification items here -->
                         </x-slot>
                     </x-dropdown>
-                    
+
                     <!-- User Profile Dropdown -->
                     <x-dropdown align="right" width="48">
                         <x-slot name="trigger">
-                            <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-zinc-500 dark:text-zinc-400 bg-white dark:bg-zinc-800 hover:text-zinc-700 dark:hover:text-zinc-300 focus:outline-none transition ease-in-out duration-150">
+                            <button
+                                class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-zinc-500 dark:text-zinc-400 bg-white dark:bg-zinc-800 hover:text-zinc-700 dark:hover:text-zinc-300 focus:outline-none transition ease-in-out duration-150">
                                 <div class="flex items-center">
                                     @if (Auth::user()->profile_photo)
-                                        <img src="{{ asset('storage/' . Auth::user()->profile_photo) }}" alt="Profile Photo" class="h-12 w-12 rounded-full object-cover mr-8" style="width: 25px; height: 25px;">
+                                        <img src="{{ asset('storage/' . Auth::user()->profile_photo) }}" alt="Profile Photo"
+                                            class="h-12 w-12 rounded-full object-cover mr-8"
+                                            style="width: 25px; height: 25px;">
                                     @else
-                                        <img src="{{ asset('default-profile.png') }}" alt="Default Profile Photo" class="h-12 w-12 rounded-full object-cover mr-8" style="width: 25px; height: 25px;">
+                                        <img src="{{ asset('default-profile.png') }}" alt="Default Profile Photo"
+                                            class="h-12 w-12 rounded-full object-cover mr-8"
+                                            style="width: 25px; height: 25px;">
                                     @endif
                                     <span>{{ Auth::user()->name }}</span>
                                 </div>
                                 <div class="ms-1">
-                                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd"
+                                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                            clip-rule="evenodd" />
                                     </svg>
                                 </div>
                             </button>
@@ -71,7 +86,7 @@
                                 {{ __('Keranjang') }}
                             </x-dropdown-link>
                             <x-dropdown-link :href="route('transactions.index')">
-                                {{ __('Transaksi') }}
+                                {{ __('Pesanan') }}
                             </x-dropdown-link>
                             <x-dropdown-link :href="route('auctions.index')">
                                 {{ __('Lelang') }}
@@ -80,14 +95,17 @@
                                 {{ __('Bid') }}
                             </x-dropdown-link>
                             <hr class="border-zinc-300">
-                            <x-dropdown-link id="theme-toggle" class="text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-700 focus:outline-none focus:ring-1 focus:ring-zinc-200 dark:focus:ring-zinc-700 text-sm p-2.5">
-                                <i id="theme-toggle-dark-icon" class="fa-solid fa-circle hidden w-5 h-5 text-yellow-300"></i>
+                            <x-dropdown-link id="theme-toggle"
+                                class="text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-700 focus:outline-none focus:ring-1 focus:ring-zinc-200 dark:focus:ring-zinc-700 text-sm p-2.5">
+                                <i id="theme-toggle-dark-icon"
+                                    class="fa-solid fa-circle hidden w-5 h-5 text-yellow-300"></i>
                                 <i id="theme-toggle-light-icon" class="fa-solid fa-moon hidden w-5 h-5 text-indigo-600"></i>
                             </x-dropdown-link>
                             <hr class="border-zinc-300">
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
-                                <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">
+                                <x-dropdown-link :href="route('logout')"
+                                    onclick="event.preventDefault(); this.closest('form').submit();">
                                     {{ __('Log Out') }}
                                 </x-dropdown-link>
                             </form>
@@ -104,13 +122,17 @@
                     </x-nav-link>
                 </div>
             @endauth
-            
+
             <!-- Hamburger for Mobile -->
             <div class="-me-2 flex items-center sm:hidden">
-                <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-zinc-400 dark:text-zinc-500 hover:text-zinc-500 dark:hover:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 focus:outline-none transition duration-150 ease-in-out">
+                <button @click="open = ! open"
+                    class="inline-flex items-center justify-center p-2 rounded-md text-zinc-400 dark:text-zinc-500 hover:text-zinc-500 dark:hover:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 focus:outline-none transition duration-150 ease-in-out">
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                        <path :class="{ 'hidden': open, 'inline-flex': !open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                        <path :class="{ 'hidden': !open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        <path :class="{ 'hidden': open, 'inline-flex': !open }" class="inline-flex"
+                            stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h16" />
+                        <path :class="{ 'hidden': !open, 'inline-flex': open }" class="hidden" stroke-linecap="round"
+                            stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
@@ -125,6 +147,9 @@
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('live.index')" :active="request()->routeIs('live.index')">
                 {{ __('Live Lelang') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('live.event')" :active="request()->routeIs('live.event')">
+                {{ __('Live Event') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link>
                 {{ __('Market') }}
@@ -159,7 +184,8 @@
                     <hr class="border-zinc-300">
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <x-responsive-nav-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">
+                        <x-responsive-nav-link :href="route('logout')"
+                            onclick="event.preventDefault(); this.closest('form').submit();">
                             {{ __('Log Out') }}
                         </x-responsive-nav-link>
                     </form>

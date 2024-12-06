@@ -66,13 +66,8 @@ class Koi extends Model
         return $this->hasMany(Transaction::class, 'koi_id');
     }
 
-    public function likes()
+    public function activities()
     {
-        return $this->hasMany(Like::class, 'koi_id');
-    }
-
-    public function views()
-    {
-        return $this->hasMany(Lihat::class, 'koi_id');
+        return $this->hasMany(UserActivity::class, 'koi_id', 'id');
     }
 }

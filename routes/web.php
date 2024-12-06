@@ -18,10 +18,10 @@ use App\Http\Controllers\{
     TransactionController,
     CartController,
     LiveAuctionController,
-    LikeController,
-    LihatController,
+    UserActivityController,
     XenditWebhookController
 };
+use App\Models\UserActivity;
 
 Route::get('/admin', function () {
     return view('yukiadmin.index');
@@ -32,16 +32,13 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Live Lelang Route 
 Route::get('/live-auction', [LiveAuctionController::class, 'index'])->name('live.index');
+Route::get('/live-event', [LiveAuctionController::class, 'event'])->name('live.event');
 
 // Dashboard Route (terverifikasi yang login)
 Route::get('/dashboard/{koi?}', function (Koi $koi = null) {
     return view('dashboard', ['koi' => $koi]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-// Ember Routes - Akses untuk seller dan priority seller
-Route::middleware(['auth', 'role:seller,priority_seller'])->group(function () {
-    Route::post('/inember', [EmberController::class, 'store'])->name('ember.store');
-});
 
 // Pricing 
 Route::get('/pricing/', function () {
@@ -141,8 +138,8 @@ Route::middleware(['auth'])->group(function () {
 
 // route count view dan like / dislike
 Route::middleware('auth')->group(function () {
-    Route::post('/koi/{koiId}/like', [LikeController::class, 'like'])->name('koi.like');
-    Route::post('/koi/{koiId}/view', [LihatController::class, 'view'])->name('koi.view');
+    Route::post('/koi/{koiId}/like', [UserActivityController::class, 'toggleLike']);
+    Route::post('/koi/{koiId}/view', [UserActivityController::class, 'view']);
 });
 
 Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
