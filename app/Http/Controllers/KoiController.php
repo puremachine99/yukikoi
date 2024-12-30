@@ -10,6 +10,7 @@ use App\Models\MarkedKoi;
 use App\Models\Certificate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class KoiController extends Controller
 {
@@ -18,36 +19,37 @@ class KoiController extends Controller
      */
     public function index(Request $request, $auction_code)
     {
-        $userId = Auth::id(); // ID user yang sedang login
+        $userId = Auth::id(); // ID pengguna yang sedang login
 
-        // Ambil data auction berdasarkan auction_code
+        // Ambil data lelang berdasarkan kode lelang
         $auction = Auction::where('auction_code', $auction_code)->firstOrFail();
 
-        // Ambil semua koi berdasarkan auction_code dengan eager loading
+        // Ambil semua koi dalam lelang tersebut dengan relasi terkait
         $kois = Koi::where('auction_code', $auction_code)
             ->with([
                 'media' => function ($query) {
-                    $query->where('media_type', 'photo'); // Hanya ambil media dengan tipe foto
+                    $query->where('media_type', 'photo'); // Hanya ambil media yang berupa foto
                 },
                 'bids' => function ($query) {
-                    $query->latest(); // Urutkan bids dari yang terbaru
+                    $query->latest(); // Ambil bid dengan urutan terbaru
                 },
-                'auction', // Relasi data lelang
-                'likes' => function ($query) use ($userId) {
-                    $query->where('user_id', $userId); // Ambil hanya likes dari user yang login
+                'activities' => function ($query) {
+                    $query->whereIn('activity_type', ['view', 'like']); // Ambil aktivitas view dan like
                 },
+                'auction', // Relasi ke data auction
             ])
-            ->withCount(['views', 'likes']) // Hitung jumlah views dan likes
             ->get();
 
-        // Tandai apakah koi sudah di-like oleh user yang login
+        // Tandai apakah koi sudah memiliki aktivitas "like" oleh user yang login
         $kois->each(function ($koi) use ($userId) {
-            $koi->user_liked = $koi->likes->contains('user_id', $userId); // Cek apakah user_id ada di likes
+            $koi->user_liked = $koi->activities->contains(function ($activity) use ($userId) {
+                return $activity->user_id === $userId && $activity->activity_type === 'like';
+            });
         });
 
-        // Buat data summary untuk bids
+        // Buat data summary untuk total bid per koi
         $totalBids = $kois->mapWithKeys(function ($koi) {
-            $winnerBid = $koi->bids->firstWhere('is_win', true); // Ambil bid yang menjadi pemenang
+            $winnerBid = $koi->bids->firstWhere('is_win', true); // Ambil bid yang menang (jika ada)
 
             return [
                 $koi->id => [
@@ -59,12 +61,10 @@ class KoiController extends Controller
             ];
         });
 
-        // Tambahkan algoritma preferensi feed jika diperlukan
-        // Misalnya menampilkan koi berdasarkan kategori atau popularitas
-
-        // Kembalikan view dengan data koi, auction, dan totalBids
+        // Kembalikan view dengan data koi dan informasi tambahan
         return view('koi.index', compact('kois', 'auction', 'auction_code', 'totalBids'));
     }
+
 
     /**
      * Show the form for creating a new resource.
@@ -202,8 +202,6 @@ class KoiController extends Controller
     /**
      * Display the specified resource.
      */
-
-
     public function show($id)
     {
         // Ambil Koi dengan eager loading yang lebih lengkap dan filter khusus pada auction, bids, dan chats
@@ -271,24 +269,18 @@ class KoiController extends Controller
         return view('koi.show', compact('koi', 'koisInSameAuction', 'koisSameCategory', 'isAuctionOngoing', 'isAuctionReady', 'winner', 'history', 'isBIN', 'isSeller'));
     }
 
-
-
-
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit($id)
+    public function edit($auction_code, $id)
     {
-        // Ambil data koi berdasarkan ID
-        $koi = Koi::findOrFail($id);
+        $koi = Koi::where('auction_code', $auction_code)->where('id', $id)->firstOrFail();
+        $media = Media::where('koi_id', $id)->get();
+        $certificates = Certificate::where('koi_id', $id)->get();
 
-        // Kembalikan view untuk edit dengan data koi
-        return view('koi.edit', compact('koi'));
+        return view('koi.edit', compact('koi', 'auction_code', 'media', 'certificates'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, $id)
     {
         $request->validate([
@@ -301,31 +293,101 @@ class KoiController extends Controller
             'buy_it_now' => 'nullable|integer',
             'keterangan' => 'nullable|string',
             'breeder' => 'nullable|string|max:255',
+            'media.*' => 'nullable|file|mimes:jpeg,png,mp4,mov|max:10000',
+            'certificates.*' => 'nullable|image|max:2048',
         ]);
 
         $koi = Koi::findOrFail($id);
-        $koi->update($request->all());
+        $koi->update($request->only([
+            'judul',
+            'jenis_koi',
+            'ukuran',
+            'gender',
+            'open_bid',
+            'kelipatan_bid',
+            'buy_it_now',
+            'keterangan',
+            'breeder',
+        ]));
+
+        // Update Media
+        if ($request->hasFile('media')) {
+            foreach ($request->file('media') as $mediaFile) {
+                $mediaPath = $mediaFile->store('koi_media', 'public');
+                Media::create([
+                    'koi_id' => $id,
+                    'url_media' => $mediaPath,
+                    'media_type' => $mediaFile->getMimeType() === 'video/mp4' ? 'video' : 'photo',
+                ]);
+            }
+        }
+
+        // Update Certificates
+        if ($request->hasFile('certificates')) {
+            foreach ($request->file('certificates') as $certificateFile) {
+                $certificatePath = $certificateFile->store('koi_certificates', 'public');
+                Certificate::create([
+                    'koi_id' => $id,
+                    'url_gambar' => $certificatePath,
+                ]);
+            }
+        }
 
         return redirect()->route('koi.index', ['auction_code' => $koi->auction_code])
             ->with('success', 'Koi berhasil diupdate.');
     }
 
 
+    // Hapus Media
+    public function deleteMedia($id)
+    {
+        $media = Media::find($id);
+
+        if (!$media) {
+            return response()->json(['success' => false, 'message' => 'Media tidak ditemukan.'], 404);
+        }
+
+        // Hapus file dari storage
+        Storage::disk('public')->delete($media->url_media);
+
+        // Hapus record dari database
+        $media->delete();
+
+        return response()->json(['success' => true, 'message' => 'Media berhasil dihapus.']);
+    }
+
+    // Hapus Sertifikat
+    public function deleteCertificate($id)
+    {
+        $certificate = Certificate::find($id);
+
+        if (!$certificate) {
+            return response()->json(['success' => false, 'message' => 'Sertifikat tidak ditemukan.'], 404);
+        }
+
+        // Hapus file dari storage
+        Storage::disk('public')->delete($certificate->url_gambar);
+
+        // Hapus record dari database
+        $certificate->delete();
+
+        return response()->json(['success' => true, 'message' => 'Sertifikat berhasil dihapus.']);
+    }
+
+
+
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy($auction_code, $id)
     {
-        $koi = Koi::find($id);
+        $koi = Koi::where('auction_code', $auction_code)->where('id', $id)->firstOrFail();
 
-        if ($koi && Auth::id() === $koi->auction->user_id) {
-            $koi->media()->delete();
-            $koi->delete();
-            return response()->json(['success' => true]);
-        }
+        $koi->delete();
 
-        return response()->json(['success' => false, 'message' => 'Koi not found or unauthorized']);
+        return response()->json(['success' => true, 'message' => 'Koi berhasil dihapus.']);
     }
+
 
     private function getKoiCode($index)
     {

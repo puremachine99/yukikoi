@@ -36,47 +36,7 @@
                                 <!-- Jenis Koi -->
                                 <div class="mb-4">
                                     <x-input-label for="jenis_koi" :value="__('Jenis Koi')" />
-                                    <x-select name="jenis_koi[]" class="block w-full">
-                                        <!-- Separator: Paling Populer -->
-                                        <option disabled>--- Paling Populer ---</option>
-                                        <option value="Kohaku">Kohaku</option>
-                                        <option value="Asagi">Asagi</option>
-                                        <option value="Showa Sanshoku (Showa)">Showa</option>
-                                        <option value="Doitsu">Doitsu</option>
-                                        <option value="Taisho Sanshoku (Sanke)">Sanke (Taisho Sansoku)</option>
-                                        <option value="Tancho">Tancho</option>
-
-                                        <!-- Separator: Varietas -->
-                                        <option disabled>--- Varietas ---</option>
-                                        <option value="Bekko">Bekko</option>
-                                        <option value="Goshiki">Goshiki</option>
-                                        <option value="Koromo">Koromo</option>
-                                        <option value="Kujaku">Kujaku</option>
-                                        <option value="Shiro Utsuri (Shiro)">Shiro Utsuri (Shiro)</option>
-                                        <option value="Shusui">Shusui</option>
-                                        <option value="Ochiba">Ochiba</option>
-                                        <option value="Hi/Ki Utsurimono">Hi/Ki Utsurimono</option>
-                                        <option value="Hikari Moyomono">Hikari Moyomono</option>
-                                        <option value="Hikari Mujimono">Hikari Mujimono</option>
-                                        <option value="Hikari Utsurimono">Hikari Utsurimono</option>
-                                        <option value="Kawarimono A">Kawarimono A</option>
-                                        <option value="Kawarimono B">Kawarimono B</option>
-                                        <option value="Kinginrin A">Kinginrin A</option>
-                                        <option value="Kinginrin B">Kinginrin B</option>
-                                        <option value="Kinginrin C">Kinginrin C</option>
-
-                                        <!-- Separator: Sub Varietas -->
-                                        <option disabled>--- Sub Varietas ---</option>
-                                        <option value="Shiro Bekko">Shiro Bekko</option>
-                                        <option value="Ki Bekko">Ki Bekko</option>
-                                        <option value="Aka Bekko">Aka Bekko</option>
-                                        <option value="Ai Goromo">Ai Goromo</option>
-                                        <option value="Sumi Goromo">Sumi Goromo</option>
-                                        <option value="Budo Goromo">Budo Goromo</option>
-                                        <option value="Tancho Kohaku">Tancho Kohaku</option>
-                                        <option value="Tancho Sanke">Tancho Sanke</option>
-                                        <option value="Tancho Showa">Tancho Showa</option>
-                                    </x-select>
+                                    <x-dropdown-jenis-koi></x-dropdown-jenis-koi>
                                 </div>
 
 
@@ -147,8 +107,7 @@
                                 <!-- Upload Video -->
                                 <div class="mb-4">
                                     <x-input-label for="video_koi" :value="__('Video Koi (Max 1)')" />
-                                    <x-file-input name="video_koi[0]" class="block w-full video-koi"
-                                        accept="video/*" />
+                                    <x-file-input name="video_koi[0]" class="block w-full video-koi" accept="video/*" />
                                     <!-- Preview video -->
                                     <div class="preview-video mt-2"></div>
                                 </div>

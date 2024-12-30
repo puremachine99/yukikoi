@@ -18,7 +18,7 @@
                     <x-nav-link :href="route('live.index')" :active="request()->routeIs('live.index')">
                         {{ __('Live Lelang') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('live.event')" :active="request()->routeIs('live.event')">
+                    <x-nav-link :href="route('events.index')" :active="request()->routeIs('events.index')">
                         {{ __('Live Event') }}
                     </x-nav-link>
                     <x-nav-link>
@@ -91,6 +91,9 @@
                             <x-dropdown-link :href="route('auctions.index')">
                                 {{ __('Lelang') }}
                             </x-dropdown-link>
+                            <x-dropdown-link :href="route('events.list')">
+                                {{ __('Event') }}
+                            </x-dropdown-link>
                             <x-dropdown-link :href="route('bids.user')">
                                 {{ __('Bid') }}
                             </x-dropdown-link>
@@ -148,7 +151,7 @@
             <x-responsive-nav-link :href="route('live.index')" :active="request()->routeIs('live.index')">
                 {{ __('Live Lelang') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('live.event')" :active="request()->routeIs('live.event')">
+            <x-responsive-nav-link :href="route('events.index')" :active="request()->routeIs('events.index')">
                 {{ __('Live Event') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link>

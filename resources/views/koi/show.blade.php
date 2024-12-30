@@ -196,416 +196,122 @@
 
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const koiId = "{{ $koi->id }}"; // Pastikan $koi sudah tersedia di blade
-            fetch(`/koi/${koiId}/view`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    'Content-Type': 'application/json'
-                }
-            }).then(response => {
-                if (response.ok) {
-                    console.log("View activity recorded successfully");
-                } else {
-                    console.error("Failed to record view activity");
-                }
-            }).catch(error => {
-                console.error("Error:", error);
-            });
-        });
+        // ================================ CONFIGURATIONS ================================
+        const KOI_ID = "{{ $koi->id }}"; // ID Koi
+        const LOGGED_IN_USER_ID = parseInt('{{ auth()->id() }}'); // ID User login
+        const OPEN_BID = {{ $koi->open_bid }}; // Open bid dari backend
+        const INCREMENT = {{ $koi->kelipatan_bid }}; // Kelipatan bid
+        const LAST_BID = {{ $koi->bids->isNotEmpty() ? $koi->bids->last()->amount : 0 }}; // Last bid
+        const BIN_PRICE = {{ $koi->buy_it_now }}; // Harga BIN
+        const THRESHOLD = 0.8 * BIN_PRICE; // Threshold BIN (80% dari harga BIN)
+        const IS_AUCTION_ONGOING = @json($isAuctionOngoing); // Status lelang dari backend
+        const EXTRA_TIME_MINUTES = 10; // Tambahan waktu saat sniping (bisa diatur dari admin)
+        const CHAT_ENDPOINT = "{{ route('chat.store') }}"; // Endpoint untuk chat
+        const BID_CHECK_ENDPOINT = "{{ route('bids.check') }}"; // Endpoint untuk validasi bid
+        const BID_STORE_ENDPOINT = "{{ route('bids.store') }}"; // Endpoint untuk menyimpan bid
+        const BIN_ENDPOINT = "{{ route('bids.bin') }}"; // Endpoint untuk proses BIN
+        const PIN_CONFIRM_ENDPOINT = "{{ route('pin.confirm') }}"; // Endpoint untuk validasi PIN
 
-        scrollToBottom();
-        // Variabel bid
-        const loggedInUserId = parseInt('{{ auth()->id() }}');
+        // ================================ DOM REFERENCES ================================
         const bidAmountInput = document.getElementById('bid-amount');
-        const openBid = {{ $koi->open_bid }};
-        const increment = {{ $koi->kelipatan_bid }};
-        const lastBid = {{ $koi->bids->isNotEmpty() ? $koi->bids->last()->amount : 0 }};
         const placeBidButton = document.getElementById('place-bid');
-        let minimumBid = lastBid > 0 ? lastBid + increment : openBid;
-        const auctionEndMessage = document.querySelector('.auction-end-message');
         const binButton = document.getElementById('bin-btn');
-        const lastBidAmount = parseInt("{{ $koi->bids->isNotEmpty() ? $koi->bids->last()->amount : 0 }}");
-        const binPrice = {{ $koi->buy_it_now }};
-        const threshold = 0.8 * binPrice; // 80% dari harga BIN
-        const sendMessageButton = document.getElementById('sendMessageButton');
         const chatInput = document.getElementById('chat-input');
+        const auctionEndMessage = document.querySelector('.auction-end-message');
+        const bidHistory = document.getElementById('history');
+        const timerDisplay = document.getElementById("timer-display");
+        const plusBtn = document.getElementById('plus-btn');
+        const minusBtn = document.getElementById('minus-btn');
 
-        // Auction Status Handling
-        const isAuctionOngoing = @json($isAuctionOngoing);
-        // sembunyiin bid control e 
-        function handleAuctionEnd() {
+        let minimumBid = LAST_BID > 0 ? LAST_BID + INCREMENT : OPEN_BID; // Minimal bid awal
+        let extraTime = 0; // Extra time saat sniping
+        let scrollPosition = 0;
+
+        // ================================ HELPER FUNCTIONS ================================
+        function fetchRequest(url, method, body = null) {
+            return fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: body ? JSON.stringify(body) : null
+            }).then(response => response.json());
+        }
+
+        function scrollToBottom() {
+            bidHistory.scrollTop = bidHistory.scrollHeight;
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('id-ID').format(amount);
+        }
+
+        function disableControls() {
             binButton.style.display = 'none';
             placeBidButton.style.display = 'none';
             bidAmountInput.disabled = true;
             bidAmountInput.style.display = 'none';
-            document.getElementById('minus-btn').style.display = 'none';
-            document.getElementById('plus-btn').style.display = 'none';
+            minusBtn.style.display = 'none';
+            plusBtn.style.display = 'none';
             if (auctionEndMessage) {
                 auctionEndMessage.style.display = 'block';
             }
         }
-        // munculin bid control e pas ready nang on going
-        function handleAuctionOngoing() {
+
+        function enableControls() {
             binButton.style.display = 'inline-block';
             placeBidButton.style.display = 'inline-block';
             bidAmountInput.disabled = false;
-            document.getElementById('minus-btn').style.display = 'inline-block';
-            document.getElementById('plus-btn').style.display = 'inline-block';
+            bidAmountInput.style.display = 'inline-block';
+            minusBtn.style.display = 'inline-block';
+            plusBtn.style.display = 'inline-block';
             if (auctionEndMessage) {
                 auctionEndMessage.style.display = 'none';
             }
         }
 
-        function handleAuctionWinner(winnerName, winnerAmount) {
-            // Sembunyikan tombol BIN dan bid controls
-            binButton.style.display = 'none';
-            placeBidButton.style.display = 'none';
-            bidAmountInput.disabled = 'none';
-            bidAmountInput.style.display = 'none';
-            document.getElementById('minus-btn').style.display = 'none';
-            document.getElementById('plus-btn').style.display = 'none';
+        function handleAuctionEnd() {
+            disableControls();
+        }
 
-            // Tampilkan informasi pemenang
-            const winnerMessageContainer = document.createElement('div');
-            winnerMessageContainer.classList.add('flex', 'items-center', 'space-x-2', 'mb-2');
+        function handleAuctionOngoing() {
+            enableControls();
+        }
+
+        function handleAuctionWinner(winnerName, winnerAmount) {
+            disableControls();
 
             const winnerMessage = document.createElement('h2');
             winnerMessage.classList.add('text-lg', 'font-bold', 'text-green-600');
-            winnerMessage.innerHTML =
-                `Winner: ${winnerName} 👑 - Rp ${new Intl.NumberFormat('id-ID').format(winnerAmount)}`;
+            winnerMessage.innerHTML = `Winner: ${winnerName} 👑 - Rp ${formatCurrency(winnerAmount)}`;
 
-            // Append winner message to the appropriate place in DOM
             const bidControlContainer = document.querySelector('.flex.items-center.space-x-2.mb-2');
-            bidControlContainer.innerHTML = ''; // Clear the current bid input controls
+            bidControlContainer.innerHTML = '';
             bidControlContainer.appendChild(winnerMessage);
 
-            // Optional: Display a Swal notification if needed
             Swal.fire({
                 title: 'Auction Winner!',
-                text: `${winnerName} telah memenangkan lelang dengan BIN Rp ${new Intl.NumberFormat('id-ID').format(winnerAmount)}!`,
+                text: `${winnerName} telah memenangkan lelang dengan BIN Rp ${formatCurrency(winnerAmount)}!`,
                 icon: 'success',
                 showConfirmButton: false,
                 timer: 3000,
                 timerProgressBar: true
-            }).then(() => {
-                // Refresh halaman setelah Swal selesai
-                window.location.reload();
-            });
+            }).then(() => window.location.reload());
         }
 
-        // Fungsi utama untuk mengirim pesan
-        function sendMessage(event) {
-            let message = chatInput.value.trim();
-            const koiId = "{{ $koi->id }}"; // ID Koi
-
-            if (message === "") {
-                return;
-            }
-
-            // Kirim request ke server untuk menyimpan chat
-            fetch("{{ route('chat.store') }}", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': "{{ csrf_token() }}"
-                    },
-                    body: JSON.stringify({
-                        koi_id: koiId,
-                        message: message
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        chatInput.value = '';
-                        appendChatToHistory(event);
-                    } else {
-                        console.error('Failed to send message:', data.message);
-                    }
-                })
-                .catch(error => console.error('Error sending message:', error));
-        }
-
-        // chat bubble buat history
-        function appendBidToHistory(event) {
-            const bid = event.bid;
-            const isSniping = event.isSniping;
-            const bidHistory = document.getElementById('history');
-            const isScrolledToBottom = bidHistory.scrollHeight - bidHistory.clientHeight <= bidHistory.scrollTop + 1;
-
-            const newBid = document.createElement('div');
-            const isOwnBid = bid.user.id === loggedInUserId;
-            newBid.classList.add('chat', isOwnBid ? 'chat-end' : 'chat-start');
-
-            // Avatar Section
-            const avatarContainer = document.createElement('div');
-            avatarContainer.classList.add('chat-image', 'avatar');
-            const avatar = document.createElement('div');
-            avatar.classList.add('w-10', 'rounded-full');
-            const avatarImg = document.createElement('img');
-            avatarImg.src = bid.user.pp ? `/storage/${bid.user.pp}` :
-                'https://via.placeholder.com/40'; // Placeholder or actual profile pic
-            avatarImg.alt = 'User Avatar';
-            avatar.appendChild(avatarImg);
-            avatarContainer.appendChild(avatar);
-
-            // Header Section (Name + Timestamp)
-            const bidHeader = document.createElement('div');
-            bidHeader.classList.add('chat-header');
-
-            const userName = document.createElement('span');
-            userName.classList.add('text-sm', 'font-semibold');
-            userName.textContent = bid.user.name;
-
-            const timestamp = document.createElement('time');
-            timestamp.classList.add('text-xs', 'opacity-50');
-            const options = {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric'
-            };
-            const formattedDate = new Date(bid.created_at).toLocaleDateString('id-ID', options);
-            const formattedTime = new Date(bid.created_at).toLocaleTimeString('id-ID', {
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-            timestamp.textContent = ` ${formattedDate}, ${formattedTime}`;
-
-            bidHeader.appendChild(userName);
-            bidHeader.appendChild(timestamp);
-
-            // Chat Bubble Section
-            const bidBubble = document.createElement('div');
-            bidBubble.classList.add('chat-bubble');
-
-            if (isOwnBid) {
-                if (isSniping) {
-                    bidBubble.classList.add('chat-bubble-error', 'text-white');
-                } else {
-                    bidBubble.classList.add('chat-bubble-success', 'text-white');
-                }
-            } else {
-                if (isSniping) {
-                    bidBubble.classList.add('chat-bubble-error', 'text-white');
-                } else {
-                    bidBubble.classList.add('chat-bubble-success', 'text-white');
-                }
-            }
-            bidBubble.textContent = `Rp ${new Intl.NumberFormat('id-ID').format(bid.amount)} K`;
-
-            // Append all elements to the main container
-            newBid.appendChild(avatarContainer);
-            newBid.appendChild(bidHeader);
-            newBid.appendChild(bidBubble);
-            bidHistory.appendChild(newBid);
-
-            // Scroll to bottom if necessary
-            if (isScrolledToBottom) {
-                scrollToBottom();
-            }
-
-            // Update minimum bid and input
-            minimumBid = bid.amount + increment;
-            bidAmountInput.value = minimumBid;
-        }
-
-        function appendBINToHistory(event) {
-            const winner = event.winner; // Mengambil data pemenang BIN
-            const bidHistory = document.getElementById('history');
-            const isScrolledToBottom = bidHistory.scrollHeight - bidHistory.clientHeight <= bidHistory.scrollTop + 1;
-
-            const newBid = document.createElement('div');
-            const isOwnBid = winner.id === loggedInUserId; // Cek apakah pemenangnya adalah user yang sedang login
-            newBid.classList.add('chat', isOwnBid ? 'chat-end' : 'chat-start');
-
-            // Avatar Section
-            const avatarContainer = document.createElement('div');
-            avatarContainer.classList.add('chat-image', 'avatar');
-            const avatar = document.createElement('div');
-            avatar.classList.add('w-10', 'rounded-full');
-            const avatarImg = document.createElement('img');
-            avatarImg.src = winner.pp ? `/storage/${winner.pp}` :
-                'https://via.placeholder.com/40'; // Placeholder or actual profile pic
-            avatarImg.alt = 'User Avatar';
-            avatar.appendChild(avatarImg);
-            avatarContainer.appendChild(avatar);
-
-            // Header Section (Name + Timestamp)
-            const bidHeader = document.createElement('div');
-            bidHeader.classList.add('chat-header');
-
-            const userName = document.createElement('span');
-            userName.classList.add('text-sm', 'font-semibold');
-            userName.textContent = `${winner.name} 🏆`; // Add crown icon to indicate BIN winner
-
-            const timestamp = document.createElement('time');
-            timestamp.classList.add('text-xs', 'opacity-50');
-            const options = {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric'
-            };
-            const formattedDate = new Date().toLocaleDateString('id-ID', options); // Menggunakan waktu sekarang
-            const formattedTime = new Date().toLocaleTimeString('id-ID', {
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-            timestamp.textContent = ` ${formattedDate}, ${formattedTime}`;
-
-            bidHeader.appendChild(userName);
-            bidHeader.appendChild(timestamp);
-
-            // Chat Bubble Section for BIN
-            const bidBubble = document.createElement('div');
-            bidBubble.classList.add('chat-bubble', 'chat-bubble-warning',
-                'text-black'); // BIN-specific bubble with warning color
-
-            bidBubble.textContent =
-                `Pemenang BIN: Rp ${new Intl.NumberFormat('id-ID').format(winner.amount)} K`; // Display BIN amount
-
-            // Append all elements to the main container
-            newBid.appendChild(avatarContainer);
-            newBid.appendChild(bidHeader);
-            newBid.appendChild(bidBubble);
-            bidHistory.appendChild(newBid);
-
-            // Scroll to bottom if necessary
-            if (isScrolledToBottom) {
-                scrollToBottom();
-            }
-
-            // Disable bid controls (Optional if needed for BIN)
-            binButton.style.display = 'none';
-            placeBidButton.style.display = 'none';
-            bidAmountInput.disabled = true;
-            document.getElementById('minus-btn').style.display = 'none';
-            document.getElementById('plus-btn').style.display = 'none';
-        }
-
-        function appendChatToHistory(event) {
-            const chat = event.chat;
-            const chatHistory = document.getElementById('history');
-            const isScrolledToBottom = chatHistory.scrollHeight - chatHistory.clientHeight <= chatHistory.scrollTop + 1;
-
-            const newChat = document.createElement('div');
-            const isOwnChat = chat.user.id === loggedInUserId;
-
-            newChat.classList.add('chat', isOwnChat ? 'chat-end' : 'chat-start');
-
-            // Avatar Section
-            const avatarContainer = document.createElement('div');
-            avatarContainer.classList.add('chat-image', 'avatar');
-            const avatar = document.createElement('div');
-            avatar.classList.add('w-10', 'rounded-full');
-            const avatarImg = document.createElement('img');
-            avatarImg.src = chat.user.pp ? `/storage/${chat.user.pp}` : 'https://via.placeholder.com/40';
-            avatarImg.alt = 'User Avatar';
-            avatar.appendChild(avatarImg);
-            avatarContainer.appendChild(avatar);
-
-            // Header Section (Name + Timestamp)
-            const chatHeader = document.createElement('div');
-            chatHeader.classList.add('chat-header');
-
-            const userName = document.createElement('span');
-            userName.classList.add('text-sm', 'font-semibold');
-            userName.textContent = chat.user.name;
-
-            const timestamp = document.createElement('time');
-            timestamp.classList.add('text-xs', 'opacity-50');
-            const options = {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric'
-            };
-            const formattedDate = new Date(chat.created_at).toLocaleDateString('id-ID', options);
-            const formattedTime = new Date(chat.created_at).toLocaleTimeString('id-ID', {
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-            timestamp.textContent = ` ${formattedDate}, ${formattedTime}`;
-
-            chatHeader.appendChild(userName);
-            chatHeader.appendChild(timestamp);
-
-            // Chat Bubble Section
-            const chatBubble = document.createElement('div');
-            chatBubble.classList.add('chat-bubble');
-
-            if (isOwnChat) {
-                chatBubble.classList.add('chat-bubble-primary', 'text-white');
-            } else {
-                chatBubble.classList.add('text-white');
-            }
-
-            chatBubble.textContent = chat.message;
-
-            // Append all elements to the main container
-            newChat.appendChild(avatarContainer);
-            newChat.appendChild(chatHeader);
-            newChat.appendChild(chatBubble);
-            chatHistory.appendChild(newChat);
-
-            // Scroll to bottom if necessary
-            if (isScrolledToBottom) {
-                scrollToBottom();
-            }
-        }
-
-        function scrollToBottom() {
-            const bidHistory = document.getElementById('history');
-            bidHistory.scrollTop = bidHistory.scrollHeight;
-        }
-
-        function openVideoModal(videoUrl) {
-            scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
-            const video = document.getElementById('modalVideo');
-            const videoSource = document.getElementById('videoSource');
-            const videoModal = document.getElementById('videoModal');
-            if (video && videoSource && videoModal) {
-                videoSource.src = videoUrl;
-                video.load();
-                video.play();
-                videoModal.classList.remove('hidden');
-                document.body.style.overflow = 'hidden';
-            }
-        }
-
-        function closeVideoModal() {
-            const video = document.getElementById('modalVideo');
-            const videoModal = document.getElementById('videoModal');
-            if (video && videoModal) {
-                video.pause();
-                video.currentTime = 0;
-                videoModal.classList.add('hidden');
-                document.body.style.overflow = '';
-                window.scrollTo(0, scrollPosition);
-            }
-        }
-
-        // Fungsi untuk handle BIN setelah PIN valid
+        // ================================ CORE FUNCTIONS ================================
         function processBIN() {
-            fetch('{{ route('bids.bin') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    body: JSON.stringify({
-                        koi_id: '{{ $koi->id }}'
-                    })
-                }).then(response => response.json())
+            fetchRequest(BIN_ENDPOINT, 'POST', {
+                    koi_id: KOI_ID
+                })
                 .then(data => {
                     if (data.success) {
                         Swal.fire({
                             title: 'Pembelian berhasil!',
-                            text: `Koi berhasil dibeli dengan harga Rp ${new Intl.NumberFormat('id-ID').format(data.winner.amount)}`,
+                            text: `Koi berhasil dibeli dengan harga Rp ${formatCurrency(data.cart.price)}`,
                             icon: 'success'
-                        }).then(() => {
-                            window.location.reload();
-                        });
+                        }).then(() => window.location.reload());
                     } else {
                         Swal.fire({
                             title: 'BIN Gagal',
@@ -616,68 +322,41 @@
                 });
         }
 
-        // Fungsi untuk handle Bid setelah PIN valid
         function processBid() {
-            let bidAmount = parseInt(bidAmountInput.value.replace(/\D/g, ''));
+            const bidAmount = parseInt(bidAmountInput.value);
 
-            fetch('{{ route('bids.check') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    body: JSON.stringify({
-                        koi_id: '{{ $koi->id }}',
-                        bid_amount: bidAmount
-                    })
-                }).then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Proses bid jika validasi berhasil
-                        fetch('{{ route('bids.store') }}', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                                },
-                                body: JSON.stringify({
-                                    koi_id: '{{ $koi->id }}',
-                                    bid_amount: bidAmount
-                                })
-                            }).then(response => response.json())
+            fetchRequest(BID_CHECK_ENDPOINT, 'POST', {
+                    koi_id: KOI_ID,
+                    bid_amount: bidAmount
+                })
+                .then(validation => {
+                    if (validation.success) {
+                        fetchRequest(BID_STORE_ENDPOINT, 'POST', {
+                                koi_id: KOI_ID,
+                                bid_amount: bidAmount
+                            })
                             .then(data => {
                                 if (data.success) {
                                     Swal.fire({
                                         title: 'Bid Berhasil!',
-                                        text: `Berhasil pasang lelang senilai Rp ${new Intl.NumberFormat('id-ID').format(bidAmount)}`,
+                                        text: `Berhasil pasang bid senilai Rp ${formatCurrency(bidAmount)}`,
                                         icon: 'success',
                                         timer: 1000,
                                         timerProgressBar: true
                                     });
                                     scrollToBottom();
-                                } else {
-                                    Swal.fire({
-                                        title: 'Error',
-                                        text: 'Ada masalah saat memasang bid.',
-                                        icon: 'error',
-                                        timer: 2000,
-                                        timerProgressBar: true
-                                    });
                                 }
                             });
                     } else {
                         Swal.fire({
                             title: 'Bid Tidak Valid',
-                            text: data.message,
-                            icon: 'error',
-                            timer: 2000,
-                            timerProgressBar: true
+                            text: validation.message,
+                            icon: 'error'
                         });
                     }
-                }).catch(error => console.error('Error:', error));
+                });
         }
 
-        // buat validasi pin
         function handlePinValidation(actionType) {
             Swal.fire({
                 title: 'Konfirmasi PIN Anda',
@@ -689,31 +368,17 @@
                 },
                 showCancelButton: true,
                 confirmButtonText: 'Konfirmasi',
-                showLoaderOnConfirm: true,
-                preConfirm: (pin) => {
-                    // Kirim PIN ke backend untuk verifikasi
-                    return fetch('{{ route('pin.confirm') }}', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                            },
-                            body: JSON.stringify({
-                                koi_id: '{{ $koi->id }}',
-                                pin: pin
-                            })
-                        }).then(response => response.json())
-                        .then(data => {
-                            if (!data.success) {
-                                Swal.showValidationMessage(`PIN salah: ${data.message}`);
-                            }
-                            return data;
-                        }).catch(error => {
-                            Swal.showValidationMessage(`Request failed: ${error}`);
-                        });
-                },
-                allowOutsideClick: () => !Swal.isLoading()
-            }).then((result) => {
+                preConfirm: pin => fetchRequest(PIN_CONFIRM_ENDPOINT, 'POST', {
+                        koi_id: KOI_ID,
+                        pin
+                    })
+                    .then(data => {
+                        if (!data.success) {
+                            Swal.showValidationMessage(`PIN salah: ${data.message}`);
+                        }
+                        return data;
+                    })
+            }).then(result => {
                 if (result.isConfirmed && result.value.success) {
                     if (actionType === 'BIN') {
                         processBIN();
@@ -723,94 +388,62 @@
                 }
             });
         }
-        // ========================================== DOM ====================================================
-        let endTime = new Date(
-            "{{ \Carbon\Carbon::parse($koi->auction->end_time)->addMinutes($koi->auction->extra_time)->toDateTimeString() }}"
-        ).getTime();
-        extraTime = 0;
-        document.addEventListener("DOMContentLoaded", function() {
-            const placeBidButton = document.getElementById('place-bid');
-            const bidsExist = {{ $koi->bids->isEmpty() ? 'false' : 'true' }};
 
-            if (!bidsExist) {
-                placeBidButton.textContent = 'Open';
-            }
-            if (isAuctionOngoing) {
+        // ================================ EVENT LISTENERS ================================
+        document.addEventListener("DOMContentLoaded", function() {
+            if (IS_AUCTION_ONGOING) {
                 handleAuctionOngoing();
             } else {
                 handleAuctionEnd();
             }
-            scrollToBottom();
-            // Timer
-            function updateTimer() {
-                const now = new Date().getTime();
-                const distance = (endTime + extraTime) - now;
 
-                if (distance < 0) {
-                    document.getElementById("timer-display").innerHTML = "Lelang Berakhir";
-                    clearInterval(timerInterval);
-                    return;
-                }
-
-                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-                document.getElementById("timer-display").innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
-                if (lastBidAmount >= threshold) {
-                    binButton.disabled = true; // Matikan tombol BIN
-                    binButton.classList.add('cursor-not-allowed', 'opacity-50'); // Tambahkan visual disabled
-                }
-            }
-
-            const timerInterval = setInterval(updateTimer, 1000);
-            // Kirim Pesan Enter
-            chatInput.addEventListener('keypress', function() {
-                if (event.key === 'Enter') {
-                    sendMessage();
-                }
+            plusBtn.addEventListener('click', () => {
+                bidAmountInput.value = parseInt(bidAmountInput.value) + INCREMENT;
             });
 
-            // Increment 
-            document.getElementById('plus-btn').addEventListener('click', function() {
-                let currentBid = parseInt(bidAmountInput.value);
-                bidAmountInput.value = currentBid + increment;
+            minusBtn.addEventListener('click', () => {
+                const currentBid = parseInt(bidAmountInput.value);
+                bidAmountInput.value = Math.max(currentBid - INCREMENT, minimumBid);
             });
 
-            // Decrement Bid Amount
-            document.getElementById('minus-btn').addEventListener('click', function() {
-                let currentBid = parseInt(bidAmountInput.value);
-                let minimumBid = parseInt(bidAmountInput.getAttribute(
-                    'min')); // Ambil nilai minimum dari attribute 'min'
-
-                if (currentBid - increment >= minimumBid) {
-                    bidAmountInput.value = currentBid - increment;
-                } else {
-                    bidAmountInput.value = minimumBid;
-                }
-            });
-
-            // Event listener untuk tombol BIN
-            document.getElementById('bin-btn').addEventListener('click', function() {
-                if (lastBidAmount >= threshold) {
+            binButton.addEventListener('click', () => {
+                if (LAST_BID >= THRESHOLD) {
                     Swal.fire({
                         title: "BIN Gagal",
                         text: "Harga Lelang sudah terlalu tinggi",
                         icon: "error"
                     });
                 } else {
-                    handlePinValidation('BIN'); // Panggil validasi PIN khusus untuk BIN
+                    handlePinValidation('BIN');
                 }
             });
 
-            // Event listener untuk tombol Bid
-            document.getElementById('place-bid').addEventListener('click', function() {
-                handlePinValidation('BID'); // Panggil validasi PIN khusus untuk Bid
-            });
-
-
+            placeBidButton.addEventListener('click', () => handlePinValidation('BID'));
         });
+
+        // ================================ TIMER HANDLING ================================
+        function updateTimer() {
+            const now = new Date().getTime();
+            const distance = (new Date(
+                "{{ \Carbon\Carbon::parse($koi->auction->end_time)->addMinutes($koi->auction->extra_time)->toDateTimeString() }}"
+                ).getTime() + extraTime * 60000) - now;
+
+            if (distance < 0) {
+                timerDisplay.innerHTML = "Lelang Berakhir";
+                clearInterval(timerInterval);
+                return;
+            }
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            timerDisplay.innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+        }
+
+        const timerInterval = setInterval(updateTimer, 1000);
     </script>
+
 
 </x-app-layout>

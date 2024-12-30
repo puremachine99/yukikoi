@@ -19,9 +19,39 @@ use App\Http\Controllers\{
     CartController,
     LiveAuctionController,
     UserActivityController,
-    XenditWebhookController
+    XenditWebhookController,
+    EventController
 };
-use App\Models\UserActivity;
+
+// Group routes for event module
+Route::middleware('auth')->group(function () {
+    // create koi list per event
+    Route::get('/events/{id}/koi/create', [EventController::class, 'addKoi'])->name('events.addKoi');
+    Route::post('/events/{id}/koi', [EventController::class, 'storeKoi'])->name('events.storeKoi');
+
+    // List all events or auctions created by the user
+    Route::get('/events/list', [EventController::class, 'list'])->name('events.list');
+
+    // Create a new event
+    Route::get('/events/create', [EventController::class, 'create'])->name('events.create');
+    Route::post('/events', [EventController::class, 'store'])->name('events.store');
+
+    // Edit and update an event
+    Route::get('/events/{id}/edit', [EventController::class, 'edit'])->name('events.edit');
+    Route::put('/events/{id}', [EventController::class, 'update'])->name('events.update');
+
+    // Delete an event
+    Route::delete('/events/{id}', [EventController::class, 'destroy'])->name('events.destroy');
+
+    // Form for user participation
+    Route::get('/events/{id}/participate', [EventController::class, 'participate'])->name('events.participate');
+    Route::post('/events/{id}/participate', [EventController::class, 'submitParticipation'])->name('events.submitParticipation');
+});
+
+// Routes accessible without authentication
+Route::get('/events', [EventController::class, 'index'])->name('events.index'); // List all events
+Route::get('/events/{id}', [EventController::class, 'show'])->name('events.show'); // Show event details
+Route::get('/events/live', [EventController::class, 'live'])->name('events.live'); // Show live events
 
 Route::get('/admin', function () {
     return view('yukiadmin.index');
@@ -32,7 +62,7 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Live Lelang Route 
 Route::get('/live-auction', [LiveAuctionController::class, 'index'])->name('live.index');
-Route::get('/live-event', [LiveAuctionController::class, 'event'])->name('live.event');
+
 
 // Dashboard Route (terverifikasi yang login)
 Route::get('/dashboard/{koi?}', function (Koi $koi = null) {
@@ -87,16 +117,21 @@ Route::post('/auctions/status', [AuctionController::class, 'checkStatus'])->name
 
 // Koi Routes - Seller, Priority Seller, dan Admin
 Route::middleware(['auth'])->group(function () {
-    Route::get('/koi/{auction_code}', [KoiController::class, 'index'])->name('koi.index');
-    Route::get('/koi/create/{auction_code}', [KoiController::class, 'create'])->name('koi.create');
-    Route::post('/koi', [KoiController::class, 'store'])->name('koi.store');
-    Route::get('/koi/{auction_code}/edit', [KoiController::class, 'edit'])->name('koi.edit');
-    Route::put('/koi/{auction_code}', [KoiController::class, 'update'])->name('koi.update');
-    Route::delete('/koi/{auction_code}', [KoiController::class, 'destroy'])->name('koi.destroy');
+    Route::get('/koi/{auction_code}', [KoiController::class, 'index'])->name('koi.index'); // List Koi
+    Route::get('/koi/create/{auction_code}', [KoiController::class, 'create'])->name('koi.create'); // Create Koi
+    Route::get('/koi/{auction_code}/{id}/edit', [KoiController::class, 'edit'])->name('koi.edit'); // Edit Koi
+    Route::post('/koi', [KoiController::class, 'store'])->name('koi.store'); // Store Koi
+    Route::put('/koi/{id}', [KoiController::class, 'update'])->name('koi.update'); // Update Koi
+    Route::delete('/koi/{auction_code}/{id}', [KoiController::class, 'destroy'])->name('koi.destroy'); // Delete Koi
+    Route::delete('/media/{id}', [KoiController::class, 'deleteMedia'])->name('media.delete');
+    Route::delete('/certificates/{id}', [KoiController::class, 'deleteCertificate'])->name('certificates.delete');
 });
+
+// Middleware untuk meningkatkan view count
 Route::middleware([\App\Http\Middleware\CountViews::class])->group(function () {
-    Route::get('/koi/{id}/bid', [KoiController::class, 'show'])->name('koi.show');
+    Route::get('/koi/{id}/bid', [KoiController::class, 'show'])->name('koi.show'); // Show Koi
 });
+
 
 // Route::get('/koi/{id}/bid', [KoiController::class, 'show'])->name('koi.show');
 

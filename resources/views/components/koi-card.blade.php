@@ -1,8 +1,8 @@
-<div class="block bg-white dark:bg-zinc-800 rounded-lg shadow-md overflow-hidden relative card-navigate"
+<div class="block bg-white dark:bg-zinc-800 rounded-lg shadow-md overflow-visible relative card-navigate"
     data-url="{{ route('koi.show', ['id' => $koi->id]) }}">
     <div class="relative">
         <img src="{{ asset('storage/' . $koi->media->first()->url_media) }}" alt="Koi Image"
-            class="object-cover w-full h-[400px]">
+            class="object-cover w-full h-auto md:h-96 lg:h-[400px]">
         <div class="watermark-overlay">
             <img src="{{ asset('images/logo.png') }}" alt="Watermark Logo" class="watermark-logo">
         </div>
@@ -72,8 +72,37 @@
                 </div>
             </div>
         @endif
+        <!-- Tombol Play untuk Video -->
+        @if ($koi->media->where('media_type', 'video')->isNotEmpty())
+            <button
+                class="absolute group bottom-2 right-4 w-12 h-12 z-20 bg-white dark:bg-zinc-700 text-sky-500 border-2 border-sky-500 rounded-full flex items-center justify-center transition-transform hover:scale-105 hover:bg-sky-500 hover:text-white no-route"
+                onclick="event.stopPropagation(); openVideoModal('{{ asset('storage/' . $koi->media->where('media_type', 'video')->first()->url_media) }}')">
+                <i class="fa-solid fa-play text-xl"></i>
+                <span
+                    class="absolute bottom-full mb-1 w-max px-1 py-0.5 text-xs text-white bg-black rounded hidden group-hover:block transform -translate-x-1/2 left-1/2">
+                    Video Ikan 🐟
+                </span>
+            </button>
+        @endif
+        <!-- Modal untuk video -->
+        <div id="videoModal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50"
+            onclick="closeVideoModal()">
+            <div class="bg-white dark:bg-zinc-800 p-0 rounded-lg max-w-7xl w-auto max-h-screen overflow-auto">
+                <video id="modalVideo" class="w-full h-auto mt-0 rounded-lg" controls style="max-height: 90vh;">
+                    <source id="videoSource" src="" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+        </div>
 
 
+        <!-- Modal untuk Sertifikat -->
+        <div id="certModal" class="fixed inset-0 z-50 items-center flex justify-center hidden bg-black bg-opacity-50"
+            onclick="closeModal()">
+            <div class="bg-white dark:bg-zinc-800 p-0 rounded-lg max-w-7x1 w-full">
+                <img id="certImage" src="" alt="Certificate Image" class="w-full mt-0 rounded-lg">
+            </div>
+        </div>
         <div class="absolute opacity-60 hover:opacity-100 bottom-2 left-2 bg-red-500 text-white p-1 rounded-full shadow-md text-center text-xs w-36"
             id="countdown-wrapper-{{ $koi->id }}" data-koi-id="{{ $koi->id }}"
             data-end-time="{{ $koi->end_time }}">
@@ -83,7 +112,10 @@
                 <span id="countdown-{{ $koi->id }}" class="font-semibold">00:00</span>
             @endif
         </div>
-
+        <!-- Slot untuk Tombol -->
+        <div class="absolute top-2 right-2 flex space-x-2">
+            {{ $slot }}
+        </div>
 
     </div>
 

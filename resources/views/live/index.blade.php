@@ -69,7 +69,7 @@
 
     <div class="py-12 p-2">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="grid xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 @foreach ($kois as $koi)
                     <x-koi-card :koi="$koi" :total-bids="$totalBids" />
                 @endforeach
@@ -86,6 +86,11 @@
                 const koiId = wrapper.dataset.koiId;
                 const endTime = new Date(wrapper.dataset.endTime).getTime();
                 const countdownElement = wrapper.querySelector(`#countdown-${koiId}`);
+
+                // Jika countdownElement tidak ditemukan, skip proses ini
+                if (!countdownElement) {
+                    return;
+                }
 
                 const interval = setInterval(() => {
                     const now = new Date().getTime();
@@ -125,6 +130,7 @@
                 }, 1000);
             });
         });
+
 
         document.querySelectorAll('.card-navigate').forEach(card => {
             card.addEventListener('click', function(event) {

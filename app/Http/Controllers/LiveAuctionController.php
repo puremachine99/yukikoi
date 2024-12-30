@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Koi;
+use App\Models\Event;
 use App\Models\UserActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,22 +22,6 @@ class LiveAuctionController extends Controller
         return view('live.index', $data);
     }
 
-
-    public function event(Request $request)
-    {
-        $userId = Auth::id(); // ID user yang sedang login
-
-        // Ambil koi selain jenis reguler
-        $data = $this->getKois($userId);
-
-        // Filter u/ jenis selain reguler
-        $data['kois'] = $data['kois']->filter(function ($koi) {
-            return $koi->auction->jenis !== 'reguler';
-        });
-
-        // Kirim data koi, bids, views, dan likes ke view
-        return view('live.index', $data);
-    }
 
     protected function getKois($userId, $auctionType = null)
     {

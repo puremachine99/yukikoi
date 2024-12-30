@@ -1,5 +1,66 @@
 <!-- resources/views/koi/index.blade.php -->
 <x-app-layout>
+    <style>
+        @font-face {
+            font-family: 'OnsenJapanDemoRegular';
+            src: url('/fonts/OnsenJapanDemoRegular.ttf') format('truetype');
+        }
+
+        .vertical-text {
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+            letter-spacing: -0.2rem;
+            z-index: 99;
+            /* Adjust spacing between letters if needed */
+        }
+
+        .vertical-text-jp {
+            font-family: 'OnsenJapanDemoRegular', sans-serif;
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+            letter-spacing: -0.2rem;
+            z-index: 99;
+        }
+
+        .watermarked-image {
+            position: relative;
+            display: inline-block;
+            overflow: hidden;
+        }
+
+        .koi-image {
+            width: 100%;
+            height: auto;
+        }
+
+        .watermark-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.1;
+            /* Adjust opacity to make it look like a watermark */
+            pointer-events: none;
+            /* Make watermark unclickable */
+        }
+
+        .watermark-logo {
+            width: 80%;
+            /* Adjust size as needed */
+            max-width: 500px;
+            height: auto;
+            filter: grayscale(100%);
+            /* Optional: make the watermark grayscale */
+        }
+
+        .text-outline {
+            text-shadow:
+                -1px -1px 0 #000,
+                1px -1px 0 #000,
+                -1px 1px 0 #000,
+                1px 1px 0 #000;
+        }
+    </style>
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <!-- Tombol Kembali ke Daftar Lelang -->
@@ -67,21 +128,44 @@
                     @else
                         <div id="koiContainer" class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             @foreach ($kois as $koi)
-                                <x-koi-card :koi="$koi" :url="route('koi.show', ['id' => $koi->id])" :totalBids="$totalBids[$koi->id] ?? []" />
+                                <x-koi-card :koi="$koi" :url="route('koi.show', ['id' => $koi->id])" :totalBids="$totalBids[$koi->id] ?? []">
+                                    @auth
+                                        <!-- Tombol Edit -->
+                                        <button
+                                            class="absolute group top-8 -right-4 py-2 px-3 bg-zinc-500 text-white rounded-full hover:bg-zinc-100 hover:text-zinc-950 dark:hover:bg-zinc-200 dark:hover:text-zinc-800 transition-transform transform hover:scale-110 focus:outline-none"
+                                            style="z-index: 10"
+                                            onclick="window.location.href='{{ route('koi.edit', ['auction_code' => $koi->auction_code, 'id' => $koi->id]) }}'">
+                                            <i class="fa-solid fa-pen"></i>
+                                            <span
+                                                class="absolute right-full mr-2 w-max px-2 py-1 text-xs text-white bg-black dark:bg-zinc-800 rounded hidden group-hover:block transform top-1/2 -translate-y-1/2">
+                                                Edit Koi
+                                            </span>
+                                        </button>
+
+
+                                        <!-- Tombol Hapus -->
+                                        <button
+                                            class="absolute group -top-4 -right-4 py-2 px-3 bg-zinc-500 text-white rounded-full hover:bg-zinc-100 hover:text-zinc-950 dark:hover:bg-zinc-200 dark:hover:text-zinc-800 transition-transform transform hover:scale-110 focus:outline-none"
+                                            style="z-index: 11" data-koi-id="{{ $koi->id }}"
+                                            data-koi-name="{{ $koi->judul }}" onclick="confirmDeleteKoi(this)">
+                                            <i class="fas fa-trash-alt"></i>
+                                            <span
+                                                class="absolute right-full mr-2 w-max px-2 py-1 text-xs text-white bg-black dark:bg-zinc-800 rounded hidden group-hover:block transform top-1/2 -translate-y-1/2">
+                                                Hapus Koi
+                                            </span>
+                                        </button>
+
+                                    @endauth
+                                </x-koi-card>
                             @endforeach
                         </div>
                     @endif
                 </div>
 
+
             </div>
         </div>
     </div>
-
-
-
-    <!-- Modal and Alpine.js Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <script>
         function filterKois() {
             // Ambil nilai input filter
@@ -128,11 +212,13 @@
         }
 
         // Fungsi delete untuk Koi
+        // Add event listener to all delete buttons
         document.querySelectorAll('.delete-koi-btn').forEach(button => {
             button.addEventListener('click', function() {
                 const koiId = this.getAttribute('data-koi-id');
                 const koiName = this.getAttribute('data-koi-name');
 
+                // Show confirmation dialog
                 Swal.fire({
                     title: 'Yakin mau hapus ikan?',
                     text: `Nama Koi: ${koiName}`,
@@ -140,33 +226,51 @@
                     showCancelButton: true,
                     confirmButtonColor: '#3085d6',
                     cancelButtonColor: '#d33',
-                    confirmButtonText: 'Yes',
-                    cancelButtonText: 'No'
+                    confirmButtonText: 'Yes, Hapus',
+                    cancelButtonText: 'Batal'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        deleteKoi(koiId);
+                        deleteKoi(koiId, koiName); // Call the delete function
                     }
                 });
             });
         });
 
-        function deleteKoi(koiId) {
+        // Delete function with fetch API
+        function deleteKoi(koiId, koiName) {
             fetch(`/koi/${koiId}`, {
                     method: 'DELETE',
                     headers: {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                        'Content-Type': 'application/json'
-                    }
+                        'Content-Type': 'application/json',
+                    },
                 })
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Gagal menghapus Koi');
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     if (data.success) {
-                        location.reload();
+                        Swal.fire({
+                            title: 'Berhasil!',
+                            text: `Koi "${koiName}" berhasil dihapus.`,
+                            icon: 'success',
+                            confirmButtonText: 'OK',
+                        }).then(() => {
+                            location.reload(); // Reload the page after deletion
+                        });
                     } else {
-                        Swal.fire('Error', 'Gagal menghapus Koi', 'error');
+                        throw new Error(data.message || 'Gagal menghapus Koi');
                     }
+                })
+                .catch(error => {
+                    console.error(error);
+                    Swal.fire('Error', error.message, 'error');
                 });
         }
+
 
         let scrollPosition = 0;
         // Script to handle tooltip display on hover
