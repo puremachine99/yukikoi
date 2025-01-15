@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('koi_id'); // Foreign key dari tabel kois
             $table->unsignedBigInteger('user_id'); // Foreign key dari tabel users
             $table->decimal('amount', 10, 2); // Bid amount
-            $table->binary('is_winner')->default(0); // Bid amount
+            $table->boolean('is_win')->default(0); // Bid amount
             $table->timestamps();
 
             // Foreign key constraints

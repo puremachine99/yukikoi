@@ -44,6 +44,7 @@
         <main>
             {{ $slot }}
         </main>
+        <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
         <script>
             // Mendapatkan userId dari Blade ke dalam JavaScript
             const userId = @json(auth()->id());
@@ -52,7 +53,7 @@
         <div x-data="{ transactionId: null, amount: null, message: '' }" x-init="Echo.private(`user.${userId}`)
             .listen('PaymentCompleted', (event) => {
                 // Assign received event data to Alpine.js variables
-               console.log(event);
+                console.log(event);
             });">
         </div>
 

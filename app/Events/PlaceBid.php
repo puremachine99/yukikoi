@@ -2,12 +2,12 @@
 
 namespace App\Events;
 
+use App\Models\Bid;
 use Illuminate\Broadcasting\Channel;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
-use Illuminate\Foundation\Events\Dispatchable;
-use Illuminate\Queue\SerializesModels;
-use App\Models\Bid;
 
 class PlaceBid implements ShouldBroadcastNow
 {
@@ -57,5 +57,8 @@ class PlaceBid implements ShouldBroadcastNow
             ],
             'isSniping' => $this->isSniping,
         ];
+
     }
+
+
 }

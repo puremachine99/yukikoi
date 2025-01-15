@@ -28,7 +28,7 @@ Route::middleware('auth')->group(function () {
     // create koi list per event
     Route::get('/events/{id}/koi/create', [EventController::class, 'addKoi'])->name('events.addKoi');
     Route::post('/events/{id}/koi', [EventController::class, 'storeKoi'])->name('events.storeKoi');
-
+    Route::get('/koi/{event}', [KoiController::class, 'list'])->name('koi.list');
     // List all events or auctions created by the user
     Route::get('/events/list', [EventController::class, 'list'])->name('events.list');
 

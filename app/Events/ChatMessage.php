@@ -29,7 +29,6 @@ class ChatMessage implements ShouldBroadcastNow
 
     public function broadcastWith()
     {
-        // Data yang akan dikirim ke client-side
         return [
             'chat' => [
                 'id' => $this->chat->id,
@@ -37,11 +36,12 @@ class ChatMessage implements ShouldBroadcastNow
                 'user' => [
                     'id' => $this->chat->user->id,
                     'name' => $this->chat->user->name,
-                    'pp' => $this->chat->user->profile_photo,
+                    'pp' => $this->chat->user->profile_photo ?: 'https://via.placeholder.com/40',
                     'phone_number' => substr($this->chat->user->phone_number, 0, 4) . 'XX' . substr($this->chat->user->phone_number, -2),
                 ],
                 'created_at' => $this->chat->created_at->toDateTimeString(),
             ],
         ];
     }
+
 }

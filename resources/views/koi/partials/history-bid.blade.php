@@ -15,9 +15,9 @@
     </div>
     <div class="chat-bubble {{ $item->is_bin ? 'chat-bubble-warning text-black' : ($item->is_sniping ? 'chat-bubble-error text-white' : 'chat-bubble-success text-white') }}">
         @if ($item->is_bin)
-            Pemenang BIN: Rp {{ number_format($item->amount, 0, ',', '.') }} K
+            Pemenang BIN: Rp {{ number_format($item->amount, 0, ',', '.') }} Rb
         @else
-            Rp {{ number_format($item->amount, 0, ',', '.') }} K
+            Rp {{ number_format($item->amount, 0, ',', '.') }} Rb
         @endif
     </div>
 </div>

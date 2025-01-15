@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
+use App\Models\Koi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -13,29 +14,48 @@ class EventController extends Controller
      */
     public function index(Request $request)
     {
+        // Query dasar untuk mengambil semua event
         $query = Event::query();
 
-        // Apply filters
+        // Filter berdasarkan tipe event, jika ada
         if ($request->has('event_type')) {
             $query->where('event_type', $request->input('event_type'));
         }
 
+        // Filter berdasarkan status, jika ada
         if ($request->has('status')) {
             $query->where('status', $request->input('status'));
         }
 
-        $events = $query->paginate(10);
-        return view('event.index', compact('events'));
+        // Ambil semua event dengan pagination
+        $events = $query->orderBy('start_time', 'asc')->get();
+
+        // Proses untuk mengelompokkan event berdasarkan nama "folder"
+        $groupedEvents = $events->groupBy(function ($event) {
+            // Cek apakah ada " - Part " dalam event_name
+            if (preg_match('/(.*?) - Part \d+$/', $event->event_name, $matches)) {
+                return $matches[1]; // Ambil nama event utama
+            }
+            return $event->event_name; // Event tanpa part dianggap event utama
+        });
+
+        // Return ke view dengan data grouped events
+        return view('event.index', compact('groupedEvents'));
     }
+
 
     /**
      * List all events created by the authenticated user.
      */
-    public function list()
+    public function list($eventId)
     {
-        $events = Event::where('created_by', Auth::id())->paginate(10);
-        return view('event.list', compact('events'));
+        // Ambil data koi berdasarkan ID event
+        $koi = Koi::where('event_id', $eventId)->paginate(10);
+
+        // Return ke view list koi
+        return view('koi.index', compact('koi'));
     }
+
 
     /**
      * Show the form for creating a new event.
