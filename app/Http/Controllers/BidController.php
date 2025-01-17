@@ -16,6 +16,7 @@ use Xendit\Invoice\InvoiceApi;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Xendit\Invoice\CreateInvoiceRequest;
+use Illuminate\Support\Facades\RateLimiter;
 
 class BidController extends Controller
 {
@@ -84,9 +85,6 @@ class BidController extends Controller
         return response()->json(['success' => true, 'message' => 'PIN valid']);
     }
 
-    // BinController
-    // Di dalam BidController.php
-
     public function confirmBIN(Request $request)
     {
         $request->validate([
@@ -136,96 +134,82 @@ class BidController extends Controller
             'cart' => $cart,
         ]);
     }
-
-
-
-    public function checkBid(Request $request)
-    {
-        $koi = Koi::with('bids')->findOrFail($request->koi_id);
-
-        $latestBid = $koi->bids->last();
-        $minimumBid = $latestBid ? $latestBid->amount + $koi->kelipatan_bid : $koi->open_bid;
-
-        $bidAmount = $request->bid_amount;
-
-        if ($bidAmount < $minimumBid) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Minimal bid harus ' . number_format($minimumBid, 0, ',', '.') . ' atau lebih tinggi',
-                'minimumBid' => $minimumBid
-            ]);
-        }
-
-        if (($bidAmount - $koi->open_bid) % $koi->kelipatan_bid != 0) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Nilai bid harus sesuai kelipatan bid ' . number_format($koi->kelipatan_bid, 0, ',', '.'),
-                'minimumBid' => $minimumBid
-            ]);
-        }
-
-        return response()->json(['success' => true, 'message' => 'Bid valid']);
-    }
-
     public function store(Request $request)
     {
+        $key = 'bid-action:' . Auth::id();
+        $bid_attempt = 10;
+        // Cek apakah user sudah mencapai batas
+        if (RateLimiter::tooManyAttempts($key, $bid_attempt)) {
+            $seconds = RateLimiter::availableIn($key);
+            return response()->json([
+                'success' => false,
+                'message' => "Anda telah mencapai batas bid. Coba lagi dalam $seconds detik.",
+            ], 429);
+        }
+
+        // Validasi input
         $request->validate([
             'koi_id' => 'required|exists:kois,id',
             'bid_amount' => 'required|numeric|min:1',
         ]);
 
-        $koi = Koi::with('auction')->findOrFail($request->input('koi_id'));
+        $koi = Koi::with('auction', 'bids')->findOrFail($request->input('koi_id'));
         $auction = $koi->auction;
 
         if (!Auth::check()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Anda harus login untuk melakukan bid.',
-            ], 401);
+            return response()->json(['success' => false, 'message' => 'Anda harus login untuk melakukan bid.'], 401);
         }
 
-        $sellerId = $auction->user_id;
-        if (Auth::id() == $sellerId) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Seller tidak dapat melakukan bid di lelang mereka sendiri.'
-            ], 403);
+        if (Auth::id() == $auction->user_id) {
+            return response()->json(['success' => false, 'message' => 'Seller tidak dapat melakukan bid di lelang mereka sendiri.'], 403);
         }
 
         if ($auction->status !== 'on going') {
+            return response()->json(['success' => false, 'message' => 'Auction tidak aktif'], 400);
+        }
+
+        $latestBid = $koi->bids->last();
+        $minimumBid = $latestBid ? $latestBid->amount + $koi->kelipatan_bid : $koi->open_bid;
+        $bidAmount = $request->input('bid_amount');
+
+        if ($bidAmount < $minimumBid) {
             return response()->json([
                 'success' => false,
-                'message' => 'Auction is not active'
+                'message' => 'Minimal bid harus Rp ' . number_format($minimumBid, 0, ',', '.') . ' atau lebih tinggi',
+            ], 400);
+        }
+
+        if (($bidAmount - $koi->open_bid) % $koi->kelipatan_bid != 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Nilai bid harus sesuai kelipatan bid Rp ' . number_format($koi->kelipatan_bid, 0, ',', '.'),
             ], 400);
         }
 
         $end_time = Carbon::parse($auction->end_time)->addMinutes($auction->extra_time);
         $remainingTime = $end_time->diffInMinutes(Carbon::now(), false);
-
-        //tambah variable untuk setting sniping threshold (1 jam) (admin panel)
         $isSniping = $remainingTime >= -60 && $remainingTime <= 0;
 
         if ($isSniping) {
-            // tambahkan variable untuk setting sniping time (admin panel)
             $auction->extra_time += 10;
             $auction->save();
-
-            broadcast(new ExtraTimeAdded($auction->auction_code, $auction->extra_time,))->toOthers();
+            broadcast(new ExtraTimeAdded($auction->auction_code, $auction->extra_time))->toOthers();
         }
 
         $bid = new Bid();
         $bid->koi_id = $request->input('koi_id');
         $bid->user_id = Auth::id();
-        $bid->amount = $request->input('bid_amount');
+        $bid->amount = $bidAmount;
         $bid->is_sniping = $isSniping;
         $bid->is_win = 0;
 
         if ($bid->save()) {
+            RateLimiter::hit($key); // Hit rate limiter
             broadcast(new PlaceBid($bid, $isSniping))->toOthers();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Bid successfully placed',
+                'message' => 'Bid berhasil dipasang',
                 'bid' => $bid,
                 'end' => $end_time,
                 'isSniping' => $isSniping,
@@ -233,10 +217,38 @@ class BidController extends Controller
                 'extraTime' => $auction->extra_time
             ]);
         } else {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to place bid'
-            ]);
+            return response()->json(['success' => false, 'message' => 'Gagal menyimpan bid'], 500);
         }
     }
+
+    // public function checkBid(Request $request)
+    // {
+    //     $koi = Koi::with('bids')->findOrFail($request->koi_id);
+
+    //     $latestBid = $koi->bids->last();
+    //     $minimumBid = $latestBid ? $latestBid->amount + $koi->kelipatan_bid : $koi->open_bid;
+
+    //     $bidAmount = $request->bid_amount;
+
+    //     if ($bidAmount < $minimumBid) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Minimal bid harus ' . number_format($minimumBid, 0, ',', '.') . ' atau lebih tinggi',
+    //             'minimumBid' => $minimumBid
+    //         ]);
+    //     }
+
+    //     if (($bidAmount - $koi->open_bid) % $koi->kelipatan_bid != 0) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Nilai bid harus sesuai kelipatan bid ' . number_format($koi->kelipatan_bid, 0, ',', '.'),
+    //             'minimumBid' => $minimumBid
+    //         ]);
+    //     }
+
+    //     return response()->json(['success' => true, 'message' => 'Bid valid']);
+    // }
+
+
+
 }

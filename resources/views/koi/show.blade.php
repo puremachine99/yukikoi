@@ -178,7 +178,6 @@
     <script>
         // ========================================== CHAT + BID SYSTEM ==========================================
         $(document).ready(function() {
-
             // ============================== CONFIGURATIONS ===============================
             const CONFIG = {
                 koiId: "{{ $koi->id }}",
@@ -206,6 +205,58 @@
 
             let minimumBid = CONFIG.lastBid > 0 ? CONFIG.lastBid + CONFIG.increment : CONFIG.openBid;
             let extraTime = 0;
+            // ============================== REALTIME LISTENERS ==============================
+            Echo.channel('auctions')
+                .listen('ExtraTimeAdded', (event) => {
+                    extraTime = event.extra_time;
+                    CONFIG.endTime = new Date(event.new_end_time).getTime(); // Update waktu akhir
+                    initializeTimer(); // Re-initialize timer
+                });
+
+            Echo.channel(`koi.${CONFIG.koiId}`)
+                .listen('ChatMessage', (event) => appendToHistory('chat', event))
+                .listen('PlaceBid', (event) => {
+                    appendToHistory('bid', event);
+
+                    if (event.isSniping) {
+                        extraTime = event.extraTime;
+                        CONFIG.endTime = new Date(event.end).getTime(); // Update waktu akhir
+                        initializeTimer(); // Re-initialize timer
+                    }
+                })
+                .listen('AuctionWon', (event) => {
+                    handleAuctionWinner(event.winner.name, event.winner.amount);
+                    appendToHistory('bid', {
+                        bid: {
+                            id: event.winner.id,
+                            koi_id: CONFIG.koiId,
+                            amount: event.winner.amount,
+                            user: {
+                                id: event.winner.user_id,
+                                name: event.winner.name,
+                                pp: event.winner.pp
+                            },
+                            created_at: new Date().toISOString()
+                        },
+                        isSniping: false
+                    });
+                })
+                .listen('ExtraTimeAdded', (event) => {
+                    extraTime = event.extra_time * CONFIG.penaltytime;
+                    CONFIG.endTime = new Date(event.new_end_time).getTime();
+
+                    // Update timer secara langsung
+                    updateTimer();
+
+                    Swal.fire({
+                        title: 'Extra Time Ditambahkan',
+                        text: `${event.extra_time} menit tambahan telah diberikan!`,
+                        icon: 'info',
+                        timer: 3000,
+                        timerProgressBar: true
+                    });
+                });
+
 
             // ============================== HELPER FUNCTIONS ==============================
             function scrollToBottom() {
@@ -255,30 +306,46 @@
                 const message = $('#chat-input').val().trim();
                 if (message) {
                     sendAjaxRequest(CONFIG.routes.chatStore, 'POST', {
-                            koi_id: CONFIG.koiId,
-                            message
-                        },
-                        (data) => {
-                            if (data.success) {
-                                appendToHistory('chat', {
-                                    chat: {
-                                        user: {
-                                            id: CONFIG.userId,
-                                            name: 'Kamu',
-                                            pp: CONFIG.userProfilePhoto
-                                        },
-                                        message,
-                                        created_at: new Date()
-                                    }
-                                });
-                                $('#chat-input').val(''); // Clear input field after successful send
-                            }
-                        });
+                        koi_id: CONFIG.koiId,
+                        message
+                    }, (data) => {
+                        if (data.success) {
+                            appendToHistory('chat', {
+                                chat: {
+                                    user: {
+                                        id: CONFIG.userId,
+                                        name: 'Kamu',
+                                        pp: CONFIG.userProfilePhoto
+                                    },
+                                    message,
+                                    created_at: new Date()
+                                }
+                            });
+                            $('#chat-input').val(''); // Kosongkan input setelah berhasil
+                        }
+                    }, (error) => {
+                        if (error.status === 429) {
+                            Swal.fire({
+                                title: 'Terlalu Banyak Chat!',
+                                text: 'Anda telah mencapai batas chat. Tunggu beberapa saat sebelum mengirim lagi.',
+                                icon: 'warning',
+                                timer: 2000,
+                                timerProgressBar: true
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Error',
+                                text: 'Terjadi kesalahan saat mengirim pesan.',
+                                icon: 'error'
+                            });
+                        }
+                    });
                 }
             }
 
             function processBidOrBIN(actionType, amount) {
                 const route = actionType === 'BID' ? CONFIG.routes.bidsStore : CONFIG.routes.bin;
+
                 sendAjaxRequest(route, 'POST', {
                         koi_id: CONFIG.koiId,
                         bid_amount: amount
@@ -299,7 +366,7 @@
                                 }
                             });
 
-                            // Append bid to history locally for own bid
+                            // Tambahkan bid ke history jika sukses
                             if (actionType === 'BID') {
                                 appendToHistory('bid', {
                                     bid: {
@@ -313,19 +380,30 @@
                                         },
                                         created_at: new Date().toISOString()
                                     },
-                                    isSniping: data.bid.is_sniping
+                                    isSniping: data.isSniping
                                 });
                             }
                         } else {
                             Swal.fire({
-                                title: 'Error',
-                                text: data.message,
+                                title: 'Gagal!',
+                                text: data.message || 'Terjadi kesalahan saat menyimpan bid.',
                                 icon: 'error',
                                 timer: 2000,
                                 timerProgressBar: true
                             });
                         }
-                    });
+                    },
+                    (error) => {
+                        const message = error.responseJSON?.message || 'Gagal menghubungkan ke server.';
+                        Swal.fire({
+                            title: 'Error',
+                            text: message,
+                            icon: 'error',
+                            timer: 2000,
+                            timerProgressBar: true
+                        });
+                    }
+                );
             }
 
             function appendToHistory(type, event) {
@@ -368,7 +446,10 @@
                     return 'chat-bubble-default'; // Default fallback (in case of unexpected type)
                 })();
 
-                const content = type === 'chat' ? data.message : `Rp ${formatCurrency(data.amount)} Rb`;
+                // Sanitize content to prevent XSS
+                const sanitizedContent = type === 'chat' ?
+                    $('<div>').text(data.message).html() :
+                    $('<div>').text(`Rp ${formatCurrency(data.amount)} Rb`).html();
 
                 const newEntry = $(`
                     <div class="chat ${isOwn ? 'chat-end' : 'chat-start'}" data-id="${data.id}">
@@ -378,11 +459,11 @@
                             </div>
                         </div>
                         <div class="chat-header">
-                            <span class="text-sm font-semibold">${displayName}</span>
+                            <span class="text-sm font-semibold">${$('<div>').text(displayName).html()}</span>
                             <time class="text-xs opacity-50">${formattedDate}</time>
                         </div>
                         <div class="chat-bubble ${bubbleClass}">
-                            ${content}
+                            ${sanitizedContent}
                         </div>
                     </div>
                 `);
@@ -392,7 +473,6 @@
 
                 // Update minimum bid if the type is bid
                 if (type === 'bid') {
-
                     const bidAmount = parseInt(data.amount, 10) || 0;
                     const increment = parseInt(CONFIG.increment, 10) || 0;
 
@@ -400,8 +480,6 @@
 
                     $('#bid-amount').val(minimumBid);
                 }
-
-
             }
 
             function handleAuctionWinner(winnerName, winnerAmount) {
@@ -445,7 +523,12 @@
                     },
                     data,
                     success: successCallback,
-                    error: errorCallback
+                    error: (error) => {
+                        console.error('Error Response:', error);
+                        if (errorCallback) {
+                            errorCallback(error);
+                        }
+                    }
                 });
             }
 
@@ -512,58 +595,6 @@
                 updateTimer(); // Jalankan sekali untuk memperbarui segera
             }
 
-            // ============================== REALTIME LISTENERS ==============================
-            Echo.channel('auctions')
-                .listen('ExtraTimeAdded', (event) => {
-                    extraTime = event.extra_time;
-                    CONFIG.endTime = new Date(event.new_end_time).getTime(); // Update waktu akhir
-                    initializeTimer(); // Re-initialize timer
-                });
-
-            Echo.channel(`koi.${CONFIG.koiId}`)
-                .listen('ChatMessage', (event) => appendToHistory('chat', event))
-                .listen('PlaceBid', (event) => {
-                    appendToHistory('bid', event);
-
-                    if (event.isSniping) {
-                        extraTime = event.extra_time;
-                        CONFIG.endTime = new Date(event.new_end_time).getTime(); // Update waktu akhir
-                        initializeTimer(); // Re-initialize timer
-                    }
-                })
-                .listen('AuctionWon', (event) => {
-                    handleAuctionWinner(event.winner.name, event.winner.amount);
-                    appendToHistory('bid', {
-                        bid: {
-                            id: event.winner.id,
-                            koi_id: CONFIG.koiId,
-                            amount: event.winner.amount,
-                            user: {
-                                id: event.winner.user_id,
-                                name: event.winner.name,
-                                pp: event.winner.pp
-                            },
-                            created_at: new Date().toISOString()
-                        },
-                        isSniping: false
-                    });
-                })
-                .listen('ExtraTimeAdded', (event) => {
-                    extraTime = event.extra_time * CONFIG.penaltytime;
-                    CONFIG.endTime = new Date(event.new_end_time).getTime();
-
-                    // Update timer secara langsung
-                    updateTimer();
-
-                    Swal.fire({
-                        title: 'Extra Time Ditambahkan',
-                        text: `${event.extra_time} menit tambahan telah diberikan!`,
-                        icon: 'info',
-                        timer: 3000,
-                        timerProgressBar: true
-                    });
-                });
-
             // ============================== EVENT LISTENERS ==============================
             $('#chat-input').keypress(function(event) {
                 if (event.key === 'Enter') {
@@ -579,6 +610,18 @@
             });
 
             $('#place-bid').on('click', function() {
+                const amount = parseInt($('#bid-amount').val().replace(/\D/g, ''));
+                if (!amount || amount < minimumBid || !validateBidAmount(amount)) {
+                    Swal.fire({
+                        title: 'Bid Tidak Valid',
+                        text: `Nilai bid harus sesuai kelipatan Rp ${formatCurrency(CONFIG.increment)} dan minimal Rp ${formatCurrency(minimumBid)}`,
+                        icon: 'error',
+                        timer: 2000,
+                        timerProgressBar: true
+                    });
+                    return;
+                }
+
                 handlePinValidation('BID');
             });
 
