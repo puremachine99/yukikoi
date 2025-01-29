@@ -227,15 +227,15 @@ class CartController extends Controller
             // Redirect ke Xendit payment link
             return redirect()->away($invoice['invoice_url']);
 
-            return view('cart.testCheckout', [
-                'requestData' => $requestData,       // Semua data request
-                'cartItems' => $cartItems,          // Item di keranjang
-                'totalAmount' => $totalAmount,      // Total biaya
-                'groupedCarts' => $groupedCarts,    // Grup item per penjual
-                'transaction' => $transaction,      // Simulasi data transaksi
-                'transactionItems' => $transactionItemsArray,      // Simulasi data transaksi
-                'invoice' => $invoice,              // Simulasi invoice Xendit
-            ]);
+            // return view('cart.testCheckout', [
+            //     'requestData' => $requestData,       // Semua data request
+            //     'cartItems' => $cartItems,          // Item di keranjang
+            //     'totalAmount' => $totalAmount,      // Total biaya
+            //     'groupedCarts' => $groupedCarts,    // Grup item per penjual
+            //     'transaction' => $transaction,      // Simulasi data transaksi
+            //     'transactionItems' => $transactionItemsArray,      // Simulasi data transaksi
+            //     'invoice' => $invoice,              // Simulasi invoice Xendit
+            // ]);
         } catch (\Exception $e) {
             return back()->withErrors('Gagal membuat invoice: ' . $e->getMessage());
         }

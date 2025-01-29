@@ -7,6 +7,7 @@ use App\Models\Bid;
 use App\Models\Koi;
 use App\Models\Cart;
 use App\Events\PlaceBid;
+use App\Models\Wishlist;
 use App\Events\AuctionWon;
 use App\Models\Transaction;
 use Illuminate\Support\Str;
@@ -20,48 +21,62 @@ use Illuminate\Support\Facades\RateLimiter;
 
 class BidController extends Controller
 {
-    public function userBids()
+    public function userBids(Request $request)
     {
         $userId = Auth::id();
 
-        // Ambil semua bid yang dilakukan oleh user yang sedang login untuk lelang yang statusnya "on going"
+        // Rate limiter untuk mencegah abuse dalam melakukan request
+        $key = 'user-bids:' . $userId;
+        if (RateLimiter::tooManyAttempts($key, 5)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terlalu banyak permintaan, coba lagi dalam beberapa saat.'
+            ], 429);
+        }
+        RateLimiter::hit($key, 60); // Allow 5 requests per minute
+
+        // Ambil semua bid yang dilakukan oleh user yang sedang login
         $bids = Bid::with([
-            'koi.auction',        // Load relasi auction untuk koi
+            'koi.auction',
             'koi.bids' => function ($query) use ($userId) {
-                $query->where('user_id', $userId)->orderBy('created_at', 'desc'); // Urutkan bid user yang sedang login berdasarkan waktu
+                $query->where('user_id', $userId)
+                    ->orderBy('created_at', 'desc');
             },
             'koi.media' => function ($query) {
-                $query->where('media_type', 'photo'); // Hanya ambil media dengan tipe photo
+                $query->where('media_type', 'photo');
             }
         ])
-            ->where('user_id', $userId) // Filter hanya bid yang dibuat oleh user yang sedang login
+            ->where('user_id', $userId)
             ->orderBy('created_at', 'desc')
             ->get();
 
-
-        // Ambil semua bid terakhir dari setiap koi yang sedang berlangsung dan urutkan dari yang terbaru
-        $latestBids = Bid::with([
-            'koi.auction',  // Load relasi auction untuk koi
-            'user'          // Load relasi user untuk bid
+        // Ambil wishlist user
+        $wishlists = Wishlist::with([
+            'koi.auction',
+            'koi.media' => function ($query) {
+                $query->where('media_type', 'photo');
+            }
         ])
+            ->where('user_id', $userId)
+            ->get();
+
+        // Gabungkan bid dan wishlist berdasarkan koi_id agar tidak duplikat
+        $kois = collect([...$bids, ...$wishlists])->groupBy('koi_id')->map(function ($items) {
+            return $items->sortByDesc('created_at')->first();
+        });
+
+        // Ambil bid terakhir untuk setiap koi yang sedang berlangsung
+        $latestBids = Bid::with(['koi.auction', 'user'])
+            ->whereHas('koi.auction', function ($query) {
+                $query->where('status', 'on going');
+            })
             ->orderBy('created_at', 'desc')
             ->get()
-            ->groupBy('koi_id') // Kelompokkan berdasarkan koi_id
-            ->map(function ($koiBids) {
-                return $koiBids->sortByDesc('created_at')->first(); // Ambil bid terakhir untuk setiap koi
-            });
+            ->groupBy('koi_id')
+            ->map(fn($bids) => $bids->sortByDesc('created_at')->first());
 
-        // Cek apakah setiap koi sudah ada pemenang (is_win = true)
-        $winners = $latestBids->map(function ($latestBid) {
-            return $latestBid && $latestBid->is_win ? $latestBid : null; // Tandai pemenang
-        });
-
-        // Ambil hanya bid terakhir yang dibuat oleh user untuk setiap koi yang diikuti oleh user
-        $kois = $bids->filter(function ($bid) {
-            return $bid->koi && $bid->koi->auction; // Pastikan koi dan auction ada
-        })->groupBy('koi_id')->map(function ($koiBids) {
-            return $koiBids->sortByDesc('created_at')->first(); // Ambil bid terbaru dari masing-masing koi
-        });
+        // Cek apakah setiap koi sudah memiliki pemenang (is_win = true)
+        $winners = $latestBids->filter(fn($bid) => $bid && $bid->is_win);
 
         return view('bids.index', compact(['kois', 'latestBids', 'winners']));
     }

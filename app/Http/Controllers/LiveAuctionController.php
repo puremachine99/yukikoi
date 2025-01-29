@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Bid;
 use App\Models\Koi;
 use App\Models\Event;
+use App\Models\Wishlist;
 use App\Models\UserActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,12 +17,36 @@ class LiveAuctionController extends Controller
     {
         $userId = Auth::id(); // ID user yang sedang login
 
-        // Ambil koi dengan jenis reguler
-        $data = $this->getKois($userId, 'reguler');
+        // Ambil koi dengan jenis reguler menggunakan eager loading
+        $kois = Koi::with([
+            'auction',
+            'media' => function ($query) {
+                $query->where('media_type', 'photo');
+            },
+            'bids' => function ($query) {
+                $query->latest();
+            }
+        ])
+            ->whereHas('auction', function ($query) {
+                $query->where('jenis', 'reguler')->where('status', 'on going');
+            })
+            ->get();
 
-        // Kirim data koi, bids, views, dan likes ke view
-        return view('live.index', $data);
+        // Ambil wishlist user
+        $wishlist = Wishlist::where('user_id', $userId)
+            ->pluck('koi_id')
+            ->toArray();
+
+        $totalBids = Bid::whereIn('koi_id', $kois->pluck('id'))
+            ->selectRaw('koi_id, COUNT(*) as total_bids, MAX(amount) as latest_bid')
+            ->groupBy('koi_id')
+            ->get()
+            ->keyBy('koi_id');
+
+        return view('live.index', compact('kois', 'totalBids', 'wishlist'));
     }
+
+
 
 
     protected function getKois($userId, $auctionType = null)

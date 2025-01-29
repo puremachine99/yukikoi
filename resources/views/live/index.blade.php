@@ -71,26 +71,31 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 @foreach ($kois as $koi)
-                    <x-koi-card :koi="$koi" :total-bids="$totalBids" />
+                    <x-koi-card :koi="$koi" :total-bids="$totalBids" :wishlist="$wishlist" />
                 @endforeach
             </div>
         </div>
     </div>
 
     <script>
-        // timer
-        document.addEventListener("DOMContentLoaded", function() {
-            const countdownWrappers = document.querySelectorAll("[data-end-time]");
+        // ============================== CONFIGURATIONS ===============================
+        const CONFIG = {
+            csrfToken: document.querySelector('meta[name="csrf-token"]').content,
+            routes: {
+                toggleLike: '/koi/{id}/like',
+                toggleWishlist: '/wishlist/toggle'
+            }
+        };
 
-            countdownWrappers.forEach(wrapper => {
-                const koiId = wrapper.dataset.koiId;
-                const endTime = new Date(wrapper.dataset.endTime).getTime();
-                const countdownElement = wrapper.querySelector(`#countdown-${koiId}`);
+        // ============================== TIMER FUNCTIONALITY ===============================
+        $(document).ready(function() {
+            $('[data-end-time]').each(function() {
+                const $wrapper = $(this);
+                const koiId = $wrapper.data('koi-id');
+                const endTime = new Date($wrapper.data('end-time')).getTime();
+                const $countdownElement = $(`#countdown-${koiId}`);
 
-                // Jika countdownElement tidak ditemukan, skip proses ini
-                if (!countdownElement) {
-                    return;
-                }
+                if (!$countdownElement.length) return;
 
                 const interval = setInterval(() => {
                     const now = new Date().getTime();
@@ -103,97 +108,63 @@
                         const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
                         const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-                        // Tambahkan 0 di depan angka jika kurang dari 10
-                        const formattedDays = days.toString().padStart(2, '0');
-                        const formattedHours = hours.toString().padStart(2, '0');
-                        const formattedMinutes = minutes.toString().padStart(2, '0');
-                        const formattedSeconds = seconds.toString().padStart(2, '0');
+                        $countdownElement.html(`${days}Hr ${hours}:${minutes}:${seconds}`);
 
-                        // Update countdown text
-                        countdownElement.innerHTML =
-                            `${formattedDays}Hr ${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
-
-                        // Update wrapper color based on time remaining
-                        if (distance <= 60 * 60 * 1000) { // Less than 1 hour
-                            wrapper.classList.remove("bg-yellow-500", "text-black");
-                            wrapper.classList.add("bg-red-500", "text-white");
+                        if (distance <= 60 * 60 * 1000) {
+                            $wrapper.removeClass('bg-yellow-500 text-black').addClass(
+                                'bg-red-500 text-white');
                         } else {
-                            wrapper.classList.remove("bg-red-500", "text-white");
-                            wrapper.classList.add("bg-yellow-500", "text-black");
+                            $wrapper.removeClass('bg-red-500 text-white').addClass(
+                                'bg-yellow-500 text-black');
                         }
                     } else {
                         clearInterval(interval);
-                        countdownElement.innerHTML = "Lelang Berakhir";
-                        wrapper.classList.remove("bg-yellow-500", "bg-red-500");
-                        wrapper.classList.add("bg-gray-500", "text-white");
+                        $countdownElement.html('Lelang Berakhir');
+                        $wrapper.removeClass('bg-yellow-500 bg-red-500').addClass(
+                            'bg-gray-500 text-white');
                     }
                 }, 1000);
             });
         });
 
-
-        document.querySelectorAll('.card-navigate').forEach(card => {
-            card.addEventListener('click', function(event) {
-                if (!event.target.closest('.koi-action')) {
-                    window.location.href = this.dataset.url;
-                }
-            });
+        // ============================== NAVIGATION FUNCTIONALITY ===============================
+        $('.card-navigate').click(function(event) {
+            if (!$(event.target).closest('.koi-action').length) {
+                window.location.href = $(this).data('url');
+            }
         });
 
+        // ============================== LIKE FUNCTIONALITY ===============================
         function toggleLike(koiId) {
-            // Elemen terkait like
-            const likeIcon = document.getElementById(`like-icon-${koiId}`);
-            const likesCountElement = document.getElementById(`likes-count-${koiId}`);
+            const likeIcon = $(`#like-icon-${koiId}`);
+            const likesCountElement = $(`#likes-count-${koiId}`);
+            const isLiked = likeIcon.hasClass('text-red-600');
+            let currentLikes = parseInt(likesCountElement.text(), 10);
 
-            // Optimistic update: cek apakah user sudah like (class 'text-red-600' ada)
-            const isLiked = likeIcon.classList.contains('text-red-600');
-            let currentLikes = parseInt(likesCountElement.innerText, 10);
+            likeIcon.toggleClass('text-red-600');
+            likesCountElement.text(isLiked ? currentLikes - 1 : currentLikes + 1);
 
-            // Update UI instan
-            if (isLiked) {
-                // Jika sebelumnya sudah like, ubah jadi dislike
-                likeIcon.classList.remove('text-red-600'); // Hapus warna merah
-                likesCountElement.innerText = currentLikes - 1; // Kurangi jumlah like
-            } else {
-                // Jika sebelumnya belum like, ubah jadi like
-                likeIcon.classList.add('text-red-600'); // Tambahkan warna merah
-                likesCountElement.innerText = currentLikes + 1; // Tambah jumlah like
-            }
+            $.post(CONFIG.routes.toggleLike.replace('{id}', koiId), {
+                _token: CONFIG.csrfToken
+            }).fail(() => {
+                likeIcon.toggleClass('text-red-600');
+                likesCountElement.text(currentLikes);
+            });
+        }
 
-            // Kirim request ke backend
-            fetch(`/koi/${koiId}/like`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'Content-Type': 'application/json',
-                    },
-                })
-                .then((response) => response.json())
-                .then((data) => {
-                    // Verifikasi dari server, jika gagal bisa revert
-                    if (!data.success) {
-                        console.error('Gagal menyimpan perubahan di backend.');
-                        // Revert perubahan di UI
-                        if (isLiked) {
-                            likeIcon.classList.add('text-red-600');
-                            likesCountElement.innerText = currentLikes;
-                        } else {
-                            likeIcon.classList.remove('text-red-600');
-                            likesCountElement.innerText = currentLikes;
-                        }
-                    }
-                })
-                .catch((error) => {
-                    console.error('Error:', error);
-                    // Revert jika ada error
-                    if (isLiked) {
-                        likeIcon.classList.add('text-red-600');
-                        likesCountElement.innerText = currentLikes;
-                    } else {
-                        likeIcon.classList.remove('text-red-600');
-                        likesCountElement.innerText = currentLikes;
-                    }
-                });
+        // ============================== WISHLIST FUNCTIONALITY ===============================
+        function toggleWishlist(koiId) {
+            const wishlistIcon = $(`#wishlist-icon-${koiId}`);
+            const isWishlisted = wishlistIcon.hasClass('text-yellow-500');
+
+            wishlistIcon.toggleClass('text-yellow-500');
+
+            $.post(CONFIG.routes.toggleWishlist, {
+                _token: CONFIG.csrfToken,
+                koi_id: koiId
+            }).fail(() => {
+                wishlistIcon.toggleClass('text-yellow-500');
+            });
         }
     </script>
 </x-app-layout>
