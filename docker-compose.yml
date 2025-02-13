@@ -1,0 +1,67 @@
+services:
+    frankenphp:
+        build:
+            context: .
+            target: php_base
+        ports:
+            - "8000:8000"
+        command: ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+        env_file:
+            - .env
+        volumes:
+            - .:/app
+            - ./public:/app/public
+            # Exclude node_modules from volume
+            - /app/node_modules
+        depends_on:
+            mysql:
+                condition: service_healthy
+        environment:
+            - APP_ENV=local
+            - VITE_APP_URL=${APP_URL}
+
+    mysql:
+        container_name: mysql
+        image: mysql:8.0
+        ports:
+            - "3306:3306"
+        environment:
+            MYSQL_DATABASE: yuki_koi
+            MYSQL_ROOT_PASSWORD: Yukikoiku22!! # Atur password sesuai kebutuhan
+
+        volumes:
+            - db_data:/var/lib/mysql
+        healthcheck:
+            test:
+                [
+                    "CMD",
+                    "mysqladmin",
+                    "ping",
+                    "-h",
+                    "localhost",
+                    "-uroot",
+                    "-proot",
+                ]
+            interval: 5s
+            timeout: 10s
+            retries: 5
+
+    node:
+        container_name: node
+        build:
+            context: .
+            target: node_service
+        working_dir: /app
+        volumes:
+            - .:/app
+            - /app/node_modules
+        command: ["npm", "run", "dev"]
+        environment:
+            - NODE_ENV=development
+        depends_on:
+            - frankenphp
+        ports:
+            - "5173:5173" # Vite dev server port
+
+volumes:
+    db_data:

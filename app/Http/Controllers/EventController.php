@@ -47,10 +47,10 @@ class EventController extends Controller
     /**
      * List all events created by the authenticated user.
      */
-    public function list($eventId)
+    public function list($eventId = null)
     {
         // Ambil data koi berdasarkan ID event
-        $koi = Koi::where('event_id', $eventId)->paginate(10);
+        $koi = Koi::where('id', $eventId)->paginate(10);
 
         // Return ke view list koi
         return view('koi.index', compact('koi'));

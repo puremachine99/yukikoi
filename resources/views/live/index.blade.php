@@ -139,7 +139,7 @@
             const likeIcon = $(`#like-icon-${koiId}`);
             const likesCountElement = $(`#likes-count-${koiId}`);
             const isLiked = likeIcon.hasClass('text-red-600');
-            let currentLikes = parseInt(likesCountElement.text(), 10);
+            let currentLikes = parseInt(likesCountElement.text(), 10) || 0; // Default ke 0 jika NaN
 
             likeIcon.toggleClass('text-red-600');
             likesCountElement.text(isLiked ? currentLikes - 1 : currentLikes + 1);
@@ -148,9 +148,10 @@
                 _token: CONFIG.csrfToken
             }).fail(() => {
                 likeIcon.toggleClass('text-red-600');
-                likesCountElement.text(currentLikes);
+                likesCountElement.text(currentLikes); // Kembalikan ke nilai sebelumnya jika gagal
             });
         }
+
 
         // ============================== WISHLIST FUNCTIONALITY ===============================
         function toggleWishlist(koiId) {

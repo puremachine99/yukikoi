@@ -173,9 +173,9 @@
 
         <hr class="mt-3 mb-3">
 
-        <div class="flex justify-between text-sm text-gray-500 dark:text-gray-400 mt-2">
+        <div class="flex justify-between text-sm text-black dark:text-gray-400 mt-2">
             <span>Seller : {{ Str::ucfirst($koi->auction->user->farm_name) ?? '-' }}
-                [{{ $koi->auction->user->city }}]</span>
+                <b>[{{ $koi->auction->user->city }}]</b></span>
         </div>
 
         <div class="grid grid-cols-2 gap-2 mt-3 text-sm">

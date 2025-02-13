@@ -337,7 +337,6 @@ class KoiController extends Controller
             ->with('success', 'Koi berhasil diupdate.');
     }
 
-
     // Hapus Media
     public function deleteMedia($id)
     {
@@ -373,8 +372,6 @@ class KoiController extends Controller
 
         return response()->json(['success' => true, 'message' => 'Sertifikat berhasil dihapus.']);
     }
-
-
 
     /**
      * Remove the specified resource from storage.

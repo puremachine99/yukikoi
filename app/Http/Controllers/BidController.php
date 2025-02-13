@@ -27,7 +27,7 @@ class BidController extends Controller
 
         // Rate limiter untuk mencegah abuse dalam melakukan request
         $key = 'user-bids:' . $userId;
-        if (RateLimiter::tooManyAttempts($key, 5)) {
+        if (RateLimiter::tooManyAttempts($key, 30)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Terlalu banyak permintaan, coba lagi dalam beberapa saat.'

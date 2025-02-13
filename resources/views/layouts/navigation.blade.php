@@ -170,17 +170,24 @@
                     <x-responsive-nav-link :href="route('profile.index')">
                         {{ __('Profile') }}
                     </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('cart.index')">
+                        {{ __('Keranjang') }}
+                    </x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('transactions.index')">
-                        {{ __('Payments') }}
+                        {{ __('Pesanan') }}
                     </x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('auctions.index')">
-                        {{ __('My Auctions') }}
+                        {{ __('Lelang') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('events.list')">
+                        {{ __('Event') }}
                     </x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('bids.user')">
-                        {{ __('My Bids') }}
+                        {{ __('Bid') }}
                     </x-responsive-nav-link>
                     <hr class="border-zinc-300">
-                    <x-responsive-nav-link id="theme-toggle">
+                    <x-responsive-nav-link id="theme-toggle"
+                        class="text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-700 focus:outline-none focus:ring-1 focus:ring-zinc-200 dark:focus:ring-zinc-700 text-sm p-2.5">
                         <i id="theme-toggle-dark-icon" class="fa-solid fa-circle hidden w-5 h-5 text-yellow-300"></i>
                         <i id="theme-toggle-light-icon" class="fa-solid fa-moon hidden w-5 h-5 text-indigo-600"></i>
                     </x-responsive-nav-link>

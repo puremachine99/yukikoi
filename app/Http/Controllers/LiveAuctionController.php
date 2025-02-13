@@ -37,6 +37,18 @@ class LiveAuctionController extends Controller
             ->pluck('koi_id')
             ->toArray();
 
+        // Hitung jumlah like untuk setiap koi
+        foreach ($kois as $koi) {
+            $koi->likes_count = UserActivity::where('koi_id', $koi->id)
+                ->where('activity_type', 'like')
+                ->count(); // Hitung jumlah like
+            $koi->user_liked = UserActivity::where('koi_id', $koi->id)
+                ->where('user_id', $userId)
+                ->where('activity_type', 'like')
+                ->exists(); // Cek apakah user sudah like
+        }
+
+        // Hitung total bids
         $totalBids = Bid::whereIn('koi_id', $kois->pluck('id'))
             ->selectRaw('koi_id, COUNT(*) as total_bids, MAX(amount) as latest_bid')
             ->groupBy('koi_id')
@@ -45,7 +57,6 @@ class LiveAuctionController extends Controller
 
         return view('live.index', compact('kois', 'totalBids', 'wishlist'));
     }
-
 
 
 

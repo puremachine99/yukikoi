@@ -46,7 +46,7 @@ class UserActivityController extends Controller
             'user_id' => $user->id,
             'koi_id' => $koiId,
             'activity_type' => 'like',
-            'weight' => 1.0, // Set weight untuk preferensi algoritma
+            'weight' => 2.0, // Set weight untuk preferensi algoritma
         ]);
 
         // Hitung jumlah like terbaru
@@ -83,4 +83,6 @@ class UserActivityController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    
 }

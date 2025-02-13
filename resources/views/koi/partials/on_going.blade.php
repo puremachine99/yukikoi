@@ -6,7 +6,6 @@
             <button id="send-message-btn" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-800">
                 <i class="fa-solid fa-paper-plane text-white"></i>
             </button>
-            
     </div>
 
     <!-- Bid Section -->

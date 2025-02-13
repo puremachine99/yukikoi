@@ -602,9 +602,10 @@
                 }
             });
 
-            $('#send-message-button').on('click', function() {
+            $('#send-message-btn').on('click', function() {
                 sendMessage();
             });
+
             $('#bin-btn').on('click', function() {
                 handlePinValidation('BIN');
             });
