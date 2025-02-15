@@ -36,7 +36,7 @@
                                 <!-- Jenis Koi -->
                                 <div class="mb-4">
                                     <x-input-label for="jenis_koi" :value="__('Jenis Koi')" />
-                                    <x-dropdown-jenis-koi></x-dropdown-jenis-koi>
+                                    <x-dropdown-jenis-koi name="jenis_koi[]" ></x-dropdown-jenis-koi>
                                 </div>
 
 

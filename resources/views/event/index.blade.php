@@ -42,10 +42,11 @@
                                             <span class="text-sm text-gray-500 dark:text-gray-400">
                                                 {{ $part->start_time }} s/d {{ $part->end_time }}
                                             </span>
-                                            <a href="{{ route('koi.list', ['event' => $part->id]) }}"
+                                            <a href="{{ route('events.koi.list', ['event' => $part->id]) }}"
                                                 class="text-sm text-blue-500 dark:text-blue-300 underline ml-2">
                                                 Lihat Koi
                                             </a>
+                                            
                                         </li>
                                     @endforeach
                                 </ul>

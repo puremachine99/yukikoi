@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Bid;
 use App\Models\Koi;
+use App\Models\Event;
 use App\Models\Media;
 use App\Models\Auction;
 use App\Models\MarkedKoi;
@@ -64,6 +65,21 @@ class KoiController extends Controller
         // Kembalikan view dengan data koi dan informasi tambahan
         return view('koi.index', compact('kois', 'auction', 'auction_code', 'totalBids'));
     }
+    public function list(Request $request, $id)
+    {
+        // Cek apakah ini event atau lelang reguler
+        $event = Event::find($id);
+
+        if ($event) {
+            // Ambil koi berdasarkan event
+            $koi = Koi::where('event_id', $id)->paginate(10);
+            return view('koi.index', compact('koi', 'event'));
+        } else {
+            // Jika bukan event, asumsikan ini lelang reguler berdasarkan auction_code
+            $koi = Koi::where('auction_code', $id)->paginate(10);
+            return view('koi.index', compact('koi'));
+        }
+    }
 
 
     /**
@@ -85,6 +101,7 @@ class KoiController extends Controller
      */
     public function store(Request $request)
     {
+        // dd($request->all());
         $request->validate([
             'judul' => 'required|array',
             'jenis_koi' => 'required|array',
@@ -163,8 +180,8 @@ class KoiController extends Controller
             }
         }
 
-        return redirect()->route('koi.index', ['auction_code' => $request->auction_code])
-            ->with('success', 'Data Koi berhasil disimpan!');
+        // return redirect()->route('koi.index', ['auction_code' => $request->auction_code])
+        //     ->with('success', 'Data Koi berhasil disimpan!');
     }
 
     /**
@@ -247,9 +264,11 @@ class KoiController extends Controller
         // Ambil koi lain di lelang yang sama berdasarkan auction_code
         $koisInSameAuction = Koi::where('auction_code', $koi->auction_code)
             ->where('id', '!=', $koi->id) // Kecualikan koi ini
-            ->with(['media' => function ($query) {
-                $query->where('media_type', 'photo'); // Ambil hanya media yang berupa foto
-            }])
+            ->with([
+                'media' => function ($query) {
+                    $query->where('media_type', 'photo'); // Ambil hanya media yang berupa foto
+                }
+            ])
             ->get();
 
         // Ambil ikan sejenis berdasarkan category
@@ -258,9 +277,11 @@ class KoiController extends Controller
             ->whereHas('auction', function ($query) {
                 $query->where('status', 'on going'); // Pastikan lelang berstatus on going
             })
-            ->with(['media' => function ($query) {
-                $query->where('media_type', 'photo'); // Ambil hanya media yang berupa foto
-            }])
+            ->with([
+                'media' => function ($query) {
+                    $query->where('media_type', 'photo'); // Ambil hanya media yang berupa foto
+                }
+            ])
             ->get();
 
         // Cek apakah user yang login adalah seller dari koi ini

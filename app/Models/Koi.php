@@ -17,19 +17,26 @@ class Koi extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
-        'id', // Custom ID generated from auction_code + kode_ikan
-        'auction_code', // Foreign key dari Auction
-        'kode_ikan', // Kode ikan (e.g., A, B, etc.)
+        'id',
+        'auction_code',
+        'event_id', // Tambahkan event_id
+        'kode_ikan',
         'judul',
-        'jenis_koi', // Jenis Koi
-        'ukuran', // Ukuran koi
-        'gender', // Gender of the koi
-        'open_bid', // Open bid
-        'kelipatan_bid', // Increment bid
-        'buy_it_now', // Buy it now price (nullable)
-        'keterangan', // Description (optional)
-        'breeder', // Breeder info (optional)
+        'jenis_koi',
+        'ukuran',
+        'gender',
+        'open_bid',
+        'kelipatan_bid',
+        'buy_it_now',
+        'keterangan',
+        'breeder',
     ];
+    
+    public function event()
+    {
+        return $this->belongsTo(Event::class, 'event_id');
+    }
+    
 
     // Model Koi
     public function auction()
