@@ -10,6 +10,7 @@ use App\Models\Auction;
 use App\Models\MarkedKoi;
 use App\Models\Certificate;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
@@ -102,6 +103,7 @@ class KoiController extends Controller
     public function store(Request $request)
     {
         // dd($request->all());
+        Log::info('Request Data:', $request->all());
         $request->validate([
             'judul' => 'required|array',
             'jenis_koi' => 'required|array',
