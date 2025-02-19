@@ -181,7 +181,7 @@
             // ============================== CONFIGURATIONS ===============================
             const CONFIG = {
                 koiId: "{{ $koi->id }}",
-                userProfilePhoto: "{{ auth()->user()->profile_photo ?: 'https://via.placeholder.com/40' }}",
+                userProfilePhoto: "{{ auth()->user()->profile_photo ?: asset('storage/avatar/user-default.png') }}",
                 userId: parseInt('{{ auth()->id() }}'),
                 csrfToken: "{{ csrf_token() }}",
                 openBid: {{ $koi->open_bid }},
@@ -414,9 +414,9 @@
                 if ($(`#history .chat[data-id="${data.id}"]`).length > 0) return;
 
                 const isOwn = data.user.id === CONFIG.userId;
-                const avatarUrl = data.user.pp && data.user.pp !== 'null' ? `/storage/${data.user.pp}` :
-                    'https://via.placeholder.com/40';
+                const avatarUrl = data.user.pp && data.user.pp !== 'null' ? `/storage/${data.user.pp}` : '{{ asset('storage/avatar/user-default.png') }}';
 
+                console.log(avatarUrl);
                 const dateOptions = {
                     day: '2-digit',
                     month: 'short',

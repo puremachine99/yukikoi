@@ -62,7 +62,7 @@
                                             class="h-12 w-12 rounded-full object-cover mr-8"
                                             style="width: 25px; height: 25px;">
                                     @else
-                                        <img src="{{ asset('default-profile.png') }}" alt="Default Profile Photo"
+                                        <img src="{{ asset('storage/avatar/user-default.png') }}" alt="Default Profile Photo"
                                             class="h-12 w-12 rounded-full object-cover mr-8"
                                             style="width: 25px; height: 25px;">
                                     @endif
