@@ -1,11 +1,11 @@
 <section class="space-y-6">
     <header>
         <h2 class="text-lg font-medium text-zinc-900 dark:text-zinc-100">
-            {{ __('Delete Account') }}
+            {{ __('Hapus Akun') }}
         </h2>
 
         <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-            {{ __('Once your account is deleted, all of its resources and data will be permanently deleted. Before deleting your account, please download any data or information that you wish to retain.') }}
+            {{ __('Setelah akun Anda dihapus, semua sumber daya dan datanya akan dihapus secara permanen. Masukkan kata sandi Anda untuk mengonfirmasi bahwa Anda ingin menghapus akun Anda secara permanen.') }}
         </p>
     </header>
 
@@ -20,11 +20,11 @@
             @method('delete')
 
             <h2 class="text-lg font-medium text-zinc-900 dark:text-zinc-100">
-                {{ __('Are you sure you want to delete your account?') }}
+                {{ __('Apakah Anda yakin ingin menghapus akun Anda?') }}
             </h2>
 
             <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                {{ __('Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.') }}
+                {{ __('Setelah akun Anda dihapus, semua sumber daya dan datanya akan dihapus secara permanen. Masukkan kata sandi Anda untuk mengonfirmasi bahwa Anda ingin menghapus akun Anda secara permanen.') }}
             </p>
 
             <div class="mt-6">
@@ -47,7 +47,7 @@
                 </x-secondary-button>
 
                 <x-danger-button class="ms-3">
-                    {{ __('Delete Account') }}
+                    {{ __('Hapus Akun') }}
                 </x-danger-button>
             </div>
         </form>
