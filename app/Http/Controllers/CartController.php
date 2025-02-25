@@ -17,18 +17,33 @@ class CartController extends Controller
 {
     public function index()
     {
-        $userId = Auth::id();;
-        $carts = Cart::with(['koi', 'koi.media' => function ($query) {
-            $query->where('media_type', 'photo'); // Hanya ambil media yang berupa foto
-        }, 'koi.auction.user'])
+        $userId = Auth::id();
+        $carts = Cart::with([
+            'koi',
+            'koi.media' => function ($query) {
+                $query->where('media_type', 'photo'); // Hanya ambil media yang berupa foto
+            },
+            'koi.auction.user',
+            'koi.bids' => function ($query) {
+                $query->where('is_win', true)->latest();
+            }
+        ])
             ->where('user_id', $userId)
             ->get();
+
+        // Menambahkan informasi tambahan seperti waktu kemenangan dan kode ikan
+        $carts->each(function ($cart) {
+            $winnerBid = $cart->koi->bids->firstWhere('is_win', true);
+            $cart->koi->win_time = optional($winnerBid)->created_at;
+            $cart->koi->auction_code = optional($cart->koi->auction)->auction_code;
+        });
 
         // Grouping berdasarkan toko (farm_name)
         $cartsBySeller = $carts->groupBy(fn($cart) => $cart->koi->auction->user->farm_name ?? 'Tanpa Nama');
 
         return view('cart.index', compact('cartsBySeller'));
     }
+
 
     public function checkout(Request $request)
     {

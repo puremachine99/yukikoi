@@ -59,7 +59,6 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <!-- Daftar Toko -->
             @forelse ($cartsBySeller as $farmName => $carts)
                 <div class="mb-8 bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-md">
                     <h3 class="font-semibold text-lg text-zinc-700 dark:text-zinc-200 mb-4">
@@ -68,9 +67,7 @@
 
                     <div class="space-y-6">
                         @foreach ($carts as $cart)
-                            <div class="flex items-start bg-white hover:bg-blue-50 hover:scale-105 transition-transform duration-300 dark:bg-zinc-800 p-4 rounded-lg shadow-md cursor-pointer"
-                                onclick="toggleCheckbox(this)">
-                                <!-- Checkbox -->
+                            <div class="itemcart flex items-start bg-white hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors duration-200 dark:bg-zinc-800 p-4 rounded-lg shadow-md cursor-pointer">
                                 <div class="flex-shrink-0">
                                     <input type="checkbox" class="select-koi" data-id="{{ $cart->id }}"
                                         data-price="{{ $cart->price }}" style="transform: scale(1.2);">
@@ -78,9 +75,10 @@
 
                                 <!-- Gambar Koi -->
                                 <div class="flex-shrink-0 ml-4">
-                                    <img src="{{ asset('storage/' . $cart->koi->media->first()->url_media ?? 'default.png') }}"
-                                        alt="Koi Image" class="border object-cover rounded-lg"
-                                        style="max-height: 150px; width: auto;">
+                                    <a href="{{ route('koi.show', ['id' => $cart->koi->id]) }}" class="block">
+                                        <img src="{{ asset('storage/' . $cart->koi->media->first()->url_media ?? 'default.png') }}"
+                                            alt="Koi Image" class="border object-cover rounded-lg w-24 h-36">
+                                    </a>
                                 </div>
 
                                 <!-- Detail Koi -->
@@ -89,37 +87,42 @@
                                         {{ $cart->koi->judul }}
                                     </h4>
                                     <p class="text-sm text-zinc-600 dark:text-zinc-400">
-                                        Jenis: {{ $cart->koi->jenis_koi }} | Ukuran: {{ $cart->koi->ukuran }} cm
+                                        Kode Lelang: {{ $cart->koi->auction_code }}
                                     </p>
                                     <p class="text-sm text-zinc-600 dark:text-zinc-400">
-                                        Harga Menang: Rp {{ number_format($cart->price, 0, ',', '.') }}
+                                        Kode Ikan: {{ $cart->koi->kode_koi }}
+                                    </p>
+                                    <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                                        Jumlah Bid: {{ $cart->koi->bids->count() }}x
+                                    </p>
+                                    <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                                        Waktu Menang: {{ optional($cart->koi->win_time)->format('d M Y, H:i') ?? '-' }}
+                                    </p>
+                                    <p class="text-sm text-zinc-600 dark:text-zinc-400 font-semibold mt-2">Harga Menang:
+                                    </p>
+                                    <p class="text-lg font-bold text-green-600 dark:text-green-400">
+                                        Rp {{ number_format($cart->price, 0, ',', '.') }}
                                     </p>
 
                                 </div>
                             </div>
                         @endforeach
-
                     </div>
-
                 </div>
             @empty
                 <p class="text-center text-zinc-600 dark:text-zinc-400">Keranjang kosong. Mulai tambahkan koi dari
                     lelang yang Anda menangkan.</p>
             @endforelse
+
             @if ($cartsBySeller->isNotEmpty())
-                <!-- Fixed Bottom Bar -->
                 <div class="fixed bottom-0 left-0 w-full bg-white dark:bg-zinc-900 shadow-md px-6 py-4 z-50">
                     <div class="max-w-7xl mx-auto flex justify-between items-center">
-                        <!-- Total Harga -->
                         <h3 class="text-xl font-bold text-zinc-800 dark:text-zinc-200">
                             Total Harga: Rp <span id="total-price">0</span>
                         </h3>
-
-                        <!-- Tombol Checkout -->
                         <form action="{{ route('cart.checkout') }}" method="POST" id="checkout-form">
                             @csrf
                             <input type="hidden" name="cart_ids" id="selected-cart-ids" value="">
-                            <!-- Hidden input -->
                             <button type="submit"
                                 class="py-2 px-6 bg-green-500 text-white rounded-lg shadow hover:bg-green-600">
                                 Checkout
@@ -128,92 +131,82 @@
                     </div>
                 </div>
             @endif
-
-
         </div>
     </div>
 
+
     <script>
         // Toggle checkbox when clicking the parent div
-        function toggleCheckbox(container) {
-            const checkbox = container.querySelector('input[type="checkbox"]');
-            if (checkbox) {
-                checkbox.checked = !checkbox.checked;
-                calculateTotal(); // Recalculate total after toggling
-                logSelectedItems(); // Log selected items
-            }
-        }
 
-        // Calculate total price
-        function calculateTotal() {
-            const checkboxes = document.querySelectorAll('.select-koi');
-            let total = 0;
-
-            checkboxes.forEach((checkbox) => {
-                if (checkbox.checked) {
-                    const price = parseFloat(checkbox.getAttribute('data-price')) || 0; // Ensure it's a number
-                    total += price;
+        $(document).ready(function() {
+            function toggleCheckbox(container) {
+                const checkbox = $(container).find('input[type="checkbox"]');
+                if (checkbox.length) {
+                    checkbox.prop('checked', !checkbox.prop('checked'));
+                    calculateTotal(); // Recalculate total after toggling
+                    logSelectedItems(); // Log selected items
                 }
-            });
-
-            // Update total price display
-            document.getElementById('total-price').textContent = new Intl.NumberFormat('id-ID', {
-                style: 'currency',
-                currency: 'IDR'
-            }).format(total);
-        }
-
-        // Log selected items to console
-        function logSelectedItems() {
-            const selectedItems = [];
-            const checkboxes = document.querySelectorAll('.select-koi:checked');
-
-            checkboxes.forEach((checkbox) => {
-                selectedItems.push({
-                    id: checkbox.getAttribute(
-                        'data-id'), // Assuming you have a data-id attribute for koi ID
-                    price: parseFloat(checkbox.getAttribute('data-price')) || 0
-                });
-            });
-
-            console.log("Selected Items:", selectedItems); // Log selected items
-        }
-
-        // Attach event listeners to parent divs for toggling checkboxes
-        document.addEventListener('DOMContentLoaded', () => {
-            const containers = document.querySelectorAll('.hover:scale-105'); // Replace with actual container class
-            containers.forEach((container) => {
-                container.addEventListener('click', () => toggleCheckbox(container));
-            });
-
-            // Also attach event listener to checkboxes for direct interaction
-            const checkboxes = document.querySelectorAll('.select-koi');
-            checkboxes.forEach((checkbox) => {
-                checkbox.addEventListener('change', () => {
-                    calculateTotal();
-                    logSelectedItems(); // Log selected items when checkbox changes
-                });
-            });
-        });
-
-        // Submit form and log selected data before sending
-        document.getElementById('checkout-form').addEventListener('submit', function(event) {
-            event.preventDefault(); // Mencegah form terkirim langsung tanpa validasi
-
-            const checkboxes = document.querySelectorAll('.select-koi:checked'); // Hanya checkbox yang dipilih
-            const selectedIds = Array.from(checkboxes).map((checkbox) => checkbox.getAttribute(
-            'data-id')); // Ambil ID
-
-            if (selectedIds.length === 0) {
-                alert('Pilih setidaknya satu koi untuk checkout!');
-                return; // Jangan kirim form jika tidak ada yang dipilih
             }
 
-            // Set data ke input hidden
-            document.getElementById('selected-cart-ids').value = JSON.stringify(selectedIds);
+            // Calculate total price
+            function calculateTotal() {
+                let total = 0;
 
-            // Submit form secara manual
-            this.submit();
+                $('.select-koi:checked').each(function() {
+                    const price = parseFloat($(this).data('price')) ||
+                        0; // Pastikan input harga berupa angka
+                    total += price;
+                });
+
+                // Update total price display
+                $('#total-price').text(new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR'
+                }).format(total));
+            }
+
+            // Log selected items to console
+            function logSelectedItems() {
+                const selectedItems = [];
+
+                $('.select-koi:checked').each(function() {
+                    selectedItems.push({
+                        id: $(this).data('id'),
+                        price: parseFloat($(this).data('price')) || 0
+                    });
+                });
+            }
+
+            // Attach event listeners to parent divs for toggling checkboxes
+            $('.itemcart').on('click', function() {
+                toggleCheckbox(this);
+            });
+
+            // Event listener untuk checkbox
+            $('.select-koi').on('change', function() {
+                calculateTotal();
+                logSelectedItems();
+            });
+
+            // Submit form and log selected data before sending
+            $('#checkout-form').on('submit', function(event) {
+                event.preventDefault(); // Mencegah form terkirim langsung tanpa validasi
+
+                const selectedIds = $('.select-koi:checked').map(function() {
+                    return $(this).data('id');
+                }).get(); // Mengambil ID dari checkbox yang dipilih
+
+                if (selectedIds.length === 0) {
+                    alert('Pilih setidaknya satu koi untuk checkout!');
+                    return; // Jangan kirim form jika tidak ada yang dipilih
+                }
+
+                // Set data ke input hidden
+                $('#selected-cart-ids').val(JSON.stringify(selectedIds));
+
+                // Submit form secara manual
+                this.submit();
+            });
         });
     </script>
 
