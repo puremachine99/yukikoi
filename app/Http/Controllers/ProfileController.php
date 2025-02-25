@@ -62,8 +62,8 @@ class ProfileController extends Controller
             }
         ])->get();
 
-        // Hitung jumlah total bid, total bid terakhir, dan periksa pemenang atau bid BIN
-        $totalBids = $kois->mapWithKeys(function ($koi) {
+         // Hitung total bid dan informasi pemenang untuk setiap koi
+         $totalBids = $kois->mapWithKeys(function ($koi) {
             $winnerBid = $koi->bids->firstWhere('is_win', true); // Ambil bid yang menjadi pemenang
 
             return [

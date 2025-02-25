@@ -16,7 +16,7 @@
                     {{ $koi->auction->status == 'ready' ? 'Belum dimulai' : ($koi->auction->status == 'on going' ? 'On Going' : 'Complete') }}
                 </span>
                 <div class="text-sm text-gray-700 dark:text-gray-200">
-                    <span>{{ $totalBids[(string) $koi->id]['total_bids'] ?? 0 }}x Bids</span>
+                    <span>{{ $totalBids['total_bids'] ?? 0 }}x Bids</span>
                 </div>
             </div>
 
@@ -25,7 +25,6 @@
                 {{ $koi->auction->status == 'ready' ? 'Belum Mulai' : ($koi->auction->status == 'on going' ? 'Sedang Berlangsung' : 'Lelang Selesai') }}
             </span>
         </div>
-
 
         {{-- logo yuki koi --}}
         <div class="absolute top-1 right-2 p-0 rounded-full text-center text-sm">
@@ -145,7 +144,7 @@
                 onclick="event.stopPropagation(); toggleWishlist('{{ $koi->id }}')">
                 <!-- Icon Wishlist -->
                 <i id="wishlist-icon-{{ $koi->id }}"
-                    class="fa-solid fa-star mr-1 {{ in_array($koi->id, $wishlist) ? 'text-yellow-500' : '' }}"></i>
+                    class="fa-solid fa-star mr-1 {{ is_array($wishlist) && in_array($koi->id, $wishlist) ? 'text-yellow-500' : '' }}"></i>
                 <span
                     class="absolute bottom-full mb-2 w-max px-2 py-1 text-xs text-white bg-black rounded hidden group-hover:block transform -translate-x-1/2 left-1/2">
                     Masukkan Wishlist

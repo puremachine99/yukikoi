@@ -64,7 +64,7 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Live Lelang Route 
 Route::get('/live-auction', [LiveAuctionController::class, 'index'])->name('live.index');
-
+Route::get('/live-auction/search', [LiveAuctionController::class, 'search'])->name('live.search');
 
 // Dashboard Route (terverifikasi yang login)
 Route::get('/dashboard/{koi?}', function (Koi $koi = null) {
@@ -110,6 +110,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('/auctions/{auction_code}', [AuctionController::class, 'destroy'])->name('auctions.destroy');
     Route::post('/auctions/{auction_code}/start', [AuctionController::class, 'startAuction'])->name('auctions.start');
     Route::get('/fetch-auctions', [AuctionController::class, 'fetchAuctions'])->name('fetch.auctions');
+    Route::get('/my-auctions', [AuctionController::class, 'userAuctions'])->name('auctions.user');
+    Route::get('/auctions/{auction_code}/recap', [AuctionController::class, 'recap'])->name('auctions.recap');
 });
 
 // Lelang yang bisa dilihat semua user (guest dapat akses)
@@ -128,6 +130,7 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/media/{id}', [KoiController::class, 'deleteMedia'])->name('media.delete');
     Route::delete('/certificates/{id}', [KoiController::class, 'deleteCertificate'])->name('certificates.delete');
 });
+
 
 // Middleware untuk meningkatkan view count
 Route::middleware([\App\Http\Middleware\CountViews::class])->group(function () {

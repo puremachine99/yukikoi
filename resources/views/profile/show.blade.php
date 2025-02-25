@@ -252,7 +252,8 @@
                                     <!-- Details Section (3/4) -->
                                     <div class="w-3/4 pl-3  justify-start items-start ">
                                         <h3 class="text-md font-semibold text-slate-800">{{ $achievement->name }}</h3>
-                                        <p class="text-xs text-slate-800 opacity-80">{{ $achievement->description }}</p>
+                                        <p class="text-xs text-slate-800 opacity-80">{{ $achievement->description }}
+                                        </p>
                                     </div>
                                 </div>
                             @endforeach
@@ -302,7 +303,7 @@
                                 {{ __('Ikan Koi yang Dimiliki Seller') }}</h2>
                             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 @foreach ($kois as $koi)
-                                    <x-koi-card :koi="$koi" :total-bids="$totalBids" />
+                                    <x-koi-card :koi="$koi" :total-bids="$totalBids[$koi->id] ?? 0" />
                                 @endforeach
                             </div>
                         </div>

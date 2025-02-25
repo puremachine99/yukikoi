@@ -6,14 +6,62 @@ use Log;
 use App\Models\Koi;
 use App\Models\User;
 use App\Models\Auction;
-use App\Models\MarkedKoi;
 use Illuminate\Http\Request;
-use App\Jobs\UpdateAuctionStatus;
+
 use App\Models\Ember;
 use Illuminate\Support\Facades\Auth;
 
 class AuctionController extends Controller
 {
+    public function userAuctions()
+    {
+        $userId = Auth::id();
+
+        // Ambil semua lelang milik user yang sedang login
+        $auctions = Auction::with([
+            'koi.bids.user', // Ambil koi, bids, dan user yang bid
+        ])
+            ->where('user_id', $userId)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('auctions.user', compact('auctions'));
+    }
+
+    public function recap($auction_code)
+    {
+        $auction = Auction::with(['koi.bids.user', 'koi.media'])
+            ->where('auction_code', $auction_code)
+            ->firstOrFail();
+
+
+        $kois = $auction->koi;
+
+        // Hitung statistik lelang
+        $totalBids = 0;
+        $totalParticipants = [];
+        $totalRevenue = 0;
+
+        foreach ($kois as $koi) {
+            $koi->total_bids = $koi->bids->count();
+            $koi->latest_bid = $koi->bids->max('amount');
+            $koi->winner = $koi->bids->where('is_win', true)->first();
+
+            // Kumpulkan semua user yang melakukan bid
+            foreach ($koi->bids as $bid) {
+                $totalParticipants[$bid->user_id] = $bid->user->name ?? 'Guest';
+            }
+
+            $totalBids += $koi->total_bids;
+            $totalRevenue += $koi->latest_bid ?? 0;
+        }
+
+        // Konversi ke collection
+        $totalParticipants = collect($totalParticipants);
+
+        return view('auctions.recap', compact('auction', 'kois', 'totalBids', 'totalParticipants', 'totalRevenue'));
+    }
+
 
     // AuctionController.php
     public function checkStatus()
@@ -225,9 +273,6 @@ class AuctionController extends Controller
 
         return view('auctions.show', compact('kois', 'auction', 'auction_code', 'ember', 'bidsHistory', 'totalBids'));
     }
-
-
-
 
     /**
      * Show the form for editing the specified resource.

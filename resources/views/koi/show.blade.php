@@ -181,7 +181,7 @@
             // ============================== CONFIGURATIONS ===============================
             const CONFIG = {
                 koiId: "{{ $koi->id }}",
-                userProfilePhoto: "{{ auth()->user()->profile_photo ?: 'https://via.placeholder.com/40' }}",
+                userProfilePhoto: "{{ optional(auth()->user())->profile_photo ?: asset('storage/avatar/user-default.png') }}",
                 userId: parseInt('{{ auth()->id() }}'),
                 csrfToken: "{{ csrf_token() }}",
                 openBid: {{ $koi->open_bid }},

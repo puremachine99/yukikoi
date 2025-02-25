@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Storage;
 
 class KoiController extends Controller
 {
-    /**
+        /**
      * Display a listing of the resource.
      */
     public function index(Request $request, $auction_code)
@@ -182,8 +182,8 @@ class KoiController extends Controller
             }
         }
 
-        // return redirect()->route('koi.index', ['auction_code' => $request->auction_code])
-        //     ->with('success', 'Data Koi berhasil disimpan!');
+        return redirect()->route('koi.index', ['auction_code' => $request->auction_code])
+            ->with('success', 'Data Koi berhasil disimpan!');
     }
 
     /**

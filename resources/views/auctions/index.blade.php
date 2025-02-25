@@ -72,7 +72,7 @@
                 </div>
 
                 <!-- Bagian Daftar Lelang -->
-                <div id="auction-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div id="auction-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     @if ($auctions->isEmpty())
                         <p class="text-center col-span-4 text-zinc-600 dark:text-zinc-400">Tidak ada data.</p>
                     @else

@@ -17,8 +17,14 @@ class LiveAuctionController extends Controller
     {
         $userId = Auth::id(); // ID user yang sedang login
 
-        // Ambil koi dengan jenis reguler menggunakan eager loading
-        $kois = Koi::with([
+        // Ambil parameter pencarian dari request
+        $search = $request->input('q');
+        $gender = $request->input('gender');
+        $minPrice = $request->input('min_price');
+        $maxPrice = $request->input('max_price');
+
+        // Query utama untuk mengambil koi yang sedang dilelang (jenis reguler)
+        $query = Koi::with([
             'auction',
             'media' => function ($query) {
                 $query->where('media_type', 'photo');
@@ -26,11 +32,35 @@ class LiveAuctionController extends Controller
             'bids' => function ($query) {
                 $query->latest();
             }
-        ])
-            ->whereHas('auction', function ($query) {
-                $query->where('jenis', 'reguler')->where('status', 'on going');
-            })
-            ->get();
+        ])->whereHas('auction', function ($query) {
+            $query->where('jenis', 'reguler')->where('status', 'on going');
+        });
+
+        // **Filter berdasarkan pencarian judul atau jenis koi**
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('judul', 'like', "%$search%")
+                    ->orWhere('jenis_koi', 'like', "%$search%");
+            });
+        }
+
+        // **Filter berdasarkan gender**
+        if (!empty($gender)) {
+            $query->where('gender', $gender);
+        }
+
+        // **Filter berdasarkan harga minimum**
+        if (!empty($minPrice)) {
+            $query->where('open_bid', '>=', $minPrice);
+        }
+
+        // **Filter berdasarkan harga maksimum**
+        if (!empty($maxPrice)) {
+            $query->where('open_bid', '<=', $maxPrice);
+        }
+
+        // **Gunakan paginate untuk mendukung pagination**
+        $kois = $query->paginate(20); // 
 
         // Ambil wishlist user
         $wishlist = Wishlist::where('user_id', $userId)
@@ -41,11 +71,11 @@ class LiveAuctionController extends Controller
         foreach ($kois as $koi) {
             $koi->likes_count = UserActivity::where('koi_id', $koi->id)
                 ->where('activity_type', 'like')
-                ->count(); // Hitung jumlah like
+                ->count();
             $koi->user_liked = UserActivity::where('koi_id', $koi->id)
                 ->where('user_id', $userId)
                 ->where('activity_type', 'like')
-                ->exists(); // Cek apakah user sudah like
+                ->exists();
         }
 
         // Hitung total bids
@@ -57,6 +87,7 @@ class LiveAuctionController extends Controller
 
         return view('live.index', compact('kois', 'totalBids', 'wishlist'));
     }
+
 
 
 

@@ -95,7 +95,15 @@
         @if ($auction->status == 'ready')
             <div id="countdown" class="text-zinc-800 dark:text-white mt-4 text-lg font-semibold"></div>
         @endif
-
+        <!-- Tombol Lihat Rekap Lelang (Kondisi: Jika status 'on going' atau 'complete') -->
+        @if (in_array($auction->status, ['on going', 'completed']))
+            <button
+                onclick="window.location.href='{{ route('auctions.recap', ['auction_code' => $auction->auction_code]) }}'"
+                class="w-full mt-3 py-2 px-4 text-white font-bold rounded-md transition-all ease-in-out duration-200
+     {{ $auction->status == 'on going' ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600' }}">
+                <i class="fas fa-file-alt mr-2"></i> Lihat Rekap Lelang
+            </button>
+        @endif
 
     </div>
 @endforeach
