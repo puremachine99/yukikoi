@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cart;
+use App\Models\Order;
 use App\Models\Transaction;
 use App\Models\UserAddress;
 use Illuminate\Support\Str;
@@ -157,7 +158,7 @@ class CartController extends Controller
             $transaction->status = 'pending';
             $transaction->external_id = $externalId;
             $transaction->checkout_link = $invoice['invoice_url'];
-            // $transaction->save();
+            $transaction->save();
 
             // Group carts by seller
             $groupedCarts = $cartItems->groupBy(fn($cart) => $cart->koi->auction->user->farm_name ?? 'Tanpa Nama');
@@ -207,7 +208,7 @@ class CartController extends Controller
                         $phoneNumber = 'No HP tidak diketahui';
                     }
 
-                    // Buat instance TransactionItem
+                    //Buat instance TransactionItem
                     $transactionItem = [
                         'transaction_id' => $transaction->id,
                         'koi_id' => $cart->koi_id,
@@ -221,38 +222,73 @@ class CartController extends Controller
                     ];
                     $transactionItemsArray[] = $transactionItem;
                     // Simpan TransactionItem
-                    // $transactionItem = new TransactionItem();
-                    // $transactionItem->transaction_id = $transaction->id;
-                    // $transactionItem->koi_id = $cart->koi_id;
-                    // $transactionItem->price = $cart->price;
-                    // $transactionItem->farm = $cart->koi->auction->user->farm_name;
-                    // $transactionItem->shipping_fee = $request->input("shipping_fees.{$seller}") ?? 0;
-                    // $transactionItem->shipping_address = $shippingAddress;
-                    // $transactionItem->farm_owner_name = $recipientName;
-                    // $transactionItem->farm_phone_number = $phoneNumber;
-                    // $transactionItem->shipping_group = $shippingGroup;
+                    $transactionItem = new TransactionItem();
+                    $transactionItem->transaction_id = $transaction->id;
+                    $transactionItem->koi_id = $cart->koi_id;
+                    $transactionItem->price = $cart->price;
+                    $transactionItem->farm = $cart->koi->auction->user->farm_name;
+                    $transactionItem->shipping_fee = $request->input("shipping_fees.{$seller}") ?? 0;
+                    $transactionItem->shipping_address = $shippingAddress;
+                    $transactionItem->farm_owner_name = $recipientName;
+                    $transactionItem->farm_phone_number = $phoneNumber;
+                    $transactionItem->shipping_group = $shippingGroup;
                     // $transactionItem->save();
+
+                    // **Tambahkan Data ke Orders
+
+                    // $ordersArray[] = [
+                    //     'buyer_id' => $user->id,
+                    //     'seller_id' => $cart->koi->auction->user->id,
+                    //     'koi_id' => $cart->koi->id,
+                    //     'transaction_id' => $transaction->id,
+                    //     'total_price' => $cart->price,
+                    //     'status' => 'pending', // Status awal pesanan
+                    //     'shipping_address' => $shippingAddress,
+                    //     'recipient_name' => $recipientName,
+                    //     'recipient_phone' => $phoneNumber,
+                    //     'shipping_group' => $shippingGroup,
+                    //     'created_at' => now(),
+                    //     'updated_at' => now(),
+                    // ];
+
+                    // $order = new Order();
+                    // $order->buyer_id = $user->id;
+                    // $order->seller_id = $cart->koi->auction->user->id;
+                    // $order->koi_id = $cart->koi->id;
+                    // $order->transaction_id = $transaction->id;
+                    // $order->total_price = $cart->price;
+                    // $order->status = 'pending'; // Status awal pesanan
+                    // $order->shipping_address = $shippingAddress;
+                    // $order->recipient_name = $recipientName;
+                    // $order->recipient_phone = $phoneNumber;
+                    // $order->shipping_group = $shippingGroup;
+                    // $order->save();
+
                 }
             }
-
 
             // Hapus item dari cart
             // $cartItems->each->delete();
 
             // Redirect ke Xendit payment link
-            return redirect()->away($invoice['invoice_url']);
+            // return redirect()->away($invoice['invoice_url']);
 
-            // return view('cart.testCheckout', [
-            //     'requestData' => $requestData,       // Semua data request
-            //     'cartItems' => $cartItems,          // Item di keranjang
-            //     'totalAmount' => $totalAmount,      // Total biaya
-            //     'groupedCarts' => $groupedCarts,    // Grup item per penjual
-            //     'transaction' => $transaction,      // Simulasi data transaksi
-            //     'transactionItems' => $transactionItemsArray,      // Simulasi data transaksi
-            //     'invoice' => $invoice,              // Simulasi invoice Xendit
-            // ]);
+            return view('cart.testCheckout', [
+                'requestData' => $requestData,      // Semua data request
+                'cartItems' => $cartItems,          // Item di keranjang
+                'totalAmount' => $totalAmount,      // Total biaya
+                'groupedCarts' => $groupedCarts,    // Grup item per penjual
+                'transaction' => $transaction,      // Simulasi data transaksi
+                'transactionItems' => $transactionItemsArray,      // Simulasi data transaksi
+                // 'orders' => $ordersArray,           // Simulasi data pesanan
+                'invoice' => $invoice,              // Simulasi invoice Xendit
+            ]);
         } catch (\Exception $e) {
-            return back()->withErrors('Gagal membuat invoice: ' . $e->getMessage());
+            return redirect()->route('cart.failed')->with('errorMessage', $e->getMessage());
         }
+    }
+    public function checkoutFailed(Request $request)
+    {
+        return view('cart.failed', ['errorMessage' => session('errorMessage')]);
     }
 }

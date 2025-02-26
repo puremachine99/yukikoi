@@ -21,7 +21,8 @@ use App\Http\Controllers\{
     UserActivityController,
     XenditWebhookController,
     EventController,
-    WishlistController
+    WishlistController,
+    OrderController
 };
 
 // Group routes for event module
@@ -86,6 +87,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
     Route::post('/checkout', [CartController::class, 'checkout'])->name('cart.checkout');
     Route::post('/checkout/confirm', [CartController::class, 'confirmCheckout'])->name('cart.confirmCheckout');
+    Route::get('/checkout/failed', [CartController::class, 'checkoutFailed'])->name('cart.failed');
 });
 
 // Route Transaction
@@ -98,6 +100,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/transactions/{transactionId}/payment', [TransactionController::class, 'payment'])->name('transactions.payment');
     // routes/web.php
     Route::post('/transactions/{transaction}/pay', [TransactionController::class, 'pay'])->name('transactions.pay');
+});
+Route::middleware(['auth'])->group(function () {
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::post('/orders/{order}/update', [OrderController::class, 'updateStatus'])->name('orders.updateStatus');
 });
 
 // Auction Routes

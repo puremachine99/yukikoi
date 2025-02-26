@@ -62,8 +62,8 @@
                                             class="h-12 w-12 rounded-full object-cover mr-8"
                                             style="width: 25px; height: 25px;">
                                     @else
-                                        <img src="{{ asset('storage/avatar/user-default.png') }}" alt="Default Profile Photo"
-                                            class="h-12 w-12 rounded-full object-cover mr-8"
+                                        <img src="{{ asset('storage/avatar/user-default.png') }}"
+                                            alt="Default Profile Photo" class="h-12 w-12 rounded-full object-cover mr-8"
                                             style="width: 25px; height: 25px;">
                                     @endif
                                     <span>{{ Auth::user()->name }}</span>
@@ -82,29 +82,49 @@
                             <x-dropdown-link :href="route('profile.index')">
                                 {{ __('Profile') }}
                             </x-dropdown-link>
+                            <hr class="border-zinc-300">
+                            <!-- Buyer Section -->
+                            <div class="px-4 py-2 text-xs text-zinc-500 dark:text-zinc-400">
+                                Buyer
+                            </div>
                             <x-dropdown-link :href="route('cart.index')">
                                 {{ __('Keranjang') }}
                             </x-dropdown-link>
                             <x-dropdown-link :href="route('transactions.index')">
-                                {{ __('Pesanan') }}
-                            </x-dropdown-link>
-                            <x-dropdown-link :href="route('auctions.index')">
-                                {{ __('Lelang') }}
-                            </x-dropdown-link>
-                            <x-dropdown-link :href="route('events.list')">
-                                {{ __('Event') }}
+                                {{ __('Pesanan Saya') }}
                             </x-dropdown-link>
                             <x-dropdown-link :href="route('bids.user')">
-                                {{ __('Bid') }}
+                                {{ __('Monitoring Bid') }}
                             </x-dropdown-link>
+
                             <hr class="border-zinc-300">
-                            <x-dropdown-link id="theme-toggle"
-                                class="text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-700 focus:outline-none focus:ring-1 focus:ring-zinc-200 dark:focus:ring-zinc-700 text-sm p-2.5">
+
+                            <!-- Seller Section -->
+                            <div class="px-4 py-2 text-xs text-zinc-500 dark:text-zinc-400">
+                                Seller
+                            </div>
+                            <x-dropdown-link :href="route('auctions.index')">
+                                {{ __('Lelang Saya') }}
+                            </x-dropdown-link>
+                            <x-dropdown-link :href="route('events.list')">
+                                {{ __('Event Saya') }}
+                            </x-dropdown-link>
+                            <x-dropdown-link :href="route('orders.index')">
+                                {{ __('Pesanan Masuk') }}
+                            </x-dropdown-link>
+
+                            <hr class="border-zinc-300">
+
+                            <!-- Theme Toggle -->
+                            <x-dropdown-link id="theme-toggle">
                                 <i id="theme-toggle-dark-icon"
                                     class="fa-solid fa-circle hidden w-5 h-5 text-yellow-300"></i>
                                 <i id="theme-toggle-light-icon" class="fa-solid fa-moon hidden w-5 h-5 text-indigo-600"></i>
                             </x-dropdown-link>
+
                             <hr class="border-zinc-300">
+
+                            <!-- Logout -->
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <x-dropdown-link :href="route('logout')"
