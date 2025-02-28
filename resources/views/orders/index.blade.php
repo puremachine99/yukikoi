@@ -17,50 +17,74 @@
                 @if ($orders->isEmpty())
                     <p class="text-center text-zinc-600 dark:text-zinc-400">Tidak ada pesanan masuk.</p>
                 @else
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 shadow-md rounded-lg">
-                            <thead>
-                                <tr class="bg-zinc-200 dark:bg-zinc-700 text-zinc-800 dark:text-zinc-200">
-                                    <th class="py-2 px-4 border">Kode Koi</th>
-                                    <th class="py-2 px-4 border">Nama Buyer</th>
-                                    <th class="py-2 px-4 border">Alamat Pengiriman</th>
-                                    <th class="py-2 px-4 border">Status</th>
-                                    <th class="py-2 px-4 border">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($orders as $order)
-                                    <tr class="border-b border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition">
-                                        <td class="py-2 px-4 text-center">{{ $order->koi->kode_ikan ?? 'N/A' }}</td>
-                                        <td class="py-2 px-4 text-center">{{ $order->buyer->name ?? 'N/A' }}</td>
-                                        <td class="py-2 px-4 text-center">{{ $order->shipping_address ?? 'N/A' }}</td>
-                                        <td class="py-2 px-4 text-center">
-                                            <span class="px-3 py-1 rounded-full text-white text-xs font-semibold
-                                                {{ $order->status == 'menunggu konfirmasi' ? 'bg-yellow-500' : '' }}
-                                                {{ $order->status == 'sedang dikemas' ? 'bg-blue-500' : '' }}
-                                                {{ $order->status == 'dikirim' ? 'bg-purple-500' : '' }}
-                                                {{ $order->status == 'selesai' ? 'bg-green-500' : '' }}">
-                                                {{ ucfirst($order->status) }}
-                                            </span>
-                                        </td>
-                                        <td class="py-2 px-4 text-center">
-                                            <form action="{{ route('orders.updateStatus', $order) }}" method="POST" class="flex items-center space-x-2">
-                                                @csrf
-                                                <select name="status" class="border px-2 py-1 rounded text-sm text-zinc-800 dark:text-zinc-200">
-                                                    <option value="menunggu konfirmasi" {{ $order->status === 'menunggu konfirmasi' ? 'selected' : '' }}>Menunggu Konfirmasi</option>
-                                                    <option value="sedang dikemas" {{ $order->status === 'sedang dikemas' ? 'selected' : '' }}>Sedang Dikemas</option>
-                                                    <option value="dikirim" {{ $order->status === 'dikirim' ? 'selected' : '' }}>Dikirim</option>
-                                                    <option value="selesai" {{ $order->status === 'selesai' ? 'selected' : '' }}>Selesai</option>
-                                                </select>
-                                                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
-                                                    Update
-                                                </button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                    <div class="space-y-6">
+                        @foreach ($orders as $order)
+                            <div class="flex flex-col sm:flex-row items-start bg-white hover:bg-zinc-100 
+                                        dark:hover:bg-zinc-700 transition-colors duration-200 dark:bg-zinc-800 
+                                        p-4 rounded-lg shadow-md">
+                                <!-- Gambar Koi -->
+                                <div class="flex-shrink-0">
+                                    <a href="{{ route('koi.show', ['id' => $order->koi->id]) }}" class="block">
+                                        <img src="{{ asset('storage/' . ($order->koi->media->first()->url_media ?? 'default.png')) }}"
+                                            alt="Koi Image" class="border object-cover rounded-lg w-24 h-36">
+                                    </a>
+                                </div>
+
+                                <!-- Detail Pesanan -->
+                                <div class="ml-6 flex-1 w-full">
+                                    <h4 class="text-lg font-semibold text-zinc-800 dark:text-zinc-200">
+                                        {{ $order->koi->judul }}
+                                    </h4>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+                                        <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                                            Kode Lelang: <span class="font-bold">{{ $order->koi->auction_code }}</span>
+                                        </p>
+                                        <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                                            Kode Ikan: <span class="font-bold">{{ $order->koi->kode_ikan }}</span>
+                                        </p>
+                                        <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                                            Nama Buyer: <span class="font-bold">{{ $order->buyer->name }}</span>
+                                        </p>
+                                        <p class="text-sm text-zinc-600 dark:text-zinc-400 overflow-hidden truncate max-w-xs">
+                                            Alamat: <span class="font-bold">{{ $order->shipping_address }}</span>
+                                        </p>
+                                    </div>
+
+                                    <p class="text-sm text-zinc-600 dark:text-zinc-400 font-semibold mt-2">Harga Pesanan:</p>
+                                    <p class="text-lg font-bold text-green-600 dark:text-green-400">
+                                        Rp {{ number_format($order->total_price, 0, ',', '.') }}
+                                    </p>
+
+                                    <!-- Status Pesanan -->
+                                    <div class="mt-2 flex items-center space-x-2">
+                                        <span class="px-3 py-1 rounded-full text-white text-xs font-semibold
+                                            {{ $order->status == 'menunggu konfirmasi' ? 'bg-yellow-500' : '' }}
+                                            {{ $order->status == 'sedang dikemas' ? 'bg-blue-500' : '' }}
+                                            {{ $order->status == 'dikirim' ? 'bg-purple-500' : '' }}
+                                            {{ $order->status == 'selesai' ? 'bg-green-500' : '' }}">
+                                            {{ ucfirst($order->status) }}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Form Update Status -->
+                                <div class="mt-4 sm:mt-0 sm:ml-6">
+                                    <form action="{{ route('orders.updateStatus', $order) }}" method="POST">
+                                        @csrf
+                                        <select name="status" class="border px-2 py-1 rounded text-sm text-zinc-800 dark:text-zinc-200">
+                                            <option value="menunggu konfirmasi" {{ $order->status === 'menunggu konfirmasi' ? 'selected' : '' }}>Menunggu Konfirmasi</option>
+                                            <option value="sedang dikemas" {{ $order->status === 'sedang dikemas' ? 'selected' : '' }}>Sedang Dikemas</option>
+                                            <option value="dikirim" {{ $order->status === 'dikirim' ? 'selected' : '' }}>Dikirim</option>
+                                            <option value="selesai" {{ $order->status === 'selesai' ? 'selected' : '' }}>Selesai</option>
+                                        </select>
+                                        <button type="submit" class="mt-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded text-sm">
+                                            Update
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        @endforeach
                     </div>
                 @endif
             </div>

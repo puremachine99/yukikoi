@@ -269,10 +269,10 @@ class CartController extends Controller
             }
 
             // Hapus item dari cart
-            // $cartItems->each->delete();
+            $cartItems->each->delete();
 
             // Redirect ke Xendit payment link
-            // return redirect()->away($invoice['invoice_url']);
+            return redirect()->away($invoice['invoice_url']);
 
             // return view('cart.testCheckout', [
             //     'requestData' => $requestData,      // Semua data request
