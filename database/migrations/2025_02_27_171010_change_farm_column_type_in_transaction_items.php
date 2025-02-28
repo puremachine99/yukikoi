@@ -1,0 +1,32 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::table('transaction_items', function (Blueprint $table) {
+            // Hapus foreign key dulu kalau ada
+            $table->dropForeign(['farm']);
+
+            // Ubah kolom farm dari unsignedBigInteger menjadi VARCHAR(255)
+            $table->string('farm', 255)->nullable()->change();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('transaction_items', function (Blueprint $table) {
+            // Kembalikan ke tipe data sebelumnya (unsignedBigInteger)
+            $table->unsignedBigInteger('farm')->nullable()->change();
+
+            // Tambahkan foreign key lagi
+            $table->foreign('farm')->references('id')->on('users')->onDelete('set null');
+        });
+    }
+};

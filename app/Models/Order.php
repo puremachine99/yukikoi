@@ -9,7 +9,19 @@ class Order extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['koi_id', 'buyer_id', 'seller_id', 'status', 'shipping_address', 'tracking_number'];
+    protected $fillable = [
+        'buyer_id',
+        'seller_id',
+        'koi_id',
+        'transaction_id',
+        'total_price',
+        'status',
+        'shipping_address',
+        'recipient_name',
+        'recipient_phone',
+        'shipping_group',
+        'tracking_number',
+    ];
 
     public function koi()
     {

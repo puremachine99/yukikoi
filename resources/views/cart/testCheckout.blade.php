@@ -12,7 +12,7 @@
                     <!-- Menampilkan Request Data -->
                     <h3 class="text-lg font-bold">Request Data:</h3>
                     <pre class="bg-gray-100 p-4 rounded-lg overflow-x-auto text-sm text-gray-800 dark:bg-gray-900 dark:text-gray-300">
-                        {{-- {{ json_encode($orders, JSON_PRETTY_PRINT) }} --}}
+                        {{ json_encode($orders, JSON_PRETTY_PRINT) }}
                     </pre>
                 </div>
                 <div class="max-w-7xl">

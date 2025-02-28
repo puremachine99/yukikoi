@@ -221,6 +221,7 @@ class CartController extends Controller
                         'shipping_group' => $shippingGroup,
                     ];
                     $transactionItemsArray[] = $transactionItem;
+                    
                     // Simpan TransactionItem
                     $transactionItem = new TransactionItem();
                     $transactionItem->transaction_id = $transaction->id;
@@ -232,37 +233,37 @@ class CartController extends Controller
                     $transactionItem->farm_owner_name = $recipientName;
                     $transactionItem->farm_phone_number = $phoneNumber;
                     $transactionItem->shipping_group = $shippingGroup;
-                    // $transactionItem->save();
+                    $transactionItem->save();
 
                     // **Tambahkan Data ke Orders
 
-                    // $ordersArray[] = [
-                    //     'buyer_id' => $user->id,
-                    //     'seller_id' => $cart->koi->auction->user->id,
-                    //     'koi_id' => $cart->koi->id,
-                    //     'transaction_id' => $transaction->id,
-                    //     'total_price' => $cart->price,
-                    //     'status' => 'pending', // Status awal pesanan
-                    //     'shipping_address' => $shippingAddress,
-                    //     'recipient_name' => $recipientName,
-                    //     'recipient_phone' => $phoneNumber,
-                    //     'shipping_group' => $shippingGroup,
-                    //     'created_at' => now(),
-                    //     'updated_at' => now(),
-                    // ];
+                    $ordersArray[] = [
+                        'buyer_id' => $user->id,
+                        'seller_id' => $cart->koi->auction->user->id,
+                        'koi_id' => $cart->koi->id,
+                        'transaction_id' => $transaction->id,
+                        'total_price' => $cart->price,
+                        'status' => 'pending', // Status awal pesanan
+                        'shipping_address' => $shippingAddress,
+                        'recipient_name' => $recipientName,
+                        'recipient_phone' => $phoneNumber,
+                        'shipping_group' => $shippingGroup,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
 
-                    // $order = new Order();
-                    // $order->buyer_id = $user->id;
-                    // $order->seller_id = $cart->koi->auction->user->id;
-                    // $order->koi_id = $cart->koi->id;
-                    // $order->transaction_id = $transaction->id;
-                    // $order->total_price = $cart->price;
-                    // $order->status = 'pending'; // Status awal pesanan
-                    // $order->shipping_address = $shippingAddress;
-                    // $order->recipient_name = $recipientName;
-                    // $order->recipient_phone = $phoneNumber;
-                    // $order->shipping_group = $shippingGroup;
-                    // $order->save();
+                    $order = new Order();
+                    $order->buyer_id = $user->id;
+                    $order->seller_id = $cart->koi->auction->user->id;
+                    $order->koi_id = $cart->koi->id;
+                    $order->transaction_id = $transaction->id;
+                    $order->total_price = $cart->price;
+                    $order->status = 'menunggu konfirmasi'; // Status awal pesanan
+                    $order->shipping_address = $shippingAddress;
+                    $order->recipient_name = $recipientName;
+                    $order->recipient_phone = $phoneNumber;
+                    $order->shipping_group = $shippingGroup;
+                    $order->save();
 
                 }
             }
@@ -273,16 +274,16 @@ class CartController extends Controller
             // Redirect ke Xendit payment link
             // return redirect()->away($invoice['invoice_url']);
 
-            return view('cart.testCheckout', [
-                'requestData' => $requestData,      // Semua data request
-                'cartItems' => $cartItems,          // Item di keranjang
-                'totalAmount' => $totalAmount,      // Total biaya
-                'groupedCarts' => $groupedCarts,    // Grup item per penjual
-                'transaction' => $transaction,      // Simulasi data transaksi
-                'transactionItems' => $transactionItemsArray,      // Simulasi data transaksi
-                // 'orders' => $ordersArray,           // Simulasi data pesanan
-                'invoice' => $invoice,              // Simulasi invoice Xendit
-            ]);
+            // return view('cart.testCheckout', [
+            //     'requestData' => $requestData,      // Semua data request
+            //     'cartItems' => $cartItems,          // Item di keranjang
+            //     'totalAmount' => $totalAmount,      // Total biaya
+            //     'groupedCarts' => $groupedCarts,    // Grup item per penjual
+            //     'transaction' => $transaction,      // Simulasi data transaksi
+            //     'transactionItems' => $transactionItemsArray,      // Simulasi data transaksi
+            //     'orders' => $ordersArray,           // Simulasi data pesanan
+            //     'invoice' => $invoice,              // Simulasi invoice Xendit
+            // ]);
         } catch (\Exception $e) {
             return redirect()->route('cart.failed')->with('errorMessage', $e->getMessage());
         }
