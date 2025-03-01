@@ -76,7 +76,6 @@
                                             <option value="menunggu konfirmasi" {{ $order->status === 'menunggu konfirmasi' ? 'selected' : '' }}>Menunggu Konfirmasi</option>
                                             <option value="sedang dikemas" {{ $order->status === 'sedang dikemas' ? 'selected' : '' }}>Sedang Dikemas</option>
                                             <option value="dikirim" {{ $order->status === 'dikirim' ? 'selected' : '' }}>Dikirim</option>
-                                            <option value="selesai" {{ $order->status === 'selesai' ? 'selected' : '' }}>Selesai</option>
                                         </x-select>
                                         <button type="submit" class="mt-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded text-sm">
                                             Update

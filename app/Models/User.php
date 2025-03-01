@@ -127,6 +127,19 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Achievement::class, 'user_achievements');
     }
+
+    // Seller menerima rating dari buyer
+    public function ratingsReceived()
+    {
+        return $this->hasMany(Rating::class, 'seller_id', 'id');
+    }
+
+    // Buyer memberikan rating ke seller
+    public function ratingsGiven()
+    {
+        return $this->hasMany(Rating::class, 'buyer_id', 'id');
+    }
+
     public function checkAndAssignAchievements()
     {
         $achievements = Achievement::all();
@@ -142,6 +155,6 @@ class User extends Authenticatable
     protected function evaluateAchievementCondition($condition)
     {
         // Contoh parsing condition (gunakan eval untuk hal simpel, atau buat parser sendiri untuk complex)
-        return eval("return {$condition};");
+        return eval ("return {$condition};");
     }
 }

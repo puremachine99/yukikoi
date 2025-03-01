@@ -102,6 +102,8 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/transactions/update-status', [TransactionController::class, 'updateStatus'])->name('transactions.updateStatus');
     Route::post('/transactions/retur', [TransactionController::class, 'retur'])->name('transactions.retur');
+    Route::post('/transactions/rate', [TransactionController::class, 'storeRating'])->name('transactions.rate');
+
 
 });
 Route::middleware(['auth'])->group(function () {

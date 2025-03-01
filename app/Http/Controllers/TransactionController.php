@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Order;
+use App\Models\Rating;
 use App\Models\Transaction;
+
 use Illuminate\Support\Str;
 use Xendit\Invoice\Invoice;
-
 use Illuminate\Http\Request;
 use Xendit\Invoice\InvoiceApi;
+use App\Models\TransactionItem;
 use Illuminate\Support\Facades\Auth;
 use Xendit\Invoice\CreateInvoiceRequest;
 use Xendit\Invoice\Invoice as XenditInvoice;
@@ -211,7 +214,6 @@ class TransactionController extends Controller
             return back()->with('error', 'Gagal membuat invoice batch: ' . $e->getMessage());
         }
     }
-
     public function updateStatus(Request $request)
     {
         $request->validate([
@@ -219,18 +221,37 @@ class TransactionController extends Controller
             'status' => 'required|in:selesai'
         ]);
 
-        // Update status transaction_item dan order terkait
+        // Ambil TransactionItem berdasarkan ID
         $item = TransactionItem::findOrFail($request->item_id);
-        $item->update(['status' => $request->status]);
 
-        // Update order jika semua item di dalamnya sudah selesai
-        $order = Order::where('id', $item->order_id)->first();
-        if ($order && $order->transactionItems()->where('status', '!=', 'selesai')->count() == 0) {
-            $order->update(['status' => 'selesai']);
+        // Pastikan hanya buyer yang bisa menyelesaikan transaksi
+        if (auth()->id() !== $item->transaction->user_id) {
+            return response()->json(['success' => false, 'message' => 'Anda tidak berhak mengubah status ini.'], 403);
         }
 
-        return response()->json(['success' => true, 'message' => 'Status berhasil diperbarui!']);
+        // Update status transaction_item ke 'selesai'
+        $item->update(['status' => $request->status]);
+
+        // Ambil semua transaction_items dari transaction_id dan koi_id terkait
+        $transactionId = $item->transaction_id;
+        $koiId = $item->koi_id;
+
+        // Cek apakah semua items dalam transaksi ini sudah selesai
+        $allItemsDone = TransactionItem::where('transaction_id', $transactionId)
+            ->where('koi_id', $koiId)
+            ->where('status', '!=', 'selesai')
+            ->doesntExist();
+
+        if ($allItemsDone) {
+            // Update status di tabel orders juga
+            Order::where('transaction_id', $transactionId)
+                ->where('koi_id', $koiId)
+                ->update(['status' => 'selesai']);
+        }
+
+        return response()->json(['success' => true, 'message' => 'Status transaksi berhasil diperbarui!']);
     }
+
 
     public function retur(Request $request)
     {
@@ -240,10 +261,8 @@ class TransactionController extends Controller
             'proof' => 'required|file|mimes:mp4,mov,avi|max:51200'
         ]);
 
-        // Simpan file bukti retur
         $proofPath = $request->file('proof')->store('retur_proofs', 'public');
 
-        // Simpan ke database
         $item = TransactionItem::findOrFail($request->item_id);
         $item->update([
             'status' => 'retur',
@@ -251,7 +270,7 @@ class TransactionController extends Controller
             'retur_proof' => $proofPath
         ]);
 
-        // Update order jika semua itemnya dalam status retur
+        // Cek jika semua item dalam order diretur, update order menjadi retur
         $order = Order::where('id', $item->order_id)->first();
         if ($order && $order->transactionItems()->where('status', '!=', 'retur')->count() == 0) {
             $order->update(['status' => 'retur']);
@@ -260,5 +279,34 @@ class TransactionController extends Controller
         return response()->json(['success' => true, 'message' => 'Retur berhasil diajukan!']);
     }
 
+
+    public function storeRating(Request $request)
+    {
+        $request->validate([
+            'transaction_item_id' => 'required|exists:transaction_items,id',
+            'rating' => 'required|numeric|min:1|max:5',
+            'review' => 'nullable|string',
+        ]);
+
+        $transactionItem = TransactionItem::findOrFail($request->transaction_item_id);
+
+        // Pastikan yang memberi rating adalah buyer dari transaksi ini
+        if ($transactionItem->transaction->user_id !== auth()->id()) {
+            return response()->json(['success' => false, 'message' => 'Anda tidak berhak memberi rating.'], 403);
+        }
+
+        // Simpan rating untuk seller (penjual)
+        Rating::updateOrCreate(
+            ['transaction_item_id' => $transactionItem->id], // Jika sudah ada rating, update
+            [
+                'buyer_id' => auth()->id(),
+                'seller_id' => $transactionItem->koi->auction->user_id, // Ambil seller dari auction koi
+                'rating' => $request->rating,
+                'review' => $request->review,
+            ]
+        );
+
+        return response()->json(['success' => true, 'message' => 'Rating berhasil dikirim.']);
+    }
 
 }

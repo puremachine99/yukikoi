@@ -37,13 +37,14 @@ class Order extends Model
     {
         return $this->belongsTo(User::class, 'seller_id');
     }
-    public function transactionItem()
-    {
-        return $this->belongsTo(TransactionItem::class, 'transaction_id');
-    }
+
     public function transaction()
     {
         return $this->belongsTo(Transaction::class, 'transaction_id', 'id');
     }
 
+    public function transactionItems()
+    {
+        return $this->hasMany(TransactionItem::class, 'order_id', 'id');
+    }
 }

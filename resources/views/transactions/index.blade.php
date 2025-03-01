@@ -83,18 +83,23 @@
                                     </div>
                                     <!-- Tombol Aksi -->
                                     <div class="mt-4 flex space-x-4">
-                                        <!-- Tombol Selesai -->
-                                        <button class="py-2 px-4 bg-green-500 text-white rounded-lg hover:bg-green-600"
-                                            onclick="updateStatus('{{ $item->id }}', 'selesai')">
-                                            Selesai
-                                        </button>
+                                        @if ($item->status === 'dikirim')
+                                            <!-- Tombol Selesai -->
+                                            <button
+                                                class="py-2 px-4 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                                                onclick="updateStatus('{{ $item->id }}', 'selesai')">
+                                                Selesai
+                                            </button>
 
-                                        <!-- Tombol Retur -->
-                                        <button class="py-2 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600"
-                                            onclick="showReturModal('{{ $item->id }}')">
-                                            Retur
-                                        </button>
+                                            <!-- Tombol Retur -->
+                                            <button class="py-2 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                                                onclick="showReturModal('{{ $item->id }}')">
+                                                Retur
+                                            </button>
+                                        @endif
                                     </div>
+
+
                                 </div>
                             @endforeach
                         @endforeach
@@ -157,7 +162,11 @@
                         .then(data => {
                             if (data.success) {
                                 Swal.fire('Berhasil!', data.message, 'success').then(() => {
-                                    location.reload();
+                                    if (status === "selesai") {
+                                        showRatingModal(itemId); // Tampilkan rating jika selesai
+                                    } else {
+                                        location.reload();
+                                    }
                                 });
                             } else {
                                 Swal.fire('Gagal!', data.message, 'error');
@@ -171,15 +180,15 @@
             Swal.fire({
                 title: 'Form Retur',
                 html: `
-                    <label class="block text-sm font-medium text-gray-700">Alasan Retur:</label>
-                    <select id="reason" class="swal2-input">
-                        <option value="rusak">DoA (Dead on Arrival) Koi Mati </option>
-                        <option value="tidak sesuai">Ikan tidak Sesuai</option>
-                        <option value="lainnya">Lainnya</option>
-                    </select>
-                    <label class="block text-sm font-medium text-gray-700 mt-2">Unggah Bukti (Max 50MB, Video):</label>
-                    <input type="file" id="proof" class="swal2-file" accept="video/*">
-                `,
+            <label class="block text-sm font-medium text-gray-700">Alasan Retur:</label>
+            <select id="reason" class="swal2-input">
+                <option value="rusak">DoA (Dead on Arrival) - Koi Mati</option>
+                <option value="tidak sesuai">Ikan Tidak Sesuai</option>
+                <option value="lainnya">Lainnya</option>
+            </select>
+            <label class="block text-sm font-medium text-gray-700 mt-2">Unggah Bukti (Max 50MB, Video):</label>
+            <input type="file" id="proof" class="swal2-file" accept="video/*">
+        `,
                 showCancelButton: true,
                 confirmButtonText: 'Kirim Retur',
                 cancelButtonText: 'Batal',
@@ -213,6 +222,47 @@
                 if (result.isConfirmed) {
                     Swal.fire('Berhasil!', 'Permintaan retur telah dikirim.', 'success').then(() => {
                         location.reload();
+                    });
+                }
+            });
+        }
+
+        function showRatingModal(itemId) {
+            Swal.fire({
+                title: 'Beri Rating',
+                html: `
+            <label>Rating (1-5):</label>
+            <input type="range" id="rating" min="1" max="5" step="0.5" value="5" class="swal2-input">
+            <label>Review:</label>
+            <textarea id="review" class="swal2-input"></textarea>
+        `,
+                showCancelButton: true,
+                confirmButtonText: 'Kirim',
+                preConfirm: () => {
+                    return {
+                        rating: document.getElementById('rating').value,
+                        review: document.getElementById('review').value
+                    };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch("{{ route('transactions.rate') }}", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                        },
+                        body: JSON.stringify({
+                            transaction_item_id: itemId,
+                            rating: result.value.rating,
+                            review: result.value.review
+                        })
+                    }).then(response => response.json()).then(data => {
+                        if (data.success) {
+                            Swal.fire('Sukses!', 'Rating berhasil dikirim.', 'success').then(() => {
+                                location.reload();
+                            });
+                        }
                     });
                 }
             });

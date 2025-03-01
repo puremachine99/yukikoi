@@ -22,17 +22,7 @@ class TransactionItem extends Model
     ];
     public function getStatusAttribute()
     {
-        if ($this->orders->every(fn($o) => $o->status === 'selesai')) {
-            return 'selesai';
-        } elseif ($this->orders->contains('status', 'dikirim')) {
-            return 'dikirim';
-        } elseif ($this->orders->contains('status', 'sedang dikemas')) {
-            return 'sedang dikemas';
-        } elseif ($this->orders->contains('status', 'menunggu konfirmasi')) {
-            return 'menunggu konfirmasi';
-        } else {
-            return 'tidak diketahui';
-        }
+        return $this->attributes['status']; // Ambil langsung dari database
     }
 
 
@@ -46,8 +36,9 @@ class TransactionItem extends Model
         return $this->belongsTo(Transaction::class);
     }
 
-    public function orders()
+    public function order()
     {
-        return $this->hasMany(Order::class, 'transaction_id');
+        return $this->belongsTo(Order::class, 'order_id', 'id');
     }
+    
 }
