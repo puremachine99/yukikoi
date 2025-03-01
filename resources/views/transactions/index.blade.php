@@ -8,6 +8,7 @@
     <div class="py-8">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-md">
+
                 <!-- Tab Navigation -->
                 <div class="mb-4 border-b">
                     <nav class="flex space-x-4">
@@ -39,41 +40,72 @@
                                 @endif
                             </div>
                             <div>
-                                <a href="#" class="text-indigo-600 hover:underline" target="_blank">Kunjungi Toko</a>
+                                <a href="#" class="text-indigo-600 hover:underline" target="_blank">Kunjungi
+                                    Toko</a>
                             </div>
                         </div>
 
                         <!-- Transaction List -->
                         @foreach ($transactions as $transaction)
-                            <div class="mt-4">
-                                @foreach ($transaction->transactionItems as $item)
-                                    <div class="flex mb-4 items-center">
-                                        <!-- Koi Image -->
-                                        <div class="w-1/4">
-                                            <img src="{{ asset('storage/' . ($item->koi->media->first()->url_media ?? 'placeholder.jpg')) }}"
-                                                alt="Koi Image" class="w-full h-32 object-cover rounded-md">
-                                        </div>
-                                        <!-- Koi Details -->
-                                        <div class="w-3/4 ml-4">
-                                            <h4 class="font-semibold text-zinc-800 dark:text-zinc-100">
-                                                {{ $item->koi->judul }}
-                                            </h4>
-                                            <p class="text-sm text-zinc-500 dark:text-zinc-400">
-                                                {{ $item->koi->jenis_koi }} - {{ $item->koi->ukuran }} cm
-                                            </p>
-                                            <p class="text-sm text-zinc-500 dark:text-zinc-400">
-                                                Harga: Rp {{ number_format($item->price, 0, ',', '.') }}
-                                            </p>
-                                        </div>
+                            @foreach ($transaction->transactionItems as $item)
+                                <div
+                                    class="itemcart flex items-start bg-white hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors duration-200 dark:bg-zinc-800 p-4 rounded-lg shadow-md cursor-pointer">
+                                    <div class="flex-shrink-0">
+                                        <input type="checkbox" class="select-koi" data-id="{{ $transaction->id }}"
+                                            data-price="{{ $item->price }}" style="transform: scale(1.2);">
                                     </div>
-                                @endforeach
-                            </div>
+
+                                    <!-- Gambar Koi -->
+                                    <div class="flex-shrink-0 ml-4">
+                                        <a href="{{ route('koi.show', ['id' => $item->koi->id]) }}" class="block">
+                                            <img src="{{ asset('storage/' . ($item->koi->media->first()->url_media ?? 'default.png')) }}"
+                                                alt="Koi Image" class="border object-cover rounded-lg w-24 h-36">
+                                        </a>
+                                    </div>
+
+                                    <!-- Detail Koi -->
+                                    <div class="ml-6 flex-1">
+                                        <h4 class="text-lg font-semibold text-zinc-800 dark:text-zinc-200">
+                                            {{ $item->koi->judul }}
+                                        </h4>
+                                        <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                                            Kode Lelang: {{ $item->koi->auction_code }}
+                                        </p>
+                                        <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                                            Jenis Koi: {{ $item->koi->jenis_koi }} - {{ $item->koi->ukuran }} cm
+                                        </p>
+                                        <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                                            Harga: Rp {{ number_format($item->price, 0, ',', '.') }}
+                                        </p>
+                                        <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                                            Status: <span class="font-semibold">{{ ucwords($item->status) }}</span>
+                                        </p>
+                                    </div>
+                                    <!-- Tombol Aksi -->
+                                    <div class="mt-4 flex space-x-4">
+                                        <!-- Tombol Selesai -->
+                                        <button class="py-2 px-4 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                                            onclick="updateStatus('{{ $item->id }}', 'selesai')">
+                                            Selesai
+                                        </button>
+
+                                        <!-- Tombol Retur -->
+                                        <button class="py-2 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                                            onclick="showReturModal('{{ $item->id }}')">
+                                            Retur
+                                        </button>
+                                    </div>
+                                </div>
+                            @endforeach
                         @endforeach
+
+
 
                         <!-- Total and Actions -->
                         <div class="mt-4">
                             <p class="font-semibold text-zinc-800 dark:text-zinc-100">
-                                Total Pesanan: Rp {{ number_format($transactions->sum('total_with_fees'), 0, ',', '.') }}
+                                Total Pesanan: Rp
+                                {{ number_format($transactions->sum('total_with_fees'), 0, ',', '.') }}
                             </p>
                             <p class="text-sm text-zinc-500 dark:text-zinc-400">
                                 Status: {{ ucwords(str_replace('_', ' ', $transactions->first()->status)) }}
@@ -100,4 +132,91 @@
             </div>
         </div>
     </div>
+    <script>
+        function updateStatus(itemId, status) {
+            Swal.fire({
+                title: 'Konfirmasi Status',
+                text: "Apakah Anda yakin ingin mengubah status item ini menjadi " + status + "?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Ubah',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch("{{ route('transactions.updateStatus') }}", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                            },
+                            body: JSON.stringify({
+                                item_id: itemId,
+                                status: status
+                            })
+                        }).then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire('Berhasil!', data.message, 'success').then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire('Gagal!', data.message, 'error');
+                            }
+                        });
+                }
+            });
+        }
+
+        function showReturModal(itemId) {
+            Swal.fire({
+                title: 'Form Retur',
+                html: `
+                    <label class="block text-sm font-medium text-gray-700">Alasan Retur:</label>
+                    <select id="reason" class="swal2-input">
+                        <option value="rusak">DoA (Dead on Arrival) Koi Mati </option>
+                        <option value="tidak sesuai">Ikan tidak Sesuai</option>
+                        <option value="lainnya">Lainnya</option>
+                    </select>
+                    <label class="block text-sm font-medium text-gray-700 mt-2">Unggah Bukti (Max 50MB, Video):</label>
+                    <input type="file" id="proof" class="swal2-file" accept="video/*">
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Kirim Retur',
+                cancelButtonText: 'Batal',
+                preConfirm: () => {
+                    const reason = document.getElementById('reason').value;
+                    const proof = document.getElementById('proof').files[0];
+
+                    if (!proof || proof.size > 50 * 1024 * 1024) {
+                        Swal.showValidationMessage('File harus berupa video dan maksimal 50MB');
+                        return false;
+                    }
+
+                    let formData = new FormData();
+                    formData.append('item_id', itemId);
+                    formData.append('reason', reason);
+                    formData.append('proof', proof);
+                    formData.append('_token', "{{ csrf_token() }}");
+
+                    return fetch("{{ route('transactions.retur') }}", {
+                            method: "POST",
+                            body: formData
+                        }).then(response => response.json())
+                        .then(data => {
+                            if (!data.success) {
+                                throw new Error(data.message);
+                            }
+                            return data;
+                        }).catch(error => Swal.showValidationMessage(error));
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire('Berhasil!', 'Permintaan retur telah dikirim.', 'success').then(() => {
+                        location.reload();
+                    });
+                }
+            });
+        }
+    </script>
+
 </x-app-layout>

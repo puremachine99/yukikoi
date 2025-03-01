@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Order;
+use App\Observers\OrderObserver;
 use App\Events\UserActivityUpdated;
 use App\Listeners\GrantAchievements;
 use Illuminate\Support\ServiceProvider;
@@ -26,6 +28,6 @@ class EventServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+       
     }
 }

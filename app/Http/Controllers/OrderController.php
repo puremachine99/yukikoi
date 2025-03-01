@@ -19,10 +19,16 @@ class OrderController extends Controller
         return view('orders.index', compact('orders'));
     }
 
-
     public function updateStatus(Request $request, Order $order)
     {
+        $request->validate([
+            'status' => 'required|in:menunggu konfirmasi,sedang dikemas,dikirim,selesai,dibatalkan'
+        ]);
+
         $order->update(['status' => $request->status]);
+
         return redirect()->back()->with('success', 'Status pesanan berhasil diupdate.');
     }
+
+
 }

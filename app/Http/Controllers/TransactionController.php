@@ -4,58 +4,62 @@ namespace App\Http\Controllers;
 
 use App\Models\Transaction;
 use Illuminate\Support\Str;
-use Xendit\Invoice\Invoice as XenditInvoice;
+use Xendit\Invoice\Invoice;
 
 use Illuminate\Http\Request;
 use Xendit\Invoice\InvoiceApi;
 use Illuminate\Support\Facades\Auth;
 use Xendit\Invoice\CreateInvoiceRequest;
+use Xendit\Invoice\Invoice as XenditInvoice;
 
 class TransactionController extends Controller
 {
     public function index(Request $request)
     {
-        // Ambil status dari query string (default: "all")
-        $status = $request->query('status', 'all');
+        $userId = auth()->id();
+        $status = $request->query('status', 'semua');
 
-        // Ambil user yang sedang login
-        $user =Auth::user();
-
-        // Query transaksi berdasarkan status
-        $transactions = Transaction::with([
-            'transactionItems.koi.media' => function ($query) {
-                $query->where('media_type', 'photo'); // Hanya ambil media foto
-            },
-            'transactionItems.koi.auction.user' // Load farm name via auction's user
-        ])
-            ->where('user_id', $user->id)
-            ->when($status !== 'all', function ($query) use ($status) {
-                return $query->where('status', $status);
-            })
-            ->latest()
-            ->get();
-
-
-        // Group by farm name
-        $groupedTransactions = $transactions->groupBy(
-            fn($transaction) =>
-            $transaction->transactionItems->first()->koi->auction->user->farm_name ?? 'Tidak Diketahui'
-        );
-
-        // Mapping kategori tab
+        // Daftar tab status
         $tabs = [
-            'all' => 'Semua',
-            'on_process' => 'Sedang Dikemas',
-            'shipped' => 'Dikirim',
-            'completed' => 'Selesai',
-            'canceled' => 'Dibatalkan',
+            'semua' => 'Semua',
+            'menunggu konfirmasi' => 'Menunggu Konfirmasi',
+            'sedang dikemas' => 'Sedang Dikemas',
+            'dikirim' => 'Dikirim',
+            'selesai' => 'Selesai',
+            'dibatalkan' => 'Dibatalkan',
         ];
 
-        // Return ke view
-        return view('transactions.index', compact('groupedTransactions', 'tabs', 'status'));
+        // Query transaksi dengan eager loading untuk hindari N+1
+        $transactionsQuery = Transaction::with([
+            'transactionItems' => function ($query) {
+                $query->with([
+                    'koi' => function ($koiQuery) {
+                        $koiQuery->with([
+                            'media' => function ($mediaQuery) {
+                                $mediaQuery->where('media_type', 'photo')->select('id', 'koi_id', 'url_media');
+                            },
+                            'auction.user' => function ($userQuery) {
+                                $userQuery->select('id', 'name', 'phone_number');
+                            }
+                        ])->select('id', 'judul', 'jenis_koi', 'ukuran', 'auction_code');
+                    }
+                ])->select('id', 'transaction_id', 'koi_id', 'price', 'farm', 'status'); // Optimasi select
+            }
+        ])->where('user_id', $userId);
+
+        // Filter berdasarkan status
+        if ($status !== 'semua') {
+            $transactionsQuery->whereHas('transactionItems', function ($query) use ($status) {
+                $query->where('status', $status);
+            });
+        }
+
+        // Ambil transaksi & kelompokkan berdasarkan farm
+        $transactions = $transactionsQuery->get();
+        $groupedTransactions = $transactions->groupBy(fn($transaction) => $transaction->transactionItems->first()->farm ?? 'Unknown');
+
+        return view('transactions.index', compact('tabs', 'status', 'groupedTransactions'));
     }
-
-
 
     public function show($id)
     {
@@ -152,7 +156,7 @@ class TransactionController extends Controller
     public function payBatch(Request $request)
     {
         $transactionIds = $request->input('transaction_ids', []);
-        $user =Auth::user();
+        $user = Auth::user();
 
         // Validasi transaksi
         $transactions = Transaction::whereIn('id', $transactionIds)
@@ -207,4 +211,54 @@ class TransactionController extends Controller
             return back()->with('error', 'Gagal membuat invoice batch: ' . $e->getMessage());
         }
     }
+
+    public function updateStatus(Request $request)
+    {
+        $request->validate([
+            'item_id' => 'required|exists:transaction_items,id',
+            'status' => 'required|in:selesai'
+        ]);
+
+        // Update status transaction_item dan order terkait
+        $item = TransactionItem::findOrFail($request->item_id);
+        $item->update(['status' => $request->status]);
+
+        // Update order jika semua item di dalamnya sudah selesai
+        $order = Order::where('id', $item->order_id)->first();
+        if ($order && $order->transactionItems()->where('status', '!=', 'selesai')->count() == 0) {
+            $order->update(['status' => 'selesai']);
+        }
+
+        return response()->json(['success' => true, 'message' => 'Status berhasil diperbarui!']);
+    }
+
+    public function retur(Request $request)
+    {
+        $request->validate([
+            'item_id' => 'required|exists:transaction_items,id',
+            'reason' => 'required|string',
+            'proof' => 'required|file|mimes:mp4,mov,avi|max:51200'
+        ]);
+
+        // Simpan file bukti retur
+        $proofPath = $request->file('proof')->store('retur_proofs', 'public');
+
+        // Simpan ke database
+        $item = TransactionItem::findOrFail($request->item_id);
+        $item->update([
+            'status' => 'retur',
+            'retur_reason' => $request->reason,
+            'retur_proof' => $proofPath
+        ]);
+
+        // Update order jika semua itemnya dalam status retur
+        $order = Order::where('id', $item->order_id)->first();
+        if ($order && $order->transactionItems()->where('status', '!=', 'retur')->count() == 0) {
+            $order->update(['status' => 'retur']);
+        }
+
+        return response()->json(['success' => true, 'message' => 'Retur berhasil diajukan!']);
+    }
+
+
 }

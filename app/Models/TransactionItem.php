@@ -18,7 +18,22 @@ class TransactionItem extends Model
         'farm_owner_name',
         'farm_phone_number',
         'shipping_address',
+        'status',
     ];
+    public function getStatusAttribute()
+    {
+        if ($this->orders->every(fn($o) => $o->status === 'selesai')) {
+            return 'selesai';
+        } elseif ($this->orders->contains('status', 'dikirim')) {
+            return 'dikirim';
+        } elseif ($this->orders->contains('status', 'sedang dikemas')) {
+            return 'sedang dikemas';
+        } elseif ($this->orders->contains('status', 'menunggu konfirmasi')) {
+            return 'menunggu konfirmasi';
+        } else {
+            return 'tidak diketahui';
+        }
+    }
 
 
     public function koi()
@@ -29,5 +44,10 @@ class TransactionItem extends Model
     public function transaction()
     {
         return $this->belongsTo(Transaction::class);
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class, 'transaction_id');
     }
 }

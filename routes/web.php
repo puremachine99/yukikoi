@@ -12,7 +12,6 @@ use App\Http\Controllers\{
     UserController,
     UserAddressController,
     FollowController,
-    EmberController,
     AuctionController,
     ProfileController,
     TransactionController,
@@ -100,6 +99,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/transactions/{transactionId}/payment', [TransactionController::class, 'payment'])->name('transactions.payment');
     // routes/web.php
     Route::post('/transactions/{transaction}/pay', [TransactionController::class, 'pay'])->name('transactions.pay');
+
+    Route::post('/transactions/update-status', [TransactionController::class, 'updateStatus'])->name('transactions.updateStatus');
+    Route::post('/transactions/retur', [TransactionController::class, 'retur'])->name('transactions.retur');
+
 });
 Route::middleware(['auth'])->group(function () {
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
