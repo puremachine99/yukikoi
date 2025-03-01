@@ -32,7 +32,7 @@ class TransactionController extends Controller
             'dibatalkan' => 'Dibatalkan',
         ];
 
-        // Query transaksi dengan eager loading untuk hindari N+1
+        // Query transaksi dengan eager loading untuk hindari N+1 !! teruwet
         $transactionsQuery = Transaction::with([
             'transactionItems' => function ($query) {
                 $query->with([

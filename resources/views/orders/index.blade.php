@@ -33,7 +33,7 @@
                                 <!-- Gambar Koi -->
                                 <div class="flex-shrink-0">
                                     <a href="{{ route('koi.show', ['id' => $order->koi->id]) }}" class="block">
-                                        <img src="{{ asset('storage/' . ($order->koi->media->first()->url_media ?? 'default.png')) }}"
+                                        <img src="{{ asset('storage/' . ($order->koi->media->first()->url_media)) }}"
                                             alt="Koi Image" class="border object-cover rounded-lg w-24 h-36">
                                     </a>
                                 </div>
