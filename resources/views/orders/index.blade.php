@@ -27,13 +27,13 @@
                 @else
                     <div class="space-y-6">
                         @foreach ($orders as $order)
-                            <div class="flex flex-col sm:flex-row items-start bg-white hover:bg-zinc-100 
-                                        dark:hover:bg-zinc-700 transition-colors duration-200 dark:bg-zinc-800 
-                                        p-4 rounded-lg shadow-md">
+                            <div
+                                class="flex flex-col sm:flex-row items-start bg-white hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors duration-200 dark:bg-zinc-800 p-4 rounded-lg shadow-md">
+
                                 <!-- Gambar Koi -->
                                 <div class="flex-shrink-0">
                                     <a href="{{ route('koi.show', ['id' => $order->koi->id]) }}" class="block">
-                                        <img src="{{ asset('storage/' . ($order->koi->media->first()->url_media)) }}"
+                                        <img src="{{ asset('storage/' . ($order->koi->media->first()->url_media ?? 'default.png')) }}"
                                             alt="Koi Image" class="border object-cover rounded-lg w-24 h-36">
                                     </a>
                                 </div>
@@ -49,30 +49,49 @@
                                             Kode Lelang: <span class="font-bold">{{ $order->koi->auction_code }}</span>
                                         </p>
                                         <p class="text-sm text-zinc-600 dark:text-zinc-400">
-                                            Kode Ikan: <span class="font-bold">{{ $order->koi->kode_ikan }}</span>
-                                        </p>
-                                        <p class="text-sm text-zinc-600 dark:text-zinc-400">
                                             Nama Buyer: <span class="font-bold">{{ $order->buyer->name }}</span>
-                                        </p>
-                                        <p class="text-sm text-zinc-600 dark:text-zinc-400 overflow-hidden truncate max-w-xs">
-                                            Alamat: <span class="font-bold">{{ $order->shipping_address }}</span>
                                         </p>
                                     </div>
 
-                                    <p class="text-sm text-zinc-600 dark:text-zinc-400 font-semibold mt-2">Harga Pesanan:</p>
+                                    <p class="text-sm text-zinc-600 dark:text-zinc-400 font-semibold mt-2">Harga
+                                        Pesanan:</p>
                                     <p class="text-lg font-bold text-green-600 dark:text-green-400">
                                         Rp {{ number_format($order->total_price, 0, ',', '.') }}
                                     </p>
 
                                     <!-- Status Pesanan -->
                                     <div class="mt-2 flex items-center space-x-2">
-                                        <span class="px-3 py-1 rounded-full text-white text-xs font-semibold
+                                        <span
+                                            class="px-3 py-1 rounded-full text-white text-xs font-semibold 
                                             {{ $order->status == 'menunggu konfirmasi' ? 'bg-yellow-500' : '' }}
                                             {{ $order->status == 'sedang dikemas' ? 'bg-blue-500' : '' }}
                                             {{ $order->status == 'dikirim' ? 'bg-purple-500' : '' }}
                                             {{ $order->status == 'selesai' ? 'bg-green-500' : '' }}">
                                             {{ ucfirst($order->status) }}
                                         </span>
+                                    </div>
+
+                                    <!-- Tombol Accordion -->
+                                    <button onclick="toggleAccordion('history-{{ $order->id }}')"
+                                        class="mt-3 text-indigo-500 hover:underline text-sm">
+                                        Lihat Riwayat Status
+                                    </button>
+
+                                    <!-- Accordion untuk Status History -->
+                                    <div id="history-{{ $order->id }}"
+                                        class="hidden bg-zinc-100 dark:bg-zinc-700 p-3 mt-2 rounded-md">
+                                        <h4 class="text-sm font-semibold text-zinc-800 dark:text-zinc-200">Riwayat
+                                            Perubahan Status:</h4>
+                                        <ul class="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
+                                            @foreach ($order->statusHistories as $history)
+                                                <li>
+                                                    <span class="font-bold">{{ ucfirst($history->status) }}</span>
+                                                    oleh <span class="text-blue-500">{{ $history->user->name }}</span>
+                                                    pada
+                                                    {{ \Carbon\Carbon::parse($history->changed_at)->format('d M Y H:i') }}
+                                                </li>
+                                            @endforeach
+                                        </ul>
                                     </div>
                                 </div>
 
@@ -81,12 +100,23 @@
                                     @if ($order->status !== 'selesai')
                                         <form action="{{ route('orders.updateStatus', $order) }}" method="POST">
                                             @csrf
-                                            <x-select name="status" class="border px-2 py-1 rounded text-sm text-zinc-800 dark:text-zinc-200">
-                                                <option value="menunggu konfirmasi" {{ $order->status === 'menunggu konfirmasi' ? 'selected' : '' }}>Menunggu Konfirmasi</option>
-                                                <option value="sedang dikemas" {{ $order->status === 'sedang dikemas' ? 'selected' : '' }}>Sedang Dikemas</option>
-                                                <option value="dikirim" {{ $order->status === 'dikirim' ? 'selected' : '' }}>Dikirim</option>
+                                            <x-select name="status"
+                                                class="border px-2 py-1 rounded text-sm text-zinc-800 dark:text-zinc-200">
+                                                <option value="menunggu konfirmasi"
+                                                    {{ $order->status === 'menunggu konfirmasi' ? 'selected' : '' }}>
+                                                    Menunggu Konfirmasi
+                                                </option>
+                                                <option value="sedang dikemas"
+                                                    {{ $order->status === 'sedang dikemas' ? 'selected' : '' }}>
+                                                    Sedang Dikemas
+                                                </option>
+                                                <option value="dikirim"
+                                                    {{ $order->status === 'dikirim' ? 'selected' : '' }}>
+                                                    Dikirim
+                                                </option>
                                             </x-select>
-                                            <button type="submit" class="mt-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded text-sm">
+                                            <button type="submit"
+                                                class="mt-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded text-sm">
                                                 Update
                                             </button>
                                         </form>
@@ -99,4 +129,10 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function toggleAccordion(id) {
+            document.getElementById(id).classList.toggle("hidden");
+        }
+    </script>
 </x-app-layout>

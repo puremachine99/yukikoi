@@ -47,4 +47,11 @@ class Order extends Model
     {
         return $this->hasMany(TransactionItem::class, 'order_id', 'id');
     }
+
+    // app/Models/Order.php
+    public function statusHistories()
+    {
+        return $this->hasMany(StatusHistory::class, 'order_id')->orderBy('changed_at', 'desc');
+    }
+
 }

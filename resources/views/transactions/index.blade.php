@@ -78,8 +78,38 @@
                                             Harga: Rp {{ number_format($item->price, 0, ',', '.') }}
                                         </p>
                                         <p class="text-sm text-zinc-600 dark:text-zinc-400">
-                                            Status: <span class="font-semibold">{{ ucwords($item->status) }}</span>
+                                            Status: <span
+                                                class="px-3 py-1 rounded-full text-white text-xs font-semibold 
+                                            {{ $item->status == 'menunggu konfirmasi' ? 'bg-yellow-500' : '' }}
+                                            {{ $item->status == 'sedang dikemas' ? 'bg-blue-500' : '' }}
+                                            {{ $item->status == 'dikirim' ? 'bg-purple-500' : '' }}
+                                            {{ $item->status == 'selesai' ? 'bg-green-500' : '' }}">
+                                                {{ ucfirst($item->status) }}
+                                            </span>
                                         </p>
+                                        <!-- Tombol Accordion -->
+                                        <button onclick="toggleAccordion('history-{{ $item->id }}')"
+                                            class="mt-3 text-indigo-500 hover:underline text-sm">
+                                            Lihat Riwayat Status
+                                        </button>
+
+                                        <!-- Accordion untuk Status History -->
+                                        <div id="history-{{ $item->id }}"
+                                            class="hidden bg-zinc-100 dark:bg-zinc-700 p-3 mt-2 rounded-md">
+                                            <h4 class="text-sm font-semibold text-zinc-800 dark:text-zinc-200">Riwayat
+                                                Perubahan Status:</h4>
+                                            <ul class="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
+                                                @foreach ($item->statusHistories as $history)
+                                                    <li>
+                                                        <span class="font-bold">{{ ucfirst($history->status) }}</span>
+                                                        oleh <span
+                                                            class="text-blue-500">{{ $history->user->name }}</span>
+                                                        pada
+                                                        {{ \Carbon\Carbon::parse($history->changed_at)->format('d M Y H:i') }}
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                        </div>
                                     </div>
                                     <!-- Tombol Aksi -->
                                     <div class="mt-4 flex space-x-4">
@@ -99,12 +129,9 @@
                                         @endif
                                     </div>
 
-
                                 </div>
                             @endforeach
                         @endforeach
-
-
 
                         <!-- Total and Actions -->
                         <div class="mt-4">
@@ -138,6 +165,10 @@
         </div>
     </div>
     <script>
+        function toggleAccordion(id) {
+            document.getElementById(id).classList.toggle("hidden");
+        }
+
         function updateStatus(itemId, status) {
             Swal.fire({
                 title: 'Konfirmasi Status',

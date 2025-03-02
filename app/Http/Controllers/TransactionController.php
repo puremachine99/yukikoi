@@ -9,6 +9,7 @@ use App\Models\Transaction;
 use Illuminate\Support\Str;
 use Xendit\Invoice\Invoice;
 use Illuminate\Http\Request;
+use App\Models\StatusHistory;
 use Xendit\Invoice\InvoiceApi;
 use App\Models\TransactionItem;
 use Illuminate\Support\Facades\Auth;
@@ -214,6 +215,7 @@ class TransactionController extends Controller
             return back()->with('error', 'Gagal membuat invoice batch: ' . $e->getMessage());
         }
     }
+    // app/Http/Controllers/TransactionController.php
     public function updateStatus(Request $request)
     {
         $request->validate([
@@ -224,7 +226,7 @@ class TransactionController extends Controller
         // Ambil TransactionItem berdasarkan ID
         $item = TransactionItem::findOrFail($request->item_id);
 
-        // Pastikan hanya buyer yang bisa menyelesaikan transaksi
+        // Pastikan hanya Buyer yang bisa menyelesaikan transaksi
         if (auth()->id() !== $item->transaction->user_id) {
             return response()->json(['success' => false, 'message' => 'Anda tidak berhak mengubah status ini.'], 403);
         }
@@ -232,11 +234,19 @@ class TransactionController extends Controller
         // Update status transaction_item ke 'selesai'
         $item->update(['status' => $request->status]);
 
-        // Ambil semua transaction_items dari transaction_id dan koi_id terkait
+        // Simpan log perubahan status di StatusHistory
+        StatusHistory::create([
+            'transaction_item_id' => $item->id,
+            'order_id' => null, // Order akan ditentukan nanti
+            'status' => $request->status,
+            'changed_by' => auth()->id(),
+            'changed_at' => now(),
+        ]);
+
+        // Cek apakah semua items dalam transaksi ini sudah selesai
         $transactionId = $item->transaction_id;
         $koiId = $item->koi_id;
 
-        // Cek apakah semua items dalam transaksi ini sudah selesai
         $allItemsDone = TransactionItem::where('transaction_id', $transactionId)
             ->where('koi_id', $koiId)
             ->where('status', '!=', 'selesai')
@@ -244,13 +254,28 @@ class TransactionController extends Controller
 
         if ($allItemsDone) {
             // Update status di tabel orders juga
-            Order::where('transaction_id', $transactionId)
+            $order = Order::where('transaction_id', $transactionId)
                 ->where('koi_id', $koiId)
-                ->update(['status' => 'selesai']);
+                ->first();
+
+            if ($order) {
+                $order->update(['status' => 'selesai']);
+
+                // Simpan log perubahan status di StatusHistory untuk Order
+                StatusHistory::create([
+                    'order_id' => $order->id,
+                    'transaction_item_id' => $item->id, // Tautkan dengan transaction_item yang selesai
+                    'status' => 'selesai',
+                    'changed_by' => auth()->id(),
+                    'changed_at' => now(),
+                ]);
+            }
         }
 
         return response()->json(['success' => true, 'message' => 'Status transaksi berhasil diperbarui!']);
     }
+
+
 
 
     public function retur(Request $request)
