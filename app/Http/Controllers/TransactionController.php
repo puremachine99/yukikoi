@@ -309,29 +309,32 @@ class TransactionController extends Controller
     {
         $request->validate([
             'transaction_item_id' => 'required|exists:transaction_items,id',
-            'rating' => 'required|numeric|min:1|max:5',
+            'rating_quality' => 'required|numeric|min:1|max:5',
+            'rating_shipping' => 'required|numeric|min:1|max:5',
+            'rating_service' => 'required|numeric|min:1|max:5',
             'review' => 'nullable|string',
         ]);
 
         $transactionItem = TransactionItem::findOrFail($request->transaction_item_id);
 
-        // Pastikan yang memberi rating adalah buyer dari transaksi ini
         if ($transactionItem->transaction->user_id !== auth()->id()) {
             return response()->json(['success' => false, 'message' => 'Anda tidak berhak memberi rating.'], 403);
         }
 
-        // Simpan rating untuk seller (penjual)
         Rating::updateOrCreate(
-            ['transaction_item_id' => $transactionItem->id], // Jika sudah ada rating, update
+            ['transaction_item_id' => $transactionItem->id],
             [
                 'buyer_id' => auth()->id(),
-                'seller_id' => $transactionItem->koi->auction->user_id, // Ambil seller dari auction koi
-                'rating' => $request->rating,
+                'seller_id' => $transactionItem->koi->auction->user_id,
+                'rating_quality' => $request->rating_quality,
+                'rating_shipping' => $request->rating_shipping,
+                'rating_service' => $request->rating_service,
                 'review' => $request->review,
             ]
         );
 
         return response()->json(['success' => true, 'message' => 'Rating berhasil dikirim.']);
     }
+
 
 }

@@ -40,8 +40,17 @@
                                 @endif
                             </div>
                             <div>
+                                <div class="mt-4">
+                                    <p class="font-semibold text-zinc-800 dark:text-zinc-100">
+                                        Total Pesanan: Rp
+                                        {{ number_format($transactions->sum('total_with_fees'), 0, ',', '.') }}
+                                    </p>
+                                </div>
                                 <a href="#" class="text-indigo-600 hover:underline" target="_blank">Kunjungi
                                     Toko</a>
+                                {{-- <a href="{{ route('transactions.show', $transaction->id) }}">
+                                    Invoice
+                                </a> --}}
                             </div>
                         </div>
 
@@ -50,10 +59,7 @@
                             @foreach ($transaction->transactionItems as $item)
                                 <div
                                     class="itemcart flex items-start bg-white hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors duration-200 dark:bg-zinc-800 p-4 rounded-lg shadow-md cursor-pointer">
-                                    <div class="flex-shrink-0">
-                                        <input type="checkbox" class="select-koi" data-id="{{ $transaction->id }}"
-                                            data-price="{{ $item->price }}" style="transform: scale(1.2);">
-                                    </div>
+
 
                                     <!-- Gambar Koi -->
                                     <div class="flex-shrink-0 ml-4">
@@ -133,28 +139,6 @@
                             @endforeach
                         @endforeach
 
-                        <!-- Total and Actions -->
-                        <div class="mt-4">
-                            <p class="font-semibold text-zinc-800 dark:text-zinc-100">
-                                Total Pesanan: Rp
-                                {{ number_format($transactions->sum('total_with_fees'), 0, ',', '.') }}
-                            </p>
-                            <p class="text-sm text-zinc-500 dark:text-zinc-400">
-                                Status: {{ ucwords(str_replace('_', ' ', $transactions->first()->status)) }}
-                            </p>
-                        </div>
-
-                        <!-- Action Buttons -->
-                        <div class="mt-4 flex space-x-4">
-                            <a href="#"
-                                class="py-2 px-4 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-400">
-                                Retur
-                            </a>
-                            <a href="{{ route('transactions.show', $transaction->id) }}"
-                                class="py-2 px-4 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600">
-                                Invoice
-                            </a>
-                        </div>
                     </div>
                 @empty
                     <div class="text-center text-zinc-500 dark:text-zinc-400">
@@ -262,16 +246,53 @@
             Swal.fire({
                 title: 'Beri Rating',
                 html: `
-            <label>Rating (1-5):</label>
-            <input type="range" id="rating" min="1" max="5" step="0.5" value="5" class="swal2-input">
-            <label>Review:</label>
-            <textarea id="review" class="swal2-input"></textarea>
+            <style>
+                .rating {
+                    display: flex;
+                    flex-direction: row-reverse;
+                    justify-content: center;
+                }
+                .rating input {
+                    display: none;
+                }
+                .rating label {
+                    font-size: 30px;
+                    color: #ddd;
+                    cursor: pointer;
+                    transition: color 0.3s;
+                }
+                .rating input:checked ~ label,
+                .rating label:hover,
+                .rating label:hover ~ label {
+                    color: #ffc107;
+                }
+            </style>
+
+            <label>Kesesuaian Ikan (Kualitas Produk):</label>
+            <div class="rating" id="rating-quality">
+                ${generateStars('quality')}
+            </div>
+
+            <label>Kondisi Ikan / Air Selama Pengiriman (Pengiriman):</label>
+            <div class="rating" id="rating-shipping">
+                ${generateStars('shipping')}
+            </div>
+
+            <label>Pelayanan Seller (Pelayanan Penjual):</label>
+            <div class="rating" id="rating-service">
+                ${generateStars('service')}
+            </div>
+
+            <label>Ulasan:</label>
+            <textarea id="review" class="swal2-textarea" placeholder="Tulis ulasan Anda..."></textarea>
         `,
                 showCancelButton: true,
                 confirmButtonText: 'Kirim',
                 preConfirm: () => {
                     return {
-                        rating: document.getElementById('rating').value,
+                        rating_quality: document.querySelector('input[name="quality"]:checked')?.value || 0,
+                        rating_shipping: document.querySelector('input[name="shipping"]:checked')?.value || 0,
+                        rating_service: document.querySelector('input[name="service"]:checked')?.value || 0,
                         review: document.getElementById('review').value
                     };
                 }
@@ -285,7 +306,9 @@
                         },
                         body: JSON.stringify({
                             transaction_item_id: itemId,
-                            rating: result.value.rating,
+                            rating_quality: result.value.rating_quality,
+                            rating_shipping: result.value.rating_shipping,
+                            rating_service: result.value.rating_service,
                             review: result.value.review
                         })
                     }).then(response => response.json()).then(data => {
@@ -297,6 +320,18 @@
                     });
                 }
             });
+        }
+
+        // Fungsi untuk generate bintang
+        function generateStars(category) {
+            let starsHTML = '';
+            for (let i = 5; i >= 1; i--) {
+                starsHTML += `
+            <input type="radio" id="${category}-star${i}" name="${category}" value="${i}" />
+            <label for="${category}-star${i}">&#9733;</label>
+        `;
+            }
+            return starsHTML;
         }
     </script>
 
