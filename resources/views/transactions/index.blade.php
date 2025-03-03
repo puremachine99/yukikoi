@@ -1,4 +1,6 @@
 <x-app-layout>
+    
+
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-zinc-800 dark:text-zinc-200 leading-tight">
             {{ __('Daftar Transaksi') }}
@@ -148,6 +150,7 @@
             </div>
         </div>
     </div>
+   
     <script>
         function toggleAccordion(id) {
             document.getElementById(id).classList.toggle("hidden");
@@ -246,53 +249,67 @@
             Swal.fire({
                 title: 'Beri Rating',
                 html: `
-            <style>
-                .rating {
-                    display: flex;
-                    flex-direction: row-reverse;
-                    justify-content: center;
-                }
-                .rating input {
-                    display: none;
-                }
-                .rating label {
-                    font-size: 30px;
-                    color: #ddd;
-                    cursor: pointer;
-                    transition: color 0.3s;
-                }
-                .rating input:checked ~ label,
-                .rating label:hover,
-                .rating label:hover ~ label {
-                    color: #ffc107;
-                }
-            </style>
+            <div style="text-align: left;">
+                <label><strong>Kesesuaian Ikan:</strong></label>
+                <div id="rating_quality" class="rateyo"></div>
 
-            <label>Kesesuaian Ikan (Kualitas Produk):</label>
-            <div class="rating" id="rating-quality">
-                ${generateStars('quality')}
+                <label><strong>Kondisi Pengiriman:</strong></label>
+                <div id="rating_shipping" class="rateyo"></div>
+
+                <label><strong>Pelayanan Seller:</strong></label>
+                <div id="rating_service" class="rateyo"></div>
+
+                <label><strong>Ulasan:</strong></label>
+                <textarea id="review" class="swal2-textarea" placeholder="Tulis ulasan..."></textarea>
+
+                <!-- Hidden input untuk menyimpan nilai rating -->
+                <input type="hidden" id="rating_quality_value">
+                <input type="hidden" id="rating_shipping_value">
+                <input type="hidden" id="rating_service_value">
             </div>
-
-            <label>Kondisi Ikan / Air Selama Pengiriman (Pengiriman):</label>
-            <div class="rating" id="rating-shipping">
-                ${generateStars('shipping')}
-            </div>
-
-            <label>Pelayanan Seller (Pelayanan Penjual):</label>
-            <div class="rating" id="rating-service">
-                ${generateStars('service')}
-            </div>
-
-            <label>Ulasan:</label>
-            <textarea id="review" class="swal2-textarea" placeholder="Tulis ulasan Anda..."></textarea>
         `,
+                didOpen: () => {
+                    // Periksa apakah jQuery sudah dimuat
+                    if (typeof $.fn.rateYo === 'undefined') {
+                        console.error('RateYo is not loaded!');
+                        return;
+                    }
+
+                    // Inisialisasi RateYo untuk setiap kategori rating
+                    $("#rating_quality").rateYo({
+                        rating: 0,
+                        fullStar: true,
+                        starWidth: "25px",
+                        onSet: function(rating) {
+                            $("#rating_quality_value").val(rating);
+                        }
+                    });
+
+                    $("#rating_shipping").rateYo({
+                        rating: 0,
+                        fullStar: true,
+                        starWidth: "25px",
+                        onSet: function(rating) {
+                            $("#rating_shipping_value").val(rating);
+                        }
+                    });
+
+                    $("#rating_service").rateYo({
+                        rating: 0,
+                        fullStar: true,
+                        starWidth: "25px",
+                        onSet: function(rating) {
+                            $("#rating_service_value").val(rating);
+                        }
+                    });
+                },
                 showCancelButton: true,
-                confirmButtonText: 'Kirim',
+                confirmButtonText: 'Kirim Rating',
                 preConfirm: () => {
                     return {
-                        rating_quality: document.querySelector('input[name="quality"]:checked')?.value || 0,
-                        rating_shipping: document.querySelector('input[name="shipping"]:checked')?.value || 0,
-                        rating_service: document.querySelector('input[name="service"]:checked')?.value || 0,
+                        rating_quality: $("#rating_quality_value").val(),
+                        rating_shipping: $("#rating_shipping_value").val(),
+                        rating_service: $("#rating_service_value").val(),
                         review: document.getElementById('review').value
                     };
                 }
@@ -316,11 +333,14 @@
                             Swal.fire('Sukses!', 'Rating berhasil dikirim.', 'success').then(() => {
                                 location.reload();
                             });
+                        } else {
+                            Swal.fire('Gagal!', data.message, 'error');
                         }
                     });
                 }
             });
         }
+
 
         // Fungsi untuk generate bintang
         function generateStars(category) {

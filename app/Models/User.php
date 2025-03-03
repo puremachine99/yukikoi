@@ -139,6 +139,15 @@ class User extends Authenticatable
     {
         return $this->hasMany(Rating::class, 'buyer_id', 'id');
     }
+    public function ratings()
+    {
+        return $this->hasMany(Rating::class, 'seller_id');
+    }
+
+    public function getAverageRatingAttribute()
+    {
+        return round($this->ratings()->avg(DB::raw('(rating_quality + rating_shipping + rating_service) / 3')), 1);
+    }
 
     public function checkAndAssignAchievements()
     {

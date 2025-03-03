@@ -187,7 +187,18 @@
                                 <p class="text-sm text-zinc-600 dark:text-zinc-400">Following</p>
                             </div>
                         </div>
-
+                        {{-- Rating  --}}
+                        <p>Rata-rata Rating: ⭐ {{ $seller->average_rating ?? 'Belum ada rating' }}</p>
+                        {{-- @foreach ($ratings as $rating)
+                            <div class="p-4 border rounded-lg shadow-sm bg-white dark:bg-gray-800">
+                                <p class="text-lg font-semibold">{{ $rating->buyer->name }}</p>
+                                <p class="text-yellow-500">
+                                    ⭐ {{ $rating->rating_quality }} | ⭐ {{ $rating->rating_shipping }} | ⭐
+                                    {{ $rating->rating_service }}
+                                </p>
+                                <p class="text-sm text-gray-500">{{ $rating->review ?? 'Tidak ada ulasan' }}</p>
+                            </div>
+                        @endforeach --}}
                         <!-- Alamat -->
                         <p class="text-zinc-600 dark:text-zinc-400 capitalize">{{ $user->address }},
                             <b>{{ $user->city }}</b>

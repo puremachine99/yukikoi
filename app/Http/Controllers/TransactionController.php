@@ -304,7 +304,6 @@ class TransactionController extends Controller
         return response()->json(['success' => true, 'message' => 'Retur berhasil diajukan!']);
     }
 
-
     public function storeRating(Request $request)
     {
         $request->validate([
@@ -322,10 +321,10 @@ class TransactionController extends Controller
         }
 
         Rating::updateOrCreate(
-            ['transaction_item_id' => $transactionItem->id],
+            ['transaction_item_id' => $transactionItem->id], // Jika sudah ada rating, update
             [
                 'buyer_id' => auth()->id(),
-                'seller_id' => $transactionItem->koi->auction->user_id,
+                'seller_id' => $transactionItem->koi->auction->user_id, // Ambil seller dari auction koi
                 'rating_quality' => $request->rating_quality,
                 'rating_shipping' => $request->rating_shipping,
                 'rating_service' => $request->rating_service,
@@ -335,6 +334,5 @@ class TransactionController extends Controller
 
         return response()->json(['success' => true, 'message' => 'Rating berhasil dikirim.']);
     }
-
 
 }

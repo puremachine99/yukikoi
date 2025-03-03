@@ -1,9 +1,8 @@
 <?php
-
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Rating extends Model
 {
@@ -13,13 +12,24 @@ class Rating extends Model
         'transaction_item_id',
         'buyer_id',
         'seller_id',
-        'rating',
-        'review'
+        'rating_quality',
+        'rating_shipping',
+        'rating_service',
+        'review',
     ];
 
-    public function rating()
+    public function transactionItem()
     {
-        return $this->hasOne(Rating::class, 'transaction_item_id', 'id');
+        return $this->belongsTo(TransactionItem::class);
     }
 
+    public function buyer()
+    {
+        return $this->belongsTo(User::class, 'buyer_id');
+    }
+
+    public function seller()
+    {
+        return $this->belongsTo(User::class, 'seller_id');
+    }
 }
