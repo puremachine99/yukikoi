@@ -108,7 +108,7 @@
                             <div class="absolute top-4 right-4">
                                 <!-- Tombol Pengaturan -->
                                 <a href="{{ route('profile.edit') }}"
-                                    class="group text-gray-600 dark:text-white p-2 hover:scale-110 focus:outline-none focus:ring focus:ring-sky-500 transition-transform ease-in-out duration-200"
+                                    class="group text-zinc-600 dark:text-white p-2 hover:scale-110 focus:outline-none focus:ring focus:ring-sky-500 transition-transform ease-in-out duration-200"
                                     title="Edit Profile">
                                     <i class="fa-solid fa-cog"></i>
 
@@ -122,7 +122,7 @@
                             <div class="absolute top-12 right-4">
                                 {{-- share --}}
                                 <a href="#" id="shareProfileBtn"
-                                    class="group text-gray-600 dark:text-white p-2 hover:scale-110 focus:outline-none focus:ring focus:ring-sky-500 transition-transform ease-in-out duration-200"
+                                    class="group text-zinc-600 dark:text-white p-2 hover:scale-110 focus:outline-none focus:ring focus:ring-sky-500 transition-transform ease-in-out duration-200"
                                     title="Edit Profile">
                                     <i class="fa-solid fa-share-nodes"></i>
 
@@ -136,7 +136,7 @@
                         @endif
 
 
-                        <!-- Data Diri Singkat -->
+                        <!-- Informasi User -->
                         <h1
                             class="text-2xl font-semibold text-zinc-900 dark:text-zinc-100 flex justify-center items-center">
                             {{ $user->name }}
@@ -148,8 +148,10 @@
                                 <i class="fa-solid text-lg fa-check-circle text-sky-500 ml-2 align-middle"></i>
                             @endif
                         </h1>
-
-                        <!-- Follow/Unfollow Button -->
+                        <!-- Alamat -->
+                        <p class="text-zinc-600 dark:text-zinc-400 capitalize">{{ $user->address }},
+                            <b>{{ $user->city }}</b>
+                        </p>
                         <div class="text-center">
                             @if (auth()->check() && auth()->id() !== $user->id)
                                 @if (auth()->user()->isFollowing($user->id))
@@ -173,95 +175,106 @@
                                 @endif
                             @endif
                         </div>
-
-                        <!-- Total Followers dan Followings -->
-                        <div class="flex justify-center items-center mt-4 space-x-6">
-                            <div>
+                        <!-- Followers & Following -->
+                        <div class="flex justify-center items-center mt-4 space-x-4">
+                            <div class="text-center">
                                 <p class="text-lg font-bold text-zinc-800 dark:text-zinc-200">
                                     {{ $user->followers->count() }}</p>
-                                <p class="text-sm text-zinc-600 dark:text-zinc-400">Followers</p>
+                                <p
+                                    class="text-xs text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded-full">
+                                    Followers
+                                </p>
                             </div>
-                            <div>
+                            <div class="text-center">
                                 <p class="text-lg font-bold text-zinc-800 dark:text-zinc-200">
                                     {{ $user->followings->count() }}</p>
-                                <p class="text-sm text-zinc-600 dark:text-zinc-400">Following</p>
+                                <p
+                                    class="text-xs text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded-full">
+                                    Following
+                                </p>
                             </div>
                         </div>
-                        {{-- Rating  --}}
-                        <div class="bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-md mt-4">
-                            <h3 class="text-xl font-semibold text-zinc-800 dark:text-zinc-200">Rating Penjual</h3>
+                        <!-- Sosial Media -->
+                        <div class="flex justify-center space-x-4 mt-4">
+                            @if ($user->phone_number)
+                                <a href="https://wa.me/{{ $user->phone_number }}" target="_blank"
+                                    class="relative group text-green-500 text-2xl p-2 rounded-lg hover:bg-green-100 dark:hover:bg-green-700 transition duration-200">
+                                    <i class="fa-brands fa-whatsapp"></i>
+                                    <!-- Tooltip -->
+                                    <span
+                                        class="absolute bottom-full mb-1 px-2 py-1 text-xs text-white bg-black rounded hidden group-hover:block">
+                                        Hubungi via WhatsApp
+                                    </span>
+                                </a>
+                            @endif
 
-                            @if ($ratings)
-                                <div class="mt-2">
-                                    <p class="text-sm text-zinc-600 dark:text-zinc-400">Kesesuaian Ikan:
-                                        <span class="font-bold">{{ number_format($ratings->avg_quality, 1) }} ⭐</span>
-                                    </p>
-                                    <p class="text-sm text-zinc-600 dark:text-zinc-400">Kondisi Pengiriman:
-                                        <span class="font-bold">{{ number_format($ratings->avg_shipping, 1) }} ⭐</span>
-                                    </p>
-                                    <p class="text-sm text-zinc-600 dark:text-zinc-400">Pelayanan Seller:
-                                        <span class="font-bold">{{ number_format($ratings->avg_service, 1) }} ⭐</span>
-                                    </p>
-                                    <p class="text-lg font-bold text-indigo-600 dark:text-indigo-400">Rata-rata:
-                                        {{ number_format($ratings->overall_rating, 1) }} ⭐
-                                    </p>
-                                </div>
-                            @else
-                                <p class="text-sm text-zinc-600 dark:text-zinc-400">Belum ada rating.</p>
+                            @if ($user->instagram)
+                                <a href="{{ $user->instagram }}" target="_blank"
+                                    class="relative group text-pink-500 text-2xl p-2 rounded-lg hover:bg-pink-100 dark:hover:bg-pink-700 transition duration-200">
+                                    <i class="fa-brands fa-instagram"></i>
+                                    <!-- Tooltip -->
+                                    <span
+                                        class="absolute bottom-full mb-1 px-2 py-1 text-xs text-white bg-black rounded hidden group-hover:block">
+                                        Lihat Instagram
+                                    </span>
+                                </a>
+                            @endif
+
+                            @if ($user->youtube)
+                                <a href="{{ $user->youtube }}" target="_blank"
+                                    class="relative group text-red-500 text-2xl p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-700 transition duration-200">
+                                    <i class="fa-brands fa-youtube"></i>
+                                    <!-- Tooltip -->
+                                    <span
+                                        class="absolute bottom-full mb-1 px-2 py-1 text-xs text-white bg-black rounded hidden group-hover:block">
+                                        Lihat YouTube
+                                    </span>
+                                </a>
                             @endif
                         </div>
 
-                        {{-- @foreach ($ratings as $rating)
-                            <div class="p-4 border rounded-lg shadow-sm bg-white dark:bg-gray-800">
-                                <p class="text-lg font-semibold">{{ $rating->buyer->name }}</p>
-                                <p class="text-yellow-500">
-                                    ⭐ {{ $rating->rating_quality }} | ⭐ {{ $rating->rating_shipping }} | ⭐
-                                    {{ $rating->rating_service }}
-                                </p>
-                                <p class="text-sm text-gray-500">{{ $rating->review ?? 'Tidak ada ulasan' }}</p>
-                            </div>
-                        @endforeach --}}
-                        <!-- Alamat -->
-                        <p class="text-zinc-600 dark:text-zinc-400 capitalize">{{ $user->address }},
-                            <b>{{ $user->city }}</b>
-                        </p>
+
+                        {{-- Rating  --}}
+                        <div class="bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-md mt-4">
+                            <h3 class="text-lg font-semibold text-zinc-800 dark:text-zinc-200">
+                                Rating Penjual
+                                @if ($ratings && $ratings->overall_rating !== null)
+                                    {{ number_format($ratings->overall_rating, 1) }} ⭐
+                                @else
+                                    -
+                                @endif
+                            </h3>
+
+                            @if ($ratings && $ratings->overall_rating !== null)
+                                <div class="mt-3 space-y-3">
+                                    @foreach (['Kesesuaian Ikan' => 'avg_quality', 'Kondisi Pengiriman' => 'avg_shipping', 'Pelayanan Seller' => 'avg_service'] as $label => $field)
+                                        <div>
+                                            <p
+                                                class="text-sm text-zinc-600 dark:text-zinc-400 flex justify-between items-center">
+                                                <span>{{ $label }}:</span>
+                                                <span class="font-bold text-yellow-500">
+                                                    {!! str_repeat('★', round($ratings->$field)) !!}{!! str_repeat('☆', 5 - round($ratings->$field)) !!}
+                                                    ({{ number_format($ratings->$field, 1) }})
+                                                </span>
+                                            </p>
+                                            <div class="w-full bg-zinc-300 dark:bg-zinc-700 rounded-full h-2">
+                                                <div class="bg-yellow-500 h-2 rounded-full"
+                                                    style="width: {{ ($ratings->$field / 5) * 100 }}%;"></div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @else
+                                <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-2">Belum ada rating untuk penjual
+                                    ini.</p>
+                            @endif
+                        </div>
 
                         <!-- Bio -->
-                        <p class="text-zinc-600 dark:text-zinc-400">
-                            <hr>
-                            <b>Bio:</b> <br> <i>{{ $user->bio ?? '-' }}</i>
-                            <hr>
-                        </p>
-
-
-
-                        <!-- WhatsApp -->
-                        @if ($user->phone_number)
-                            <p class="text-zinc-600 dark:text-zinc-400">
-                                <a href="https://wa.me/{{ $user->phone_number }}" target="_blank" title="WhatsApp">
-                                    <i class="fa-brands fa-square-whatsapp text-green-500"></i> WhatsApp
-                                </a>
-                            </p>
-                        @endif
-
-                        <!-- Instagram -->
-                        @if ($user->instagram)
-                            <p class="text-zinc-600 dark:text-zinc-400">
-                                <a href="{{ $user->instagram }}" target="_blank" title="Instagram">
-                                    <i class="fa-brands fa-instagram text-pink-500"></i> Instagram
-                                </a>
-                            </p>
-                        @endif
-
-                        <!-- YouTube -->
-                        @if ($user->youtube)
-                            <p class="text-zinc-600 dark:text-zinc-400">
-                                <a href="{{ $user->youtube }}" target="_blank" title="YouTube">
-                                    <i class="fa-brands fa-youtube text-red-500"></i> YouTube
-                                </a>
-                            </p>
-                        @endif
-
+                        <div class="bg-zinc-100 dark:bg-zinc-800 p-4 rounded-lg shadow-sm mt-4">
+                            <h2 class="text-md font-semibold text-zinc-900 dark:text-zinc-100">Bio</h2>
+                            <p class="text-sm text-zinc-600 dark:text-zinc-400 italic">{{ $user->bio ?? '-' }}</p>
+                        </div>
 
                         {{-- created at --}}
                         <p class="text-zinc-600 dark:text-zinc-400">Member Sejak
@@ -272,24 +285,28 @@
                                 {{ $user->email_verified_at->format('d M Y') }}</p>
                         @endif --}}
 
-                        <!-- Badge Achievement -->
-                        <h2 class="text-md"><b>Achievement :</b></h2>
-                        <div class="grid grid-cols-1 gap-4">
-                            @foreach ($user->achievements as $achievement)
-                                <div class="flex items-center p-2 rounded-lg shadow-md metallic"
-                                    style="background-color: {{ $achievement->badge_color }};">
-                                    <!-- Icon Section (1/4) -->
-                                    <div class="w-1/4 flex justify-center border-r-2">
-                                        <i class="fa-solid {{ $achievement->icon }} text-2xl text-slate-800"></i>
+                        <!-- Achievement -->
+                        <div class="mt-4">
+                            <h2 class="text-md font-semibold text-zinc-900 dark:text-zinc-100">Achievement</h2>
+                            <div class="grid grid-cols-1 gap-2 mt-2">
+                                @foreach ($user->achievements as $achievement)
+                                    <div class="flex items-center p-2 rounded-lg shadow-md metallic"
+                                        style="background-color: {{ $achievement->badge_color }};">
+                                        <!-- Icon Section (1/4) -->
+                                        <div class="w-1/4 flex justify-center border-r-2">
+                                            <i class="fa-solid {{ $achievement->icon }} text-2xl text-slate-800"></i>
+                                        </div>
+                                        <!-- Details Section (3/4) -->
+                                        <div class="w-3/4 pl-3  justify-start items-start ">
+                                            <h3 class="text-md font-semibold text-slate-800">{{ $achievement->name }}
+                                            </h3>
+                                            <p class="text-xs text-slate-800 opacity-80">
+                                                {{ $achievement->description }}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <!-- Details Section (3/4) -->
-                                    <div class="w-3/4 pl-3  justify-start items-start ">
-                                        <h3 class="text-md font-semibold text-slate-800">{{ $achievement->name }}</h3>
-                                        <p class="text-xs text-slate-800 opacity-80">{{ $achievement->description }}
-                                        </p>
-                                    </div>
-                                </div>
-                            @endforeach
+                                @endforeach
+                            </div>
                         </div>
 
 
