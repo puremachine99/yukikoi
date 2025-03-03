@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Bid;
 use App\Models\Koi;
 use App\Models\User;
+use App\Models\Rating;
 use App\Models\Auction;
 use Illuminate\View\View;
 use App\Models\Certificate;
@@ -54,16 +55,16 @@ class ProfileController extends Controller
             $query->where('user_id', $user->id)
                 ->whereIn('status', ['on going', 'ready', 'completed']); // Filter status lelang
         })->with([
-            'media' => function ($query) {
-                $query->where('media_type', 'photo'); // Hanya media yang berupa foto
-            },
-            'bids' => function ($query) {
-                $query->latest(); // Urutkan bid dari yang terakhir
-            }
-        ])->get();
+                    'media' => function ($query) {
+                        $query->where('media_type', 'photo'); // Hanya media yang berupa foto
+                    },
+                    'bids' => function ($query) {
+                        $query->latest(); // Urutkan bid dari yang terakhir
+                    }
+                ])->get();
 
-         // Hitung total bid dan informasi pemenang untuk setiap koi
-         $totalBids = $kois->mapWithKeys(function ($koi) {
+        // Hitung total bid dan informasi pemenang untuk setiap koi
+        $totalBids = $kois->mapWithKeys(function ($koi) {
             $winnerBid = $koi->bids->firstWhere('is_win', true); // Ambil bid yang menjadi pemenang
 
             return [
@@ -131,9 +132,18 @@ class ProfileController extends Controller
                 ->where('is_sniping', true)
                 ->count(), // Jumlah menang bid dalam waktu sniping
         ];
+        // Ambil rata-rata rating seller
+        $ratings = Rating::where('seller_id', $user->id)
+            ->selectRaw('seller_id, 
+                 AVG(rating_quality) as avg_quality, 
+                 AVG(rating_shipping) as avg_shipping, 
+                 AVG(rating_service) as avg_service, 
+                 (AVG(rating_quality) + AVG(rating_shipping) + AVG(rating_service)) / 3 as overall_rating')
+            ->groupBy('seller_id')
+            ->first();
 
         // Kirim data ke view
-        return view('profile.show', compact('user', 'kois', 'auctions', 'totalBids', 'userStats'));
+        return view('profile.show', compact('user', 'kois', 'auctions', 'totalBids', 'userStats', 'ratings'));
     }
 
 

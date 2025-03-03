@@ -188,7 +188,29 @@
                             </div>
                         </div>
                         {{-- Rating  --}}
-                        <p>Rata-rata Rating: ⭐ {{ $seller->average_rating ?? 'Belum ada rating' }}</p>
+                        <div class="bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-md mt-4">
+                            <h3 class="text-xl font-semibold text-zinc-800 dark:text-zinc-200">Rating Penjual</h3>
+
+                            @if ($ratings)
+                                <div class="mt-2">
+                                    <p class="text-sm text-zinc-600 dark:text-zinc-400">Kesesuaian Ikan:
+                                        <span class="font-bold">{{ number_format($ratings->avg_quality, 1) }} ⭐</span>
+                                    </p>
+                                    <p class="text-sm text-zinc-600 dark:text-zinc-400">Kondisi Pengiriman:
+                                        <span class="font-bold">{{ number_format($ratings->avg_shipping, 1) }} ⭐</span>
+                                    </p>
+                                    <p class="text-sm text-zinc-600 dark:text-zinc-400">Pelayanan Seller:
+                                        <span class="font-bold">{{ number_format($ratings->avg_service, 1) }} ⭐</span>
+                                    </p>
+                                    <p class="text-lg font-bold text-indigo-600 dark:text-indigo-400">Rata-rata:
+                                        {{ number_format($ratings->overall_rating, 1) }} ⭐
+                                    </p>
+                                </div>
+                            @else
+                                <p class="text-sm text-zinc-600 dark:text-zinc-400">Belum ada rating.</p>
+                            @endif
+                        </div>
+
                         {{-- @foreach ($ratings as $rating)
                             <div class="p-4 border rounded-lg shadow-sm bg-white dark:bg-gray-800">
                                 <p class="text-lg font-semibold">{{ $rating->buyer->name }}</p>

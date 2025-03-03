@@ -143,10 +143,16 @@ class User extends Authenticatable
     {
         return $this->hasMany(Rating::class, 'seller_id');
     }
-
-    public function getAverageRatingAttribute()
+    // Menghitung rata-rata rating berdasarkan semua transaksi
+    public function averageRating()
     {
-        return round($this->ratings()->avg(DB::raw('(rating_quality + rating_shipping + rating_service) / 3')), 1);
+        return $this->ratingsReceived()
+            ->selectRaw('seller_id, 
+                     AVG(rating_quality) as avg_quality, 
+                     AVG(rating_shipping) as avg_shipping, 
+                     AVG(rating_service) as avg_service, 
+                     (AVG(rating_quality) + AVG(rating_shipping) + AVG(rating_service)) / 3 as overall_rating')
+            ->groupBy('seller_id');
     }
 
     public function checkAndAssignAchievements()
