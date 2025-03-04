@@ -1,5 +1,5 @@
 <x-app-layout>
-    
+
 
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-zinc-800 dark:text-zinc-200 leading-tight">
@@ -59,85 +59,7 @@
                         <!-- Transaction List -->
                         @foreach ($transactions as $transaction)
                             @foreach ($transaction->transactionItems as $item)
-                                <div
-                                    class="itemcart flex items-start bg-white hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors duration-200 dark:bg-zinc-800 p-4 rounded-lg shadow-md cursor-pointer">
-
-
-                                    <!-- Gambar Koi -->
-                                    <div class="flex-shrink-0 ml-4">
-                                        <a href="{{ route('koi.show', ['id' => $item->koi->id]) }}" class="block">
-                                            <img src="{{ asset('storage/' . ($item->koi->media->first()->url_media ?? 'default.png')) }}"
-                                                alt="Koi Image" class="border object-cover rounded-lg w-24 h-36">
-                                        </a>
-                                    </div>
-
-                                    <!-- Detail Koi -->
-                                    <div class="ml-6 flex-1">
-                                        <h4 class="text-lg font-semibold text-zinc-800 dark:text-zinc-200">
-                                            {{ $item->koi->judul }}
-                                        </h4>
-                                        <p class="text-sm text-zinc-600 dark:text-zinc-400">
-                                            Kode Lelang: {{ $item->koi->auction_code }}
-                                        </p>
-                                        <p class="text-sm text-zinc-600 dark:text-zinc-400">
-                                            Jenis Koi: {{ $item->koi->jenis_koi }} - {{ $item->koi->ukuran }} cm
-                                        </p>
-                                        <p class="text-sm text-zinc-600 dark:text-zinc-400">
-                                            Harga: Rp {{ number_format($item->price, 0, ',', '.') }}
-                                        </p>
-                                        <p class="text-sm text-zinc-600 dark:text-zinc-400">
-                                            Status: <span
-                                                class="px-3 py-1 rounded-full text-white text-xs font-semibold 
-                                            {{ $item->status == 'menunggu konfirmasi' ? 'bg-yellow-500' : '' }}
-                                            {{ $item->status == 'sedang dikemas' ? 'bg-blue-500' : '' }}
-                                            {{ $item->status == 'dikirim' ? 'bg-purple-500' : '' }}
-                                            {{ $item->status == 'selesai' ? 'bg-green-500' : '' }}">
-                                                {{ ucfirst($item->status) }}
-                                            </span>
-                                        </p>
-                                        <!-- Tombol Accordion -->
-                                        <button onclick="toggleAccordion('history-{{ $item->id }}')"
-                                            class="mt-3 text-indigo-500 hover:underline text-sm">
-                                            Lihat Riwayat Status
-                                        </button>
-
-                                        <!-- Accordion untuk Status History -->
-                                        <div id="history-{{ $item->id }}"
-                                            class="hidden bg-zinc-100 dark:bg-zinc-700 p-3 mt-2 rounded-md">
-                                            <h4 class="text-sm font-semibold text-zinc-800 dark:text-zinc-200">Riwayat
-                                                Perubahan Status:</h4>
-                                            <ul class="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
-                                                @foreach ($item->statusHistories as $history)
-                                                    <li>
-                                                        <span class="font-bold">{{ ucfirst($history->status) }}</span>
-                                                        oleh <span
-                                                            class="text-blue-500">{{ $history->user->name }}</span>
-                                                        pada
-                                                        {{ \Carbon\Carbon::parse($history->changed_at)->format('d M Y H:i') }}
-                                                    </li>
-                                                @endforeach
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    <!-- Tombol Aksi -->
-                                    <div class="mt-4 flex space-x-4">
-                                        @if ($item->status === 'dikirim')
-                                            <!-- Tombol Selesai -->
-                                            <button
-                                                class="py-2 px-4 bg-green-500 text-white rounded-lg hover:bg-green-600"
-                                                onclick="updateStatus('{{ $item->id }}', 'selesai')">
-                                                Selesai
-                                            </button>
-
-                                            <!-- Tombol Retur -->
-                                            <button class="py-2 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600"
-                                                onclick="showReturModal('{{ $item->id }}')">
-                                                Retur
-                                            </button>
-                                        @endif
-                                    </div>
-
-                                </div>
+                                <x-transaction-koi-card :item="$item" />
                             @endforeach
                         @endforeach
 
@@ -150,7 +72,7 @@
             </div>
         </div>
     </div>
-   
+
     <script>
         function toggleAccordion(id) {
             document.getElementById(id).classList.toggle("hidden");
@@ -194,56 +116,86 @@
             });
         }
 
-        function showReturModal(itemId) {
+        function showComplaintModal(itemId) {
             Swal.fire({
-                title: 'Form Retur',
+                title: 'Form Komplain / Retur',
                 html: `
-            <label class="block text-sm font-medium text-gray-700">Alasan Retur:</label>
-            <select id="reason" class="swal2-input">
-                <option value="rusak">DoA (Dead on Arrival) - Koi Mati</option>
-                <option value="tidak sesuai">Ikan Tidak Sesuai</option>
-                <option value="lainnya">Lainnya</option>
-            </select>
-            <label class="block text-sm font-medium text-gray-700 mt-2">Unggah Bukti (Max 50MB, Video):</label>
-            <input type="file" id="proof" class="swal2-file" accept="video/*">
-        `,
+                        <label class="block text-sm font-medium text-gray-700">Jenis Permintaan:</label>
+                        <select id="complaintType" class="swal2-input">
+                            <option value="retur">Retur (Barang Tidak Sesuai / Ikan Mati)</option>
+                            <option value="komplain">Komplain (Pelayanan Buruk / Lainnya)</option>
+                        </select>
+
+                        <label class="block text-sm font-medium text-gray-700 mt-2">Alasan:</label>
+                        <textarea id="reason" class="swal2-textarea" placeholder="Jelaskan alasan..."></textarea>
+
+                        <label class="block text-sm font-medium text-gray-700 mt-2">Unggah Bukti (Max 50MB, Video/Gambar):</label>
+                        <input type="file" id="proof" class="swal2-file" accept="video/*,image/*">
+                    `,
                 showCancelButton: true,
-                confirmButtonText: 'Kirim Retur',
+                confirmButtonText: 'Kirim Permintaan',
                 cancelButtonText: 'Batal',
                 preConfirm: () => {
-                    const reason = document.getElementById('reason').value;
+                    const complaintType = document.getElementById('complaintType').value;
+                    const reason = document.getElementById('reason').value.trim();
                     const proof = document.getElementById('proof').files[0];
 
-                    if (!proof || proof.size > 50 * 1024 * 1024) {
-                        Swal.showValidationMessage('File harus berupa video dan maksimal 50MB');
+                    if (!reason) {
+                        Swal.showValidationMessage('Alasan tidak boleh kosong!');
                         return false;
                     }
 
+                    if (!proof) {
+                        Swal.showValidationMessage('Bukti harus diunggah!');
+                        return false;
+                    }
+
+                    console.log("File yang akan dikirim:", proof);
+                    console.log("Tipe File:", proof.type);
+                    console.log("Ukuran File:", proof.size);
+
                     let formData = new FormData();
                     formData.append('item_id', itemId);
+                    formData.append('type', complaintType);
                     formData.append('reason', reason);
                     formData.append('proof', proof);
-                    formData.append('_token', "{{ csrf_token() }}");
+                    formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
 
-                    return fetch("{{ route('transactions.retur') }}", {
-                            method: "POST",
-                            body: formData
-                        }).then(response => response.json())
-                        .then(data => {
-                            if (!data.success) {
-                                throw new Error(data.message);
-                            }
-                            return data;
-                        }).catch(error => Swal.showValidationMessage(error));
+                    return fetch("{{ route('complaints.store') }}", {
+                        method: "POST",
+                        body: formData
+                    }).then(response => {
+                        if (!response.ok) {
+                            // Jika server error, cek apakah respons HTML
+                            return response.text().then(text => {
+                                console.error("Server Response:", text);
+                                throw new Error(
+                                    "Server mengembalikan error. Cek Network tab untuk detail."
+                                );
+                            });
+                        }
+                        return response.json();
+                    }).then(data => {
+                        if (!data.success) {
+                            throw new Error(data.message);
+                        }
+                        return data;
+                    }).catch(error => {
+                        console.error("Error Response:", error);
+                        Swal.showValidationMessage(error);
+                    });
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
-                    Swal.fire('Berhasil!', 'Permintaan retur telah dikirim.', 'success').then(() => {
+                    Swal.fire('Berhasil!', 'Permintaan Komplain / Retur telah dikirim.', 'success').then(() => {
                         location.reload();
                     });
                 }
             });
         }
+
+
+
 
         function showRatingModal(itemId) {
             Swal.fire({
@@ -339,19 +291,6 @@
                     });
                 }
             });
-        }
-
-
-        // Fungsi untuk generate bintang
-        function generateStars(category) {
-            let starsHTML = '';
-            for (let i = 5; i >= 1; i--) {
-                starsHTML += `
-            <input type="radio" id="${category}-star${i}" name="${category}" value="${i}" />
-            <label for="${category}-star${i}">&#9733;</label>
-        `;
-            }
-            return starsHTML;
         }
     </script>
 

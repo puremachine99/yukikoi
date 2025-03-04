@@ -26,14 +26,15 @@ class TransactionController extends Controller
         // Daftar tab status
         $tabs = [
             'semua' => 'Semua',
-            'menunggu konfirmasi' => 'Menunggu Konfirmasi',
-            'sedang dikemas' => 'Sedang Dikemas',
+            'menunggu konfirmasi' => 'Konfirmasi',
+            'sedang dikemas' => 'Dikemas',
             'dikirim' => 'Dikirim',
             'selesai' => 'Selesai',
+            'proses pengajuan komplain' => 'Komplain',
             'dibatalkan' => 'Dibatalkan',
         ];
 
-        // Query transaksi dengan eager loading untuk hindari N+1 !! teruwet
+
         $transactionsQuery = Transaction::with([
             'transactionItems' => function ($query) {
                 $query->with([
@@ -53,13 +54,25 @@ class TransactionController extends Controller
 
         // Filter berdasarkan status
         if ($status !== 'semua') {
-            $transactionsQuery->whereHas('transactionItems', function ($query) use ($status) {
-                $query->where('status', $status);
-            });
+            if ($status === 'komplain') {
+                // Ambil semua transaksi dengan status terkait komplain
+                $transactionsQuery->whereHas('transactionItems', function ($query) {
+                    $query->whereIn('status', [
+                        'proses pengajuan komplain',
+                        'komplain disetujui',
+                        'komplain ditolak'
+                    ]);
+                });
+            } else {
+                $transactionsQuery->whereHas('transactionItems', function ($query) use ($status) {
+                    $query->where('status', $status);
+                });
+            }
         }
 
         // Ambil transaksi & kelompokkan berdasarkan farm
         $transactions = $transactionsQuery->get();
+
         $groupedTransactions = $transactions->groupBy(fn($transaction) => $transaction->transactionItems->first()->farm ?? 'Unknown');
 
         return view('transactions.index', compact('tabs', 'status', 'groupedTransactions'));
@@ -273,35 +286,6 @@ class TransactionController extends Controller
         }
 
         return response()->json(['success' => true, 'message' => 'Status transaksi berhasil diperbarui!']);
-    }
-
-
-
-
-    public function retur(Request $request)
-    {
-        $request->validate([
-            'item_id' => 'required|exists:transaction_items,id',
-            'reason' => 'required|string',
-            'proof' => 'required|file|mimes:mp4,mov,avi|max:51200'
-        ]);
-
-        $proofPath = $request->file('proof')->store('retur_proofs', 'public');
-
-        $item = TransactionItem::findOrFail($request->item_id);
-        $item->update([
-            'status' => 'retur',
-            'retur_reason' => $request->reason,
-            'retur_proof' => $proofPath
-        ]);
-
-        // Cek jika semua item dalam order diretur, update order menjadi retur
-        $order = Order::where('id', $item->order_id)->first();
-        if ($order && $order->transactionItems()->where('status', '!=', 'retur')->count() == 0) {
-            $order->update(['status' => 'retur']);
-        }
-
-        return response()->json(['success' => true, 'message' => 'Retur berhasil diajukan!']);
     }
 
     public function storeRating(Request $request)

@@ -21,6 +21,7 @@ use App\Http\Controllers\{
     XenditWebhookController,
     EventController,
     WishlistController,
+    ComplaintController,
     OrderController
 };
 
@@ -104,7 +105,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/transactions/retur', [TransactionController::class, 'retur'])->name('transactions.retur');
     Route::post('/transactions/rate', [TransactionController::class, 'storeRating'])->name('transactions.rate');
 
-
+    Route::post('/complaint/store', [ComplaintController::class, 'store'])->name('complaints.store');
+    Route::post('/complaint/{id}/update-status', [ComplaintController::class, 'updateStatus'])->name('complaints.update');
 });
 Route::middleware(['auth'])->group(function () {
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');

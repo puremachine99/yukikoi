@@ -13,17 +13,17 @@ class OrderController extends Controller
         $sellerId = auth()->id();
         $status = $request->query('status', 'semua');
 
-        // Definisi tab status
+        // Daftar tab status
         $tabs = [
             'semua' => 'Semua',
-            'menunggu konfirmasi' => 'Menunggu Konfirmasi',
-            'sedang dikemas' => 'Sedang Dikemas',
+            'menunggu konfirmasi' => 'Konfirmasi',
+            'sedang dikemas' => 'Dikemas',
             'dikirim' => 'Dikirim',
             'selesai' => 'Selesai',
-            'retur' => 'Retur'
+            'proses pengajuan komplain' => 'Komplain',
+            'dibatalkan' => 'Dibatalkan',
         ];
 
-        // Query pesanan berdasarkan status
         // Query pesanan berdasarkan status
         $ordersQuery = Order::with([
             'koi' => function ($query) {
@@ -37,10 +37,21 @@ class OrderController extends Controller
         ])->where('seller_id', $sellerId);
 
         if ($status !== 'semua') {
-            $ordersQuery->where('status', $status);
+            if ($status === 'komplain') {
+                // Jika tab "Komplain" dipilih, ambil semua status terkait komplain
+                $ordersQuery->whereIn('status', [
+                    'proses pengajuan komplain',
+                    'komplain disetujui',
+                    'komplain ditolak'
+                ]);
+            } else {
+                // Status biasa
+                $ordersQuery->where('status', $status);
+            }
         }
 
         $orders = $ordersQuery->get();
+
 
         return view('orders.index', compact('orders', 'tabs', 'status'));
     }
