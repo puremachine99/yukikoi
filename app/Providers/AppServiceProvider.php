@@ -2,11 +2,14 @@
 
 namespace App\Providers;
 
+use App\Models\Cart;
 use App\Models\User;
 use App\Models\Order;
 use App\Observers\OrderObserver;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -54,6 +57,13 @@ class AppServiceProvider extends ServiceProvider
         // Hak akses untuk admin
         Gate::define('access-admin-panel', function (User $user) {
             return $user->isRole(User::ROLE_ADMIN);
+        });
+        
+        View::composer('*', function ($view) {
+            $cartCount = Auth::check() ? Cart::where('user_id', Auth::id())->count() : 0;
+            $orderCount = Auth::check() ? Order::where('seller_id', Auth::id())->where('status', 'menunggu konfirmasi')->count() : 0;
+
+            $view->with(compact('cartCount', 'orderCount'));
         });
     }
 }

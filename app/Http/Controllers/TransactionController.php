@@ -27,7 +27,8 @@ class TransactionController extends Controller
         $tabs = [
             'semua' => 'Semua',
             'menunggu konfirmasi' => 'Konfirmasi',
-            'sedang dikemas' => 'Dikemas',
+            'karantina' => 'Karantina',
+            'siap dikirim' => 'Siap Dikirim',
             'dikirim' => 'Dikirim',
             'selesai' => 'Selesai',
             'proses pengajuan komplain' => 'Komplain',
@@ -170,6 +171,7 @@ class TransactionController extends Controller
             return back()->with('error', 'Gagal membuat invoice. Silakan coba lagi.');
         }
     }
+
     public function payBatch(Request $request)
     {
         $transactionIds = $request->input('transaction_ids', []);

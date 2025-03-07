@@ -39,5 +39,8 @@
         function toggleAccordion(id) {
             document.getElementById(id).classList.toggle("hidden");
         }
+
+       
     </script>
+
 </x-app-layout>

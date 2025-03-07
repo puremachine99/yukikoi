@@ -193,33 +193,29 @@
                 }
             });
         }
-
-
-
-
         function showRatingModal(itemId) {
             Swal.fire({
                 title: 'Beri Rating',
                 html: `
-            <div style="text-align: left;">
-                <label><strong>Kesesuaian Ikan:</strong></label>
-                <div id="rating_quality" class="rateyo"></div>
+                    <div style="text-align: left;">
+                        <label><strong>Kesesuaian Ikan:</strong></label>
+                        <div id="rating_quality" class="rateyo"></div>
 
-                <label><strong>Kondisi Pengiriman:</strong></label>
-                <div id="rating_shipping" class="rateyo"></div>
+                        <label><strong>Kondisi Pengiriman:</strong></label>
+                        <div id="rating_shipping" class="rateyo"></div>
 
-                <label><strong>Pelayanan Seller:</strong></label>
-                <div id="rating_service" class="rateyo"></div>
+                        <label><strong>Pelayanan Seller:</strong></label>
+                        <div id="rating_service" class="rateyo"></div>
 
-                <label><strong>Ulasan:</strong></label>
-                <textarea id="review" class="swal2-textarea" placeholder="Tulis ulasan..."></textarea>
+                        <label><strong>Ulasan:</strong></label>
+                        <textarea id="review" class="swal2-textarea" placeholder="Tulis ulasan..."></textarea>
 
-                <!-- Hidden input untuk menyimpan nilai rating -->
-                <input type="hidden" id="rating_quality_value">
-                <input type="hidden" id="rating_shipping_value">
-                <input type="hidden" id="rating_service_value">
-            </div>
-        `,
+                        <!-- Hidden input untuk menyimpan nilai rating -->
+                        <input type="hidden" id="rating_quality_value">
+                        <input type="hidden" id="rating_shipping_value">
+                        <input type="hidden" id="rating_service_value">
+                    </div>
+                `,
                 didOpen: () => {
                     // Periksa apakah jQuery sudah dimuat
                     if (typeof $.fn.rateYo === 'undefined') {
@@ -291,7 +287,7 @@
                     });
                 }
             });
-        }
+        }        
     </script>
 
 </x-app-layout>

@@ -28,28 +28,58 @@
             </div>
 
             @auth
+
                 <!-- Settings Dropdown for Desktop -->
-                <div class="hidden sm:flex sm:items-center sm:ms-6">
-                    <!-- Notification Dropdown -->
+                <div class="hidden sm:flex sm:items-center sm:ms-6 space-x-4">
+
+                    <!-- Notifikasi -->
                     <x-dropdown align="right" width="96">
                         <x-slot name="trigger">
                             <button
-                                class="inline-flex items-end px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-zinc-500 dark:text-zinc-400 bg-white dark:bg-zinc-800 hover:text-zinc-700 dark:hover:text-zinc-300 focus:outline-none transition ease-in-out duration-150 relative"
-                                style="margin-right: 20px;">
-                                <div class="relative flex items-center justify-end w-96">
-                                    <i class="fa-solid fa-bell text-lg"></i>
-                                    <span
-                                        class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full"
-                                        style="transform: translate(50%, -50%);">
-                                        4
-                                    </span>
-                                </div>
+                                class="relative flex items-center justify-center w-10 h-10 text-zinc-500 dark:text-zinc-400 bg-white dark:bg-zinc-800 rounded-full hover:text-zinc-700 dark:hover:text-zinc-300 focus:outline-none transition ease-in-out duration-150"
+                                data-bs-toggle="tooltip" data-bs-placement="bottom" title="Notifikasi">
+                                <i class="fa-solid fa-bell text-lg"></i>
+                                <span
+                                    class="absolute top-1 right-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full"
+                                    style="transform: translate(50%, -50%);">
+                                    4
+                                </span>
                             </button>
                         </x-slot>
                         <x-slot name="content" style="width: 320px;">
                             <!-- Notification items here -->
                         </x-slot>
                     </x-dropdown>
+
+                    <!-- Pesanan Masuk -->
+                    <a href="{{ route('orders.index') }}"
+                        class="relative flex items-center justify-center w-10 h-10 text-zinc-500 dark:text-zinc-400 bg-white dark:bg-zinc-800 rounded-full hover:text-zinc-700 dark:hover:text-zinc-300 focus:outline-none transition ease-in-out duration-150"
+                        data-bs-toggle="tooltip" data-bs-placement="bottom" title="Pesanan Masuk">
+                        <i class="fa-solid fa-box text-lg"></i>
+                        @if ($orderCount > 0)
+                            <span
+                                class="absolute top-1 right-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full"
+                                style="transform: translate(50%, -50%);">
+                                {{ $orderCount }}
+                            </span>
+                        @endif
+                    </a>
+
+                    <!-- Keranjang -->
+                    <a href="{{ route('cart.index') }}"
+                        class="relative flex items-center justify-center w-10 h-10 text-zinc-500 dark:text-zinc-400 bg-white dark:bg-zinc-800 rounded-full hover:text-zinc-700 dark:hover:text-zinc-300 focus:outline-none transition ease-in-out duration-150"
+                        data-bs-toggle="tooltip" data-bs-placement="bottom" title="Keranjang">
+                        <i class="fa-solid fa-shopping-cart text-lg"></i>
+                    </a>
+
+                    @if ($cartCount > 0)
+                        <span
+                            class="absolute top-1 right-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full"
+                            style="transform: translate(50%, -50%);">
+                            {{ $cartCount }}
+                        </span>
+                    @endif
+                    </a>
 
                     <!-- User Profile Dropdown -->
                     <x-dropdown align="right" width="48">
@@ -87,9 +117,7 @@
                             <div class="px-4 py-2 text-xs text-zinc-500 dark:text-zinc-400">
                                 Buyer
                             </div>
-                            <x-dropdown-link :href="route('cart.index')">
-                                {{ __('Keranjang') }}
-                            </x-dropdown-link>
+                            
                             <x-dropdown-link :href="route('transactions.index')">
                                 {{ __('Pesanan Saya') }}
                             </x-dropdown-link>
@@ -108,9 +136,6 @@
                             </x-dropdown-link>
                             <x-dropdown-link :href="route('events.list')">
                                 {{ __('Event Saya') }}
-                            </x-dropdown-link>
-                            <x-dropdown-link :href="route('orders.index')">
-                                {{ __('Pesanan Masuk') }}
                             </x-dropdown-link>
 
                             <hr class="border-zinc-300">
@@ -134,6 +159,7 @@
                             </form>
                         </x-slot>
                     </x-dropdown>
+
                 </div>
             @else
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">

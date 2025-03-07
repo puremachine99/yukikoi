@@ -99,8 +99,7 @@
                         <!-- 💰 Harga Minimum -->
                         <div class="md:col-span-1">
                             <label class="text-gray-600 text-sm dark:text-gray-300">Harga Min</label>
-                            <input type="number" name="min_price" placeholder="Rp 0"
-                                value="{{ request('min_price') }}"
+                            <input type="number" name="min_price" placeholder="Rp 0" value="{{ request('min_price') }}"
                                 class="w-full p-2 border rounded-lg dark:bg-zinc-700 dark:text-white">
                         </div>
 
@@ -155,26 +154,25 @@
 
         // ============================== TIMER FUNCTIONALITY ===============================
         $(document).ready(function() {
-            $('[data-end-time]').each(function() {
-                const $wrapper = $(this);
-                const koiId = $wrapper.data('koi-id');
-                const endTime = new Date($wrapper.data('end-time')).getTime();
-                const $countdownElement = $(`#countdown-${koiId}`);
+            function updateCountdown() {
+                $('[data-end-time]').each(function() {
+                    const $wrapper = $(this);
+                    const koiId = $wrapper.data('koi-id');
+                    const endTime = new Date($wrapper.data('end-time')).getTime();
+                    const $countdownElement = $(`#countdown-${koiId}`);
 
-                if (!$countdownElement.length) return;
+                    if (!$countdownElement.length) return;
 
-                const interval = setInterval(() => {
                     const now = new Date().getTime();
                     const distance = endTime - now;
 
                     if (distance > 0) {
                         const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-                        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 *
-                            60));
+                        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                         const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
                         const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-                        $countdownElement.html(`${days}Hr ${hours}:${minutes}:${seconds}`);
+                        $countdownElement.text(`${days}Hr ${hours}:${minutes}:${seconds}`);
 
                         if (distance <= 60 * 60 * 1000) {
                             $wrapper.removeClass('bg-yellow-500 text-black').addClass(
@@ -184,14 +182,19 @@
                                 'bg-yellow-500 text-black');
                         }
                     } else {
-                        clearInterval(interval);
-                        $countdownElement.html('Lelang Berakhir');
-                        $wrapper.removeClass('bg-yellow-500 bg-red-500').addClass(
-                            'bg-gray-500 text-white');
+                        $countdownElement.text('Lelang Berakhir');
+                        $wrapper.removeClass('bg-yellow-500 bg-red-500').addClass('bg-gray-500 text-white');
                     }
-                }, 1000);
-            });
+                });
+
+                // Recursive update setiap detik
+                setTimeout(updateCountdown, 1000);
+            }
+
+            // Jalankan pertama kali saat halaman dimuat
+            updateCountdown();
         });
+
 
         // ============================== NAVIGATION FUNCTIONALITY ===============================
         $('.card-navigate').click(function(event) {
