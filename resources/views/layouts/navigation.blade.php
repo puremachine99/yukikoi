@@ -40,8 +40,7 @@
                                 data-bs-toggle="tooltip" data-bs-placement="bottom" title="Notifikasi">
                                 <i class="fa-solid fa-bell text-lg"></i>
                                 <span
-                                    class="absolute top-1 right-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full"
-                                    style="transform: translate(50%, -50%);">
+                                    class="absolute top-0 right-0 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-600 rounded-full">
                                     4
                                 </span>
                             </button>
@@ -50,7 +49,7 @@
                             <!-- Notification items here -->
                         </x-slot>
                     </x-dropdown>
-
+                
                     <!-- Pesanan Masuk -->
                     <a href="{{ route('orders.index') }}"
                         class="relative flex items-center justify-center w-10 h-10 text-zinc-500 dark:text-zinc-400 bg-white dark:bg-zinc-800 rounded-full hover:text-zinc-700 dark:hover:text-zinc-300 focus:outline-none transition ease-in-out duration-150"
@@ -58,29 +57,25 @@
                         <i class="fa-solid fa-box text-lg"></i>
                         @if ($orderCount > 0)
                             <span
-                                class="absolute top-1 right-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full"
-                                style="transform: translate(50%, -50%);">
+                                class="absolute top-0 right-0 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-600 rounded-full">
                                 {{ $orderCount }}
                             </span>
                         @endif
                     </a>
-
+                
                     <!-- Keranjang -->
                     <a href="{{ route('cart.index') }}"
                         class="relative flex items-center justify-center w-10 h-10 text-zinc-500 dark:text-zinc-400 bg-white dark:bg-zinc-800 rounded-full hover:text-zinc-700 dark:hover:text-zinc-300 focus:outline-none transition ease-in-out duration-150"
                         data-bs-toggle="tooltip" data-bs-placement="bottom" title="Keranjang">
                         <i class="fa-solid fa-shopping-cart text-lg"></i>
+                        @if ($cartCount > 0)
+                            <span
+                                class="absolute top-0 right-0 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-600 rounded-full">
+                                {{ $cartCount }}
+                            </span>
+                        @endif
                     </a>
-
-                    @if ($cartCount > 0)
-                        <span
-                            class="absolute top-1 right-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full"
-                            style="transform: translate(50%, -50%);">
-                            {{ $cartCount }}
-                        </span>
-                    @endif
-                    </a>
-
+                
                     <!-- User Profile Dropdown -->
                     <x-dropdown align="right" width="48">
                         <x-slot name="trigger">
@@ -89,12 +84,10 @@
                                 <div class="flex items-center">
                                     @if (Auth::user()->profile_photo)
                                         <img src="{{ asset('storage/' . Auth::user()->profile_photo) }}" alt="Profile Photo"
-                                            class="h-12 w-12 rounded-full object-cover mr-8"
-                                            style="width: 25px; height: 25px;">
+                                            class="h-8 w-8 rounded-full object-cover mr-2">
                                     @else
-                                        <img src="{{ asset('storage/avatar/user-default.png') }}"
-                                            alt="Default Profile Photo" class="h-12 w-12 rounded-full object-cover mr-8"
-                                            style="width: 25px; height: 25px;">
+                                        <img src="{{ asset('storage/avatar/user-default.png') }}" alt="Default Profile Photo"
+                                            class="h-8 w-8 rounded-full object-cover mr-2">
                                     @endif
                                     <span>{{ Auth::user()->name }}</span>
                                 </div>
@@ -113,42 +106,38 @@
                                 {{ __('Profile') }}
                             </x-dropdown-link>
                             <hr class="border-zinc-300">
-                            <!-- Buyer Section -->
-                            <div class="px-4 py-2 text-xs text-zinc-500 dark:text-zinc-400">
-                                Buyer
-                            </div>
                             
+                            <!-- Buyer Section -->
+                            <div class="px-4 py-2 text-xs text-zinc-500 dark:text-zinc-400">Buyer</div>
                             <x-dropdown-link :href="route('transactions.index')">
                                 {{ __('Pesanan Saya') }}
                             </x-dropdown-link>
                             <x-dropdown-link :href="route('bids.user')">
                                 {{ __('Monitoring Bid') }}
                             </x-dropdown-link>
-
+                
                             <hr class="border-zinc-300">
-
+                
                             <!-- Seller Section -->
-                            <div class="px-4 py-2 text-xs text-zinc-500 dark:text-zinc-400">
-                                Seller
-                            </div>
+                            <div class="px-4 py-2 text-xs text-zinc-500 dark:text-zinc-400">Seller</div>
                             <x-dropdown-link :href="route('auctions.index')">
                                 {{ __('Lelang Saya') }}
                             </x-dropdown-link>
                             <x-dropdown-link :href="route('events.list')">
                                 {{ __('Event Saya') }}
                             </x-dropdown-link>
-
+                
                             <hr class="border-zinc-300">
-
+                
                             <!-- Theme Toggle -->
                             <x-dropdown-link id="theme-toggle">
                                 <i id="theme-toggle-dark-icon"
                                     class="fa-solid fa-circle hidden w-5 h-5 text-yellow-300"></i>
                                 <i id="theme-toggle-light-icon" class="fa-solid fa-moon hidden w-5 h-5 text-indigo-600"></i>
                             </x-dropdown-link>
-
+                
                             <hr class="border-zinc-300">
-
+                
                             <!-- Logout -->
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
@@ -159,8 +148,10 @@
                             </form>
                         </x-slot>
                     </x-dropdown>
-
+                
                 </div>
+                
+                
             @else
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     <x-nav-link :href="route('login')">

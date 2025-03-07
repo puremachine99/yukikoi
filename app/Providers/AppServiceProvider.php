@@ -65,5 +65,7 @@ class AppServiceProvider extends ServiceProvider
 
             $view->with(compact('cartCount', 'orderCount'));
         });
+
+        
     }
 }
