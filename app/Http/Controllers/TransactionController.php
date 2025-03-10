@@ -257,6 +257,7 @@ class TransactionController extends Controller
     // app/Http/Controllers/TransactionController.php
     public function updateStatus(Request $request)
     {
+        // dd($request->all());
         $request->validate([
             'item_id' => 'required|exists:transaction_items,id',
             'status' => 'required|in:siap dikirim,dikirim,karantina,dibatalkan,selesai,proses pengajuan komplain',
@@ -264,41 +265,43 @@ class TransactionController extends Controller
             'karantina_end_date' => 'nullable|date|after:today'
         ]);
 
-        $item = TransactionItem::findOrFail($request->item_id);
+        $itemId = $request->input('order'); // Ambil ID dari 'order' (bukan 'item_id')
+        $item = TransactionItem::findOrFail($itemId);
         $user = auth()->user();
         $isSeller = $user->id === $item->seller_id;
         $isBuyer = $user->id === $item->transaction->user_id;
 
-        // **Hak Akses Seller**
-        if ($isSeller && !in_array($request->status, ['siap dikirim', 'dikirim', 'karantina', 'dibatalkan'])) {
-            return response()->json(['success' => false, 'message' => 'Anda hanya bisa mengubah status ke: Siap Dikirim, Dikirim, Karantina, atau Dibatalkan.'], 403);
+        // **Cegah Seller Mengubah ke Status yang Tidak Diizinkan**
+        if ($isSeller && in_array($request->status, ['selesai', 'proses pengajuan komplain'])) {
+            return response()->json(['success' => false, 'message' => 'Seller tidak dapat mengubah status ke Selesai atau Komplain.'], 403);
         }
 
-        // **Hak Akses Buyer**
+        // **Cegah Buyer Mengubah Status Selain Selesai atau Komplain**
         if ($isBuyer && !in_array($request->status, ['selesai', 'proses pengajuan komplain'])) {
-            return response()->json(['success' => false, 'message' => 'Anda hanya bisa menyelesaikan transaksi atau mengajukan komplain.'], 403);
+            return response()->json(['success' => false, 'message' => 'Buyer hanya bisa mengubah status ke Selesai atau Komplain.'], 403);
         }
 
         // **Penanganan Status Karantina**
+        $updateData = ['status' => $request->status];
+
         if ($request->status === 'karantina') {
             if (!$request->reason) {
                 return response()->json(['success' => false, 'message' => 'Alasan karantina harus diisi.'], 400);
             }
-            $karantinaEndDate = now()->addDays($request->reason === 'Ikan Sakit (7 hari)' ? 7 : 3);
-            $item->karantina_end_date = $karantinaEndDate;
-            $item->karantina_reason = $request->reason;
+            $updateData['karantina_end_date'] = now()->addDays($request->reason === 'Ikan Sakit (7 hari)' ? 7 : 3);
+            $updateData['karantina_reason'] = $request->reason;
         }
 
         // **Penanganan Pembatalan**
-        if ($request->status === 'dibatalkan' && !$request->reason) {
-            return response()->json(['success' => false, 'message' => 'Alasan pembatalan harus diisi.'], 400);
+        if ($request->status === 'dibatalkan') {
+            if (!$request->reason) {
+                return response()->json(['success' => false, 'message' => 'Alasan pembatalan harus diisi.'], 400);
+            }
+            $updateData['cancel_reason'] = $request->reason;
         }
 
         // **Update Status**
-        $item->update([
-            'status' => $request->status,
-            'cancel_reason' => $request->status === 'dibatalkan' ? $request->reason : null,
-        ]);
+        $item->update($updateData);
 
         // **Simpan Log Perubahan Status**
         StatusHistory::create([
@@ -311,6 +314,7 @@ class TransactionController extends Controller
 
         return response()->json(['success' => true, 'message' => 'Status transaksi berhasil diperbarui!']);
     }
+
 
     public function storeRating(Request $request)
     {

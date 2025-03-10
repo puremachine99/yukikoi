@@ -196,7 +196,7 @@
                                     <span
                                         class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600 dark:text-gray-400">Rp</span>
                                     <x-number-input id="shipping_fee-{{ $loop->index }}"
-                                        name="shipping_fees[{{ $sellerName }}]" min="0" step="1000"
+                                        name="shipping_fees[{{ $sellerName }}]" min="0" step="500"
                                         value="0"
                                         class="block w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-gray-800 dark:text-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                         onchange="validateShippingFee(this)"></x-number-input>
@@ -232,7 +232,7 @@
                                         <span
                                             class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600 dark:text-gray-400">Rp</span>
                                         <x-number-input id="rekber_fee" name="rekber_fee" min="0"
-                                            step="1000" value="0"
+                                            step="500" value="0"
                                             class="block w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-gray-800 dark:text-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                             onchange="validateRekberFee(this)"></x-number-input>
                                     </div>
@@ -309,12 +309,12 @@
 
         function validateRekberFee(input) {
             if (input.value < 0) input.value = 0; // Prevent negative values
-            if (input.value % 1000 !== 0) input.value = Math.floor(input.value / 1000) * 1000; // Round to nearest 1000
+            if (input.value % 500 !== 0) input.value = Math.floor(input.value / 1000) * 1000; // Round to nearest 1000
         }
 
         function validateShippingFee(input) {
             if (input.value < 0) input.value = 0; // Prevent negative values
-            if (input.value % 1000 !== 0) input.value = Math.floor(input.value / 1000) * 1000; // Round to nearest 1000
+            if (input.value % 500 !== 0) input.value = Math.floor(input.value / 1000) * 1000; // Round to nearest 1000
         }
     </script>
 </x-app-layout>

@@ -37,26 +37,11 @@
             </div>
         </div>
     </div>
+    
 
     <script>
         function toggleAccordion(id) {
             document.getElementById(id).classList.toggle("hidden");
-        }
-
-        function toggleAdditionalFields(orderId) {
-            // Ambil nilai status
-            const status = document.getElementById(`status-${orderId}`).value;
-
-            // Pastikan hanya form yang sesuai yang ditampilkan
-            document.querySelectorAll(`[id^="karantinaFields-"]`).forEach(el => el.style.display = 'none');
-            document.querySelectorAll(`[id^="cancelFields-"]`).forEach(el => el.style.display = 'none');
-
-            // Tampilkan hanya elemen yang sesuai dengan orderId
-            if (status === 'karantina') {
-                document.getElementById(`karantinaFields-${orderId}`).style.display = 'block';
-            } else if (status === 'dibatalkan') {
-                document.getElementById(`cancelFields-${orderId}`).style.display = 'block';
-            }
         }
     </script>
 

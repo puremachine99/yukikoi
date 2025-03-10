@@ -227,6 +227,7 @@ class CartController extends Controller
                     $transactionItem->transaction_id = $transaction->id;
                     $transactionItem->koi_id = $cart->koi_id;
                     $transactionItem->seller_id = $cart->koi->auction->user_id; // Tambahkan ini
+                    $transactionItem->buyer_id = $user->id; 
                     $transactionItem->price = $cart->price;
                     $transactionItem->farm = $cart->koi->auction->user->farm_name;
                     $transactionItem->shipping_fee = $request->input("shipping_fees.{$seller}") ?? 0;
