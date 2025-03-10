@@ -22,7 +22,6 @@ use App\Http\Controllers\{
     EventController,
     WishlistController,
     ComplaintController,
-    OrderController
 };
 
 // Group routes for event module
@@ -101,17 +100,19 @@ Route::middleware(['auth'])->group(function () {
     // routes/web.php
     Route::post('/transactions/{transaction}/pay', [TransactionController::class, 'pay'])->name('transactions.pay');
 
+    //Buyer
     Route::post('/transactions/update-status', [TransactionController::class, 'updateStatus'])->name('transactions.updateStatus');
     Route::post('/transactions/retur', [TransactionController::class, 'retur'])->name('transactions.retur');
     Route::post('/transactions/rate', [TransactionController::class, 'storeRating'])->name('transactions.rate');
 
     Route::post('/complaint/store', [ComplaintController::class, 'store'])->name('complaints.store');
     Route::post('/complaint/{id}/update-status', [ComplaintController::class, 'updateStatus'])->name('complaints.update');
+
+    //Seller
+    Route::get('/orders', [TransactionController::class, 'sellerOrders'])->name('orders.index'); 
+    Route::post('/orders/update-status', [TransactionController::class, 'updateStatus'])->name('orders.updateStatus'); 
 });
-Route::middleware(['auth'])->group(function () {
-    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
-    Route::post('/orders/{order}/update', [OrderController::class, 'updateStatus'])->name('orders.updateStatus');
-});
+
 
 // Auction Routes
 Route::middleware('auth')->group(function () {

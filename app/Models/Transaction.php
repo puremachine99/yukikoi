@@ -20,6 +20,10 @@ class Transaction extends Model
         'checkout_link',
     ];
 
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id', 'id');
+    }
     public function koi()
     {
         return $this->belongsTo(Koi::class, 'koi_id', 'id');

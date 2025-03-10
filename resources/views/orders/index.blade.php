@@ -26,8 +26,11 @@
                     <p class="text-center text-zinc-600 dark:text-zinc-400">Tidak ada pesanan dalam kategori ini.</p>
                 @else
                     <div class="space-y-6">
-                        @foreach ($orders as $order)
-                            <x-transaction-koi-card :item="$order" :isSeller="true" />
+                        @foreach ($groupedOrders as $farm => $items)
+                            <h3 class="text-lg font-bold">{{ $farm }}</h3>
+                            @foreach ($items as $item)
+                                <x-transaction-koi-card :item="$item" :isSeller="true" />
+                            @endforeach
                         @endforeach
                     </div>
                 @endif
@@ -40,7 +43,21 @@
             document.getElementById(id).classList.toggle("hidden");
         }
 
-       
+        function toggleAdditionalFields(orderId) {
+            // Ambil nilai status
+            const status = document.getElementById(`status-${orderId}`).value;
+
+            // Pastikan hanya form yang sesuai yang ditampilkan
+            document.querySelectorAll(`[id^="karantinaFields-"]`).forEach(el => el.style.display = 'none');
+            document.querySelectorAll(`[id^="cancelFields-"]`).forEach(el => el.style.display = 'none');
+
+            // Tampilkan hanya elemen yang sesuai dengan orderId
+            if (status === 'karantina') {
+                document.getElementById(`karantinaFields-${orderId}`).style.display = 'block';
+            } else if (status === 'dibatalkan') {
+                document.getElementById(`cancelFields-${orderId}`).style.display = 'block';
+            }
+        }
     </script>
 
 </x-app-layout>

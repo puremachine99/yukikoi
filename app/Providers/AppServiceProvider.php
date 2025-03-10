@@ -5,12 +5,14 @@ namespace App\Providers;
 use App\Models\Cart;
 use App\Models\User;
 use App\Models\Order;
+use App\Models\TransactionItem;
 use App\Observers\OrderObserver;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use App\Observers\TransactionItemObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -27,13 +29,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Order::observe(OrderObserver::class);
+        TransactionItem::observe(TransactionItemObserver::class);
 
-        // pake ngrok nyala
-        // if (app()->environment('local', 'staging')) {
-        //     URL::forceScheme('https');
-        // }
+        // Jika menggunakan Xendit
         \Xendit\Configuration::setXenditKey(env('XENDIT_API_KEY'));
+
         // Hak akses untuk guest
         Gate::define('view-auction', function (User $user = null) {
             return $user === null || $user->isRole(User::ROLE_GUEST);
@@ -58,14 +58,17 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('access-admin-panel', function (User $user) {
             return $user->isRole(User::ROLE_ADMIN);
         });
-        
+
         View::composer('*', function ($view) {
             $cartCount = Auth::check() ? Cart::where('user_id', Auth::id())->count() : 0;
-            $orderCount = Auth::check() ? Order::where('seller_id', Auth::id())->where('status', 'menunggu konfirmasi')->count() : 0;
+
+            $orderCount = Auth::check() ? TransactionItem::whereHas('koi.auction.user', function ($query) {
+                $query->where('id', Auth::id());
+            })->where('status', 'menunggu konfirmasi')->count() : 0;
 
             $view->with(compact('cartCount', 'orderCount'));
         });
 
-        
     }
+
 }

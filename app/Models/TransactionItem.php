@@ -14,17 +14,14 @@ class TransactionItem extends Model
         'price',
         'shipping_fee',
         'shipping_group',
-        'farm',
         'farm_owner_name',
         'farm_phone_number',
         'shipping_address',
         'status',
+        'karantina_reason',
+        'karantina_end_date',
+        'cancel_reason',
     ];
-    public function getStatusAttribute()
-    {
-        return $this->attributes['status']; // Ambil langsung dari database
-    }
-
 
     public function koi()
     {
@@ -36,15 +33,16 @@ class TransactionItem extends Model
         return $this->belongsTo(Transaction::class);
     }
 
-    public function order()
-    {
-        return $this->belongsTo(Order::class, 'order_id', 'id');
-    }
-
-    // app/Models/TransactionItem.php
     public function statusHistories()
     {
         return $this->hasMany(StatusHistory::class, 'transaction_item_id')->orderBy('changed_at', 'desc');
     }
 
+    public function complaints()
+    {
+        return $this->hasMany(Complaint::class, 'transaction_item_id');
+    }
+
+    
 }
+

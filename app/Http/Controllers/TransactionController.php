@@ -23,7 +23,6 @@ class TransactionController extends Controller
         $userId = auth()->id();
         $status = $request->query('status', 'semua');
 
-        // Daftar tab status
         $tabs = [
             'semua' => 'Semua',
             'menunggu konfirmasi' => 'Konfirmasi',
@@ -35,49 +34,74 @@ class TransactionController extends Controller
             'dibatalkan' => 'Dibatalkan',
         ];
 
-
         $transactionsQuery = Transaction::with([
             'transactionItems' => function ($query) {
                 $query->with([
                     'koi' => function ($koiQuery) {
                         $koiQuery->with([
                             'media' => function ($mediaQuery) {
-                                $mediaQuery->where('media_type', 'photo')->select('id', 'koi_id', 'url_media');
+                                $mediaQuery->where('media_type', 'photo');
                             },
-                            'auction.user' => function ($userQuery) {
-                                $userQuery->select('id', 'name', 'phone_number');
-                            }
-                        ])->select('id', 'judul', 'jenis_koi', 'ukuran', 'auction_code');
+                            'auction.user'
+                        ]);
                     }
-                ])->select('id', 'transaction_id', 'koi_id', 'price', 'farm', 'status'); // Optimasi select
+                ]);
             }
         ])->where('user_id', $userId);
 
-        // Filter berdasarkan status
         if ($status !== 'semua') {
-            if ($status === 'komplain') {
-                // Ambil semua transaksi dengan status terkait komplain
-                $transactionsQuery->whereHas('transactionItems', function ($query) {
-                    $query->whereIn('status', [
-                        'proses pengajuan komplain',
-                        'komplain disetujui',
-                        'komplain ditolak'
-                    ]);
-                });
-            } else {
-                $transactionsQuery->whereHas('transactionItems', function ($query) use ($status) {
-                    $query->where('status', $status);
-                });
-            }
+            $transactionsQuery->whereHas('transactionItems', function ($query) use ($status) {
+                $query->where('status', $status);
+            });
         }
 
-        // Ambil transaksi & kelompokkan berdasarkan farm
         $transactions = $transactionsQuery->get();
-
         $groupedTransactions = $transactions->groupBy(fn($transaction) => $transaction->transactionItems->first()->farm ?? 'Unknown');
 
         return view('transactions.index', compact('tabs', 'status', 'groupedTransactions'));
     }
+
+
+    public function sellerOrders(Request $request)
+    {
+        $userId = auth()->id();
+        $status = $request->query('status', 'semua');
+
+        $tabs = [
+            'semua' => 'Semua',
+            'menunggu konfirmasi' => 'Konfirmasi',
+            'karantina' => 'Karantina',
+            'siap dikirim' => 'Siap Dikirim',
+            'dikirim' => 'Dikirim',
+            'selesai' => 'Selesai',
+            'proses pengajuan komplain' => 'Komplain',
+            'dibatalkan' => 'Dibatalkan',
+        ];
+
+        $transactionItemsQuery = TransactionItem::with([
+            'koi' => function ($query) {
+                $query->with([
+                    'media' => function ($mediaQuery) {
+                        $mediaQuery->where('media_type', 'photo')->select('id', 'koi_id', 'url_media');
+                    },
+                    'auction.user' => function ($userQuery) {
+                        $userQuery->select('id', 'name', 'phone_number');
+                    }
+                ])->select('id', 'judul', 'jenis_koi', 'ukuran', 'auction_code');
+            },
+            'transaction.user'
+        ])->where('seller_id', $userId);
+
+        if ($status !== 'semua') {
+            $transactionItemsQuery->where('status', $status);
+        }
+
+        $transactionItems = $transactionItemsQuery->get();
+        $groupedOrders = $transactionItems->groupBy(fn($item) => $item->farm ?? 'Unknown');
+
+        return view('orders.index', compact('tabs', 'status', 'groupedOrders'))->with('orders', $transactionItems);
+    }
+
 
     public function show($id)
     {
@@ -235,57 +259,55 @@ class TransactionController extends Controller
     {
         $request->validate([
             'item_id' => 'required|exists:transaction_items,id',
-            'status' => 'required|in:selesai'
+            'status' => 'required|in:siap dikirim,dikirim,karantina,dibatalkan,selesai,proses pengajuan komplain',
+            'reason' => 'nullable|string|max:255',
+            'karantina_end_date' => 'nullable|date|after:today'
         ]);
 
-        // Ambil TransactionItem berdasarkan ID
         $item = TransactionItem::findOrFail($request->item_id);
+        $user = auth()->user();
+        $isSeller = $user->id === $item->seller_id;
+        $isBuyer = $user->id === $item->transaction->user_id;
 
-        // Pastikan hanya Buyer yang bisa menyelesaikan transaksi
-        if (auth()->id() !== $item->transaction->user_id) {
-            return response()->json(['success' => false, 'message' => 'Anda tidak berhak mengubah status ini.'], 403);
+        // **Hak Akses Seller**
+        if ($isSeller && !in_array($request->status, ['siap dikirim', 'dikirim', 'karantina', 'dibatalkan'])) {
+            return response()->json(['success' => false, 'message' => 'Anda hanya bisa mengubah status ke: Siap Dikirim, Dikirim, Karantina, atau Dibatalkan.'], 403);
         }
 
-        // Update status transaction_item ke 'selesai'
-        $item->update(['status' => $request->status]);
+        // **Hak Akses Buyer**
+        if ($isBuyer && !in_array($request->status, ['selesai', 'proses pengajuan komplain'])) {
+            return response()->json(['success' => false, 'message' => 'Anda hanya bisa menyelesaikan transaksi atau mengajukan komplain.'], 403);
+        }
 
-        // Simpan log perubahan status di StatusHistory
+        // **Penanganan Status Karantina**
+        if ($request->status === 'karantina') {
+            if (!$request->reason) {
+                return response()->json(['success' => false, 'message' => 'Alasan karantina harus diisi.'], 400);
+            }
+            $karantinaEndDate = now()->addDays($request->reason === 'Ikan Sakit (7 hari)' ? 7 : 3);
+            $item->karantina_end_date = $karantinaEndDate;
+            $item->karantina_reason = $request->reason;
+        }
+
+        // **Penanganan Pembatalan**
+        if ($request->status === 'dibatalkan' && !$request->reason) {
+            return response()->json(['success' => false, 'message' => 'Alasan pembatalan harus diisi.'], 400);
+        }
+
+        // **Update Status**
+        $item->update([
+            'status' => $request->status,
+            'cancel_reason' => $request->status === 'dibatalkan' ? $request->reason : null,
+        ]);
+
+        // **Simpan Log Perubahan Status**
         StatusHistory::create([
             'transaction_item_id' => $item->id,
-            'order_id' => null, // Order akan ditentukan nanti
             'status' => $request->status,
-            'changed_by' => auth()->id(),
+            'changed_by' => $user->id,
             'changed_at' => now(),
+            'reason' => $request->reason
         ]);
-
-        // Cek apakah semua items dalam transaksi ini sudah selesai
-        $transactionId = $item->transaction_id;
-        $koiId = $item->koi_id;
-
-        $allItemsDone = TransactionItem::where('transaction_id', $transactionId)
-            ->where('koi_id', $koiId)
-            ->where('status', '!=', 'selesai')
-            ->doesntExist();
-
-        if ($allItemsDone) {
-            // Update status di tabel orders juga
-            $order = Order::where('transaction_id', $transactionId)
-                ->where('koi_id', $koiId)
-                ->first();
-
-            if ($order) {
-                $order->update(['status' => 'selesai']);
-
-                // Simpan log perubahan status di StatusHistory untuk Order
-                StatusHistory::create([
-                    'order_id' => $order->id,
-                    'transaction_item_id' => $item->id, // Tautkan dengan transaction_item yang selesai
-                    'status' => 'selesai',
-                    'changed_by' => auth()->id(),
-                    'changed_at' => now(),
-                ]);
-            }
-        }
 
         return response()->json(['success' => true, 'message' => 'Status transaksi berhasil diperbarui!']);
     }

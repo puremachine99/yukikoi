@@ -209,62 +209,32 @@ class CartController extends Controller
                     }
 
                     //Buat instance TransactionItem
-                    $transactionItem = [
-                        'transaction_id' => $transaction->id,
-                        'koi_id' => $cart->koi_id,
-                        'price' => $cart->price,
-                        'farm' => $cart->koi->auction->user->farm_name,
-                        'shipping_fee' => $request->input("shipping_fees.{$seller}") ?? 0,
-                        'shipping_address' => $shippingAddress,
-                        'farm_owner_name' => $recipientName,
-                        'farm_phone_number' => $phoneNumber,
-                        'shipping_group' => $shippingGroup,
-                    ];
-                    $transactionItemsArray[] = $transactionItem;
-                    
+                    // $transactionItem = [
+                    //     'transaction_id' => $transaction->id,
+                    //     'koi_id' => $cart->koi_id,
+                    //     'price' => $cart->price,
+                    //     'farm' => $cart->koi->auction->user->farm_name,
+                    //     'shipping_fee' => $request->input("shipping_fees.{$seller}") ?? 0,
+                    //     'shipping_address' => $shippingAddress,
+                    //     'farm_owner_name' => $recipientName,
+                    //     'farm_phone_number' => $phoneNumber,
+                    //     'shipping_group' => $shippingGroup,
+                    // ];
+                    // $transactionItemsArray[] = $transactionItem;
+
                     // Simpan TransactionItem
                     $transactionItem = new TransactionItem();
                     $transactionItem->transaction_id = $transaction->id;
                     $transactionItem->koi_id = $cart->koi_id;
+                    $transactionItem->seller_id = $cart->koi->auction->user_id; // Tambahkan ini
                     $transactionItem->price = $cart->price;
                     $transactionItem->farm = $cart->koi->auction->user->farm_name;
                     $transactionItem->shipping_fee = $request->input("shipping_fees.{$seller}") ?? 0;
                     $transactionItem->shipping_address = $shippingAddress;
-                    $transactionItem->farm_owner_name = $recipientName;
-                    $transactionItem->farm_phone_number = $phoneNumber;
+                    $transactionItem->seller_name = $cart->koi->auction->user->name;
+                    $transactionItem->seller_phone = $cart->koi->auction->user->phone_number;
                     $transactionItem->shipping_group = $shippingGroup;
                     $transactionItem->save();
-
-                    // **Tambahkan Data ke Orders
-
-                    $ordersArray[] = [
-                        'buyer_id' => $user->id,
-                        'seller_id' => $cart->koi->auction->user->id,
-                        'koi_id' => $cart->koi->id,
-                        'transaction_id' => $transaction->id,
-                        'total_price' => $cart->price,
-                        'status' => 'pending', // Status awal pesanan
-                        'shipping_address' => $shippingAddress,
-                        'recipient_name' => $recipientName,
-                        'recipient_phone' => $phoneNumber,
-                        'shipping_group' => $shippingGroup,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ];
-
-                    $order = new Order();
-                    $order->buyer_id = $user->id;
-                    $order->seller_id = $cart->koi->auction->user->id;
-                    $order->koi_id = $cart->koi->id;
-                    $order->transaction_id = $transaction->id;
-                    $order->total_price = $cart->price;
-                    $order->status = 'menunggu konfirmasi'; // Status awal pesanan
-                    $order->shipping_address = $shippingAddress;
-                    $order->recipient_name = $recipientName;
-                    $order->recipient_phone = $phoneNumber;
-                    $order->shipping_group = $shippingGroup;
-                    $order->save();
-
                 }
             }
 

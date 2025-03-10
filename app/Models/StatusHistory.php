@@ -7,11 +7,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class StatusHistory extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'transaction_item_id',
-        'order_id',
         'status',
         'changed_at',
         'changed_by'
@@ -19,12 +16,7 @@ class StatusHistory extends Model
 
     public function transactionItem()
     {
-        return $this->belongsTo(TransactionItem::class);
-    }
-
-    public function order()
-    {
-        return $this->belongsTo(Order::class);
+        return $this->belongsTo(TransactionItem::class, 'transaction_item_id');
     }
 
     public function user()
