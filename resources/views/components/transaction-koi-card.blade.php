@@ -31,12 +31,28 @@
                     class="px-3 py-1 rounded-full text-white text-xs font-semibold
                     {{ $item->status == 'menunggu konfirmasi' ? 'bg-yellow-500' : '' }}
                     {{ $item->status == 'karantina' ? 'bg-gray-500' : '' }}
-                    {{ $item->status == 'siap dikirim' ? 'bg-blue-500' : '' }}
+                    {{ $item->status == 'siap dikirim' ? 'bg-teal-500' : '' }}
+                    {{ $item->status == 'dikirim' ? 'bg-blue-500' : '' }}
+                    {{ $item->status == 'selesai' ? 'bg-green-500' : '' }}
+                    {{ $item->status == 'dibatalkan' ? 'bg-red-500' : '' }}
                     {{ $item->status == 'proses pengajuan komplain' ? 'bg-orange-500' : '' }}
                     {{ $item->status == 'komplain disetujui' ? 'bg-green-600' : '' }}
                     {{ $item->status == 'komplain ditolak' ? 'bg-red-600' : '' }}">
                     {{ ucfirst(str_replace('_', ' ', $item->status)) }}
                 </span>
+            </p>
+
+            @if (
+                $item->status == 'dibatalkan' ||
+                    $item->status == 'komplain disetujui' ||
+                    $item->status == 'komplain ditolak' ||
+                    $item->status == 'karantina')
+                <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
+                    Alasan : <span class="font-bold">{{ $item->karantina_reason }}{{ $item->cancel_reason }}</span>
+                </p>
+            @endif
+
+
 
 
         </div>
@@ -50,12 +66,15 @@
                     class="font-bold">{{ $item->transaction->user->phone_number ?? '-' }}</span></p>
             <p class="text-sm">Ongkir: <span class="font-bold">Rp
                     {{ number_format($item->shipping_fee, 0, ',', '.') }}</span></p>
-            <p class="text-sm">Fee Payment Gateway: <span class="font-bold">Rp
-                    {{ number_format($item->transaction->fee_payment_gateway, 0, ',', '.') }}</span></p>
-            <p class="text-sm">Fee Aplikasi: <span class="font-bold">Rp
-                    {{ number_format($item->transaction->fee_application, 0, ',', '.') }}</span></p>
-            <p class="text-sm">Fee Rekber: <span class="font-bold">Rp
-                    {{ number_format($item->transaction->fee_rekber, 0, ',', '.') }}</span></p>
+            @if (!$isSeller)
+                <p class="text-sm">Fee Payment Gateway: <span class="font-bold">Rp
+                        {{ number_format($item->transaction->fee_payment_gateway, 0, ',', '.') }}</span></p>
+                <p class="text-sm">Fee Aplikasi: <span class="font-bold">Rp
+                        {{ number_format($item->transaction->fee_application, 0, ',', '.') }}</span></p>
+                <p class="text-sm">Fee Rekber: <span class="font-bold">Rp
+                        {{ number_format($item->transaction->fee_rekber, 0, ',', '.') }}</span></p>
+            @endif
+
         </div>
     </div>
 
@@ -78,7 +97,7 @@
             </ul>
         </div>
     </div>
-    {{-- isSeller else buyer selesai / complain. --}}
+
     <!-- Footer Update Status -->
     @if ($isSeller)
         <form action="{{ route('orders.updateStatus', ['order' => $item->id]) }}" method="POST">
@@ -132,7 +151,7 @@
             </div>
         </form>
     @else
-        @if ($item->status == 'siap dikirim')
+        @if ($item->status == 'dikirim')
             <div class="mt-4 flex flex-wrap md:flex-nowrap items-center justify-between">
                 <form action="{{ route('orders.updateStatus', ['order' => $item->id]) }}" method="POST">
                     @csrf

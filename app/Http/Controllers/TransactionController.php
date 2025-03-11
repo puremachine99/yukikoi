@@ -303,16 +303,9 @@ class TransactionController extends Controller
         // **Update Status**
         $item->update($updateData);
 
-        // **Simpan Log Perubahan Status**
-        StatusHistory::create([
-            'transaction_item_id' => $item->id,
-            'status' => $request->status,
-            'changed_by' => $user->id,
-            'changed_at' => now(),
-            'reason' => $request->reason
-        ]);
+        //perubahan status liat di observer TransactionItemObserver.php
 
-        return response()->json(['success' => true, 'message' => 'Status transaksi berhasil diperbarui!']);
+        return redirect()->route('orders.index')->with('success', 'Status transaksi berhasil diperbarui!');
     }
 
 

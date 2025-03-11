@@ -29,26 +29,26 @@
                     <div>
                         <label for="winFilter" class="block text-sm font-medium text-gray-700 dark:text-gray-300">By
                             Win:</label>
-                        <select id="winFilter"
+                        <x-select id="winFilter"
                             class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
                             onchange="filterKoi()">
                             <option value="all">Semua</option>
                             <option value="win">Menang</option>
                             <option value="lose">Kalah</option>
                             <option value="ongoing">On Going</option>
-                        </select>
+                        </x-select>
                     </div>
 
                     <!-- Filter by Auction Status -->
                     <div>
                         <label for="statusFilter" class="block text-sm font-medium text-gray-700 dark:text-gray-300">By
                             Status Lelang:</label>
-                        <select id="statusFilter"
+                        <x-select id="statusFilter"
                             class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
                             onchange="filterKoi()">
                             <option value="ongoing">Berlangsung</option>
                             <option value="finished">Selesai</option>
-                        </select>
+                        </x-select>
                     </div>
                 </div>
 
