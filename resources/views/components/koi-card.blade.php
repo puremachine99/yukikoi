@@ -143,13 +143,18 @@
                 class="relative group flex items-center text-gray-500 dark:text-gray-400 transition-transform hover:text-yellow-500 koi-action"
                 onclick="event.stopPropagation(); toggleWishlist('{{ $koi->id }}')">
                 <!-- Icon Wishlist -->
+
                 <i id="wishlist-icon-{{ $koi->id }}"
-                    class="fa-solid fa-star mr-1 {{ is_array($wishlist) && in_array($koi->id, $wishlist) ? 'text-yellow-500' : '' }}"></i>
+                    class="fa-solid fa-star mr-1 {{ in_array((string) $koi->id, (array) $wishlist) ? 'text-yellow-500' : '' }}">
+                </i>
+
+
                 <span
                     class="absolute bottom-full mb-2 w-max px-2 py-1 text-xs text-white bg-black rounded hidden group-hover:block transform -translate-x-1/2 left-1/2">
                     Masukkan Wishlist
                 </span>
             </button>
+
 
 
             <!-- Likes -->

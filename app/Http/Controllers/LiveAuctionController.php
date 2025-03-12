@@ -60,12 +60,12 @@ class LiveAuctionController extends Controller
         }
 
         // **Gunakan paginate untuk mendukung pagination**
-        $kois = $query->paginate(20); // 
+        $kois = $query->paginate(30); // 
 
         // Ambil wishlist user
         $wishlist = Wishlist::where('user_id', $userId)
             ->pluck('koi_id')
-            ->toArray();
+            ->toArray() ?? [];
 
         // Hitung jumlah like untuk setiap koi
         foreach ($kois as $koi) {
@@ -85,6 +85,7 @@ class LiveAuctionController extends Controller
             ->get()
             ->keyBy('koi_id');
 
+        // dd($wishlist);
         return view('live.index', compact('kois', 'totalBids', 'wishlist'));
     }
 
