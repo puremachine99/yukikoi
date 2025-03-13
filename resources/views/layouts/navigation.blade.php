@@ -49,7 +49,7 @@
                             <!-- Notification items here -->
                         </x-slot>
                     </x-dropdown>
-                
+
                     <!-- Pesanan Masuk -->
                     <a href="{{ route('orders.index') }}"
                         class="relative flex items-center justify-center w-10 h-10 text-zinc-500 dark:text-zinc-400 bg-white dark:bg-zinc-800 rounded-full hover:text-zinc-700 dark:hover:text-zinc-300 focus:outline-none transition ease-in-out duration-150"
@@ -62,7 +62,7 @@
                             </span>
                         @endif
                     </a>
-                
+
                     <!-- Keranjang -->
                     <a href="{{ route('cart.index') }}"
                         class="relative flex items-center justify-center w-10 h-10 text-zinc-500 dark:text-zinc-400 bg-white dark:bg-zinc-800 rounded-full hover:text-zinc-700 dark:hover:text-zinc-300 focus:outline-none transition ease-in-out duration-150"
@@ -75,7 +75,7 @@
                             </span>
                         @endif
                     </a>
-                
+
                     <!-- User Profile Dropdown -->
                     <x-dropdown align="right" width="48">
                         <x-slot name="trigger">
@@ -86,8 +86,8 @@
                                         <img src="{{ asset('storage/' . Auth::user()->profile_photo) }}" alt="Profile Photo"
                                             class="h-8 w-8 rounded-full object-cover mr-2">
                                     @else
-                                        <img src="{{ asset('storage/avatar/user-default.png') }}" alt="Default Profile Photo"
-                                            class="h-8 w-8 rounded-full object-cover mr-2">
+                                        <img src="{{ asset('storage/avatar/user-default.png') }}"
+                                            alt="Default Profile Photo" class="h-8 w-8 rounded-full object-cover mr-2">
                                     @endif
                                     <span>{{ Auth::user()->name }}</span>
                                 </div>
@@ -106,7 +106,7 @@
                                 {{ __('Profile') }}
                             </x-dropdown-link>
                             <hr class="border-zinc-300">
-                            
+
                             <!-- Buyer Section -->
                             <div class="px-4 py-2 text-xs text-zinc-500 dark:text-zinc-400">Buyer</div>
                             <x-dropdown-link :href="route('transactions.index')">
@@ -115,9 +115,9 @@
                             <x-dropdown-link :href="route('bids.user')">
                                 {{ __('Monitoring Bid') }}
                             </x-dropdown-link>
-                
+
                             <hr class="border-zinc-300">
-                
+
                             <!-- Seller Section -->
                             <div class="px-4 py-2 text-xs text-zinc-500 dark:text-zinc-400">Seller</div>
                             <x-dropdown-link :href="route('auctions.index')">
@@ -126,18 +126,18 @@
                             <x-dropdown-link :href="route('events.list')">
                                 {{ __('Event Saya') }}
                             </x-dropdown-link>
-                
+
                             <hr class="border-zinc-300">
-                
+
                             <!-- Theme Toggle -->
                             <x-dropdown-link id="theme-toggle">
                                 <i id="theme-toggle-dark-icon"
                                     class="fa-solid fa-circle hidden w-5 h-5 text-yellow-300"></i>
                                 <i id="theme-toggle-light-icon" class="fa-solid fa-moon hidden w-5 h-5 text-indigo-600"></i>
                             </x-dropdown-link>
-                
+
                             <hr class="border-zinc-300">
-                
+
                             <!-- Logout -->
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
@@ -148,10 +148,8 @@
                             </form>
                         </x-slot>
                     </x-dropdown>
-                
+
                 </div>
-                
-                
             @else
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     <x-nav-link :href="route('login')">
@@ -196,9 +194,9 @@
             </x-responsive-nav-link>
         </div>
 
-        <!-- Responsive Settings Options -->
-        <div class="pt-4 pb-1 border-t border-zinc-200 dark:border-zinc-600">
-            @auth
+        <!-- Responsive User Menu -->
+        @auth
+            <div class="pt-4 pb-1 border-t border-zinc-200 dark:border-zinc-600">
                 <div class="px-4">
                     <div class="font-medium text-base text-zinc-800 dark:text-zinc-200">{{ Auth::user()->name }}</div>
                     <div class="font-medium text-sm text-zinc-500">{{ Auth::user()->email }}</div>
@@ -207,28 +205,25 @@
                     <x-responsive-nav-link :href="route('profile.index')">
                         {{ __('Profile') }}
                     </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('transactions.index')">
+                        {{ __('Pesanan Saya') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('bids.user')">
+                        {{ __('Monitoring Bid') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('auctions.index')">
+                        {{ __('Lelang Saya') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('events.list')">
+                        {{ __('Event Saya') }}
+                    </x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('cart.index')">
                         {{ __('Keranjang') }}
                     </x-responsive-nav-link>
-                    <x-responsive-nav-link :href="route('transactions.index')">
-                        {{ __('Pesanan') }}
-                    </x-responsive-nav-link>
-                    <x-responsive-nav-link :href="route('auctions.index')">
-                        {{ __('Lelang') }}
-                    </x-responsive-nav-link>
-                    <x-responsive-nav-link :href="route('events.list')">
-                        {{ __('Event') }}
-                    </x-responsive-nav-link>
-                    <x-responsive-nav-link :href="route('bids.user')">
-                        {{ __('Bid') }}
-                    </x-responsive-nav-link>
-                    <hr class="border-zinc-300">
-                    <x-responsive-nav-link id="theme-toggle"
-                        class="text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-700 focus:outline-none focus:ring-1 focus:ring-zinc-200 dark:focus:ring-zinc-700 text-sm p-2.5">
+                    <x-responsive-nav-link id="theme-toggle">
                         <i id="theme-toggle-dark-icon" class="fa-solid fa-circle hidden w-5 h-5 text-yellow-300"></i>
                         <i id="theme-toggle-light-icon" class="fa-solid fa-moon hidden w-5 h-5 text-indigo-600"></i>
                     </x-responsive-nav-link>
-                    <hr class="border-zinc-300">
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <x-responsive-nav-link :href="route('logout')"
@@ -237,16 +232,16 @@
                         </x-responsive-nav-link>
                     </form>
                 </div>
-            @else
-                <div class="pt-2 pb-3 space-y-1">
-                    <x-responsive-nav-link :href="route('login')">
-                        {{ __('Login') }}
-                    </x-responsive-nav-link>
-                    <x-responsive-nav-link :href="route('register')">
-                        {{ __('Register') }}
-                    </x-responsive-nav-link>
-                </div>
-            @endauth
-        </div>
+            </div>
+        @else
+            <div class="pt-2 pb-3 space-y-1">
+                <x-responsive-nav-link :href="route('login')">
+                    {{ __('Login') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('register')">
+                    {{ __('Register') }}
+                </x-responsive-nav-link>
+            </div>
+        @endauth
     </div>
 </nav>

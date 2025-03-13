@@ -1,125 +1,157 @@
 <div class="block bg-white dark:bg-zinc-800 rounded-lg shadow-md overflow-visible relative card-navigate"
     data-url="{{ route('koi.show', ['id' => $koi->id]) }}">
-    <div class="relative">
-        <img src="{{ asset('storage/' . $koi->media->first()->url_media) }}" alt="Koi Image"
-            class="object-cover w-full h-auto md:h-96 lg:h-[400px]">
-        <div class="watermark-overlay">
-            <img src="{{ asset('images/logo.png') }}" alt="Watermark Logo" class="watermark-logo">
-        </div>
 
-        <div
-            class="absolute opacity-60 hover:opacity-100 group bottom-20 right-0 bg-white dark:bg-zinc-700 p-1 px-2 rounded-l-lg shadow-md w-20">
-            <!-- Status Lelang dan Jumlah Bids -->
-            <div class="text-sm text-gray-700 dark:text-gray-200 mb-0">
-                <span
-                    class="font-semibold {{ $koi->auction->status == 'ready' ? 'text-blue-600' : ($koi->auction->status == 'on going' ? 'text-green-600' : 'text-red-600') }}">
-                    {{ $koi->auction->status == 'ready' ? 'Belum dimulai' : ($koi->auction->status == 'on going' ? 'On Going' : 'Complete') }}
-                </span>
-                <div class="text-sm text-gray-700 dark:text-gray-200">
-                    <span>{{ $totalBids['total_bids'] ?? 0 }}x Bids</span>
-                </div>
-            </div>
-
-            <span
-                class="absolute  bottom-full mb-1 w-max px-1 py-0.5 text-xs text-white bg-black rounded hidden group-hover:block transform -translate-x-1/2 left-1/2">
-                {{ $koi->auction->status == 'ready' ? 'Belum Mulai' : ($koi->auction->status == 'on going' ? 'Sedang Berlangsung' : 'Lelang Selesai') }}
-            </span>
-        </div>
-
-        {{-- logo yuki koi --}}
-        <div class="absolute top-1 right-2 p-0 rounded-full text-center text-sm">
-            <img src="{{ asset('images/logo.png') }}" alt="yukbid" class="w-auto h-16 mx-auto mb-1">
-        </div>
-        <div
-            class="absolute top-1/2 left-4 transform -translate-y-1/2 -translate-x-1/2 text-md font-bold text-white px-2 py-1 z-50">
-            <span class="vertical-text font-onsen text-center text-outline "
-                style="font-family: 'OnsenJapanDemoRegular'; font-size: 11px;">
-                {{ Str::replace(['(', ')'], '', $koi->jenis_koi) }}
-            </span>
-        </div>
-        <div
-            class="absolute top-1/2 left-8 transform -translate-y-1/2 -translate-x-1/2 text-sm font-bold rotate-90 uppercase text-white px-2 py-1 leading-none">
-            <span class="text-outline">
-                {{ $koi->ukuran }} cm
-            </span>
-        </div>
-
-        <h3 class="absolute bottom-8 left-1 z-10 text-xs font-bold text-white px-2 py-1">
-            <b class="text-outline">Support by Yuki Auction</b>
-        </h3>
-
-
-        <!-- Kapsul Jenis Lelang dengan Tooltip dan Logo -->
-        @if (in_array($koi->auction->jenis, ['azukari', 'keeping contest', 'grow_out']))
-            <div x-data="{ showTooltip: false }" @mouseover="showTooltip = true" @mouseleave="showTooltip = false"
-                class="absolute bottom-2 right-2 p-0 rounded-full text-center text-sm w-auto cursor-pointer">
-
-                <!-- Logo untuk setiap jenis lelang -->
-                @if ($koi->auction->jenis == 'azukari')
-                    <img src="{{ asset('images/az.png') }}" alt="Azukari Logo" class="w-auto h-14 mx-auto mb-1">
-                @elseif ($koi->auction->jenis == 'keeping contest')
-                    <img src="{{ asset('images/kc.png') }}" alt="Keeping Contest Logo"
-                        class="w-auto h-14 mx-auto mb-1">
-                @elseif ($koi->auction->jenis == 'grow out')
-                    <img src="{{ asset('images/go.png') }}" alt="Grow Out Logo" class="w-auto h-14 mx-auto mb-1">
-                @endif
-
-                <!-- Tooltip untuk Jenis Lelang -->
-                <div x-show="showTooltip" x-transition
-                    class="absolute top-full mt-1 w-max px-2 py-1 text-xs text-white bg-black rounded transform -translate-x-1/2 left-1/2">
-                    {{ $koi->auction->jenis == 'azukari' ? 'Azukari' : ($koi->auction->jenis == 'keeping contest' ? 'Keeping Contest' : 'Grow Out') }}
-                </div>
-            </div>
-        @endif
-        <!-- Tombol Play untuk Video -->
-        @if ($koi->media->where('media_type', 'video')->isNotEmpty())
-            <button
-                class="absolute group bottom-2 right-4 w-12 h-12 z-20 bg-white dark:bg-zinc-700 text-sky-500 border-2 border-sky-500 rounded-full flex items-center justify-center transition-transform hover:scale-105 hover:bg-sky-500 hover:text-white no-route"
-                onclick="event.stopPropagation(); openVideoModal('{{ asset('storage/' . $koi->media->where('media_type', 'video')->first()->url_media) }}')">
-                <i class="fa-solid fa-play text-xl"></i>
-                <span
-                    class="absolute bottom-full mb-1 w-max px-1 py-0.5 text-xs text-white bg-black rounded hidden group-hover:block transform -translate-x-1/2 left-1/2">
-                    Video Ikan 🐟
-                </span>
-            </button>
-        @endif
-        <!-- Modal untuk video -->
-        <div id="videoModal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50"
-            onclick="closeVideoModal()">
-            <div class="bg-white dark:bg-zinc-800 p-0 rounded-lg max-w-7xl w-auto max-h-screen overflow-auto">
-                <video id="modalVideo" class="w-full h-auto mt-0 rounded-lg" controls style="max-height: 90vh;">
-                    <source id="videoSource" src="" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
+    <!-- Header -->
+    <div class="flex items-center p-4 border-b dark:border-zinc-700">
+        <img src="{{ asset('storage/' . $koi->auction->user->profile_photo) }}" alt="Farm Profile"
+            class="w-12 h-12 rounded-full object-cover">
+        <div class="ml-3">
+            <h4 class="text-md font-semibold text-gray-700 dark:text-gray-200">
+                {{ Str::ucfirst($koi->auction->user->farm_name) }}</h4>
+            <div class="text-sm text-yellow-500">
+                ⭐ {{ number_format($koi->auction->user->rating, 1) }} / 5
             </div>
         </div>
-
-
-        <!-- Modal untuk Sertifikat -->
-        <div id="certModal" class="fixed inset-0 z-50 items-center flex justify-center hidden bg-black bg-opacity-50"
-            onclick="closeModal()">
-            <div class="bg-white dark:bg-zinc-800 p-0 rounded-lg max-w-7x1 w-full">
-                <img id="certImage" src="" alt="Certificate Image" class="w-full mt-0 rounded-lg">
-            </div>
-        </div>
-        <div class="absolute opacity-60 hover:opacity-100 bottom-2 left-2 bg-red-500 text-white p-1 rounded-full shadow-md text-center text-xs w-36"
-            id="countdown-wrapper-{{ $koi->id }}" data-koi-id="{{ $koi->id }}"
-            data-end-time="{{ $koi->end_time }}">
-            @if ($totalBids[(string) $koi->id]['has_winner'] ?? false)
-                <span class="font-semibold">Sold by BIN</span>
-            @else
-                <span id="countdown-{{ $koi->id }}" class="font-semibold">00:00</span>
-            @endif
-        </div>
-        <!-- Slot untuk Tombol -->
-        <div class="absolute top-2 right-2 flex space-x-2">
-            {{ $slot }}
-        </div>
-
     </div>
 
-    <!-- Informasi Koi -->
-    <div class="p-4">
+    <!-- Body -->
+    <div class="p-4 relative">
+        <div class="relative">
+            <img src="{{ asset('storage/' . $koi->media->first()->url_media) }}" alt="Koi Image"
+                class="object-cover w-full h-auto md:h-96 lg:h-[400px]">
+            <div class="watermark-overlay">
+                <img src="{{ asset('images/logo.png') }}" alt="Watermark Logo" class="watermark-logo">
+            </div>
+
+            <div
+                class="absolute opacity-80 hover:opacity-100 group bottom-20 right-0 bg-white dark:bg-zinc-700 p-1 px-2 rounded-l-lg shadow-md w-20">
+                <!-- Status Lelang dan Jumlah Bids -->
+                <div class="text-sm text-gray-700 dark:text-gray-200 mb-0">
+                    <span
+                        class="font-semibold {{ $koi->auction->status == 'ready' ? 'text-blue-600' : ($koi->auction->status == 'on going' ? 'text-green-600' : 'text-red-600') }}">
+                        {{ $koi->auction->status == 'ready'
+                            ? 'Belum dimulai'
+                            : ($koi->auction->status == 'on going'
+                                ? 'On Going'
+                                : 'Complete') }}
+                    </span>
+                    <div class="text-sm text-gray-700 dark:text-gray-200">
+                        <span>{{ $totalBids['total_bids'] ?? 0 }}x Bids</span>
+                    </div>
+                </div>
+
+                <span
+                    class="absolute  bottom-full mb-1 w-max px-1 py-0.5 text-xs text-white bg-black rounded hidden group-hover:block transform -translate-x-1/2 left-1/2">
+                    {{ $koi->auction->status == 'ready'
+                        ? 'Belum Mulai'
+                        : ($koi->auction->status == 'on going'
+                            ? 'Sedang
+                                        Berlangsung'
+                            : 'Lelang Selesai') }}
+                </span>
+            </div>
+
+            {{-- logo yuki koi --}}
+            <div class="absolute top-1 right-2 p-0 rounded-full text-center text-sm">
+                <img src="{{ asset('images/logo.png') }}" alt="yukbid" class="w-auto h-16 mx-auto mb-1">
+            </div>
+            <div
+                class="absolute top-1/2 left-4 transform -translate-y-1/2 -translate-x-1/2 text-md font-bold text-white px-2 py-1 z-50">
+                <span class="vertical-text font-onsen text-center text-outline "
+                    style="font-family: 'OnsenJapanDemoRegular'; font-size: 11px;">
+                    {{ Str::replace(['(', ')'], '', $koi->jenis_koi) }}
+                </span>
+            </div>
+            <div
+                class="absolute top-1/2 left-8 transform -translate-y-1/2 -translate-x-1/2 text-sm font-bold rotate-90 uppercase text-white px-2 py-1 leading-none">
+                <span class="text-outline">
+                    {{ $koi->ukuran }} cm
+                </span>
+            </div>
+
+            <h3 class="absolute bottom-8 left-1 z-10 text-xs font-bold text-white px-2 py-1">
+                <b class="text-outline">Support by Yuki Auction</b>
+            </h3>
+
+
+            <!-- Kapsul Jenis Lelang dengan Tooltip dan Logo -->
+            @if (in_array($koi->auction->jenis, ['azukari', 'keeping contest', 'grow_out']))
+                <div x-data="{ showTooltip: false }" @mouseover="showTooltip = true" @mouseleave="showTooltip = false"
+                    class="absolute bottom-2 right-2 p-0 rounded-full text-center text-sm w-auto cursor-pointer">
+
+                    <!-- Logo untuk setiap jenis lelang -->
+                    @if ($koi->auction->jenis == 'azukari')
+                        <img src="{{ asset('images/az.png') }}" alt="Azukari Logo" class="w-auto h-14 mx-auto mb-1">
+                    @elseif ($koi->auction->jenis == 'keeping contest')
+                        <img src="{{ asset('images/kc.png') }}" alt="Keeping Contest Logo"
+                            class="w-auto h-14 mx-auto mb-1">
+                    @elseif ($koi->auction->jenis == 'grow out')
+                        <img src="{{ asset('images/go.png') }}" alt="Grow Out Logo" class="w-auto h-14 mx-auto mb-1">
+                    @endif
+
+                    <!-- Tooltip untuk Jenis Lelang -->
+                    <div x-show="showTooltip" x-transition
+                        class="absolute top-full mt-1 w-max px-2 py-1 text-xs text-white bg-black rounded transform -translate-x-1/2 left-1/2">
+                        {{ $koi->auction->jenis == 'azukari'
+                            ? 'Azukari'
+                            : ($koi->auction->jenis == 'keeping contest'
+                                ? 'Keeping Contest'
+                                : 'Grow Out') }}
+                    </div>
+                </div>
+            @endif
+            <!-- Tombol Play untuk Video -->
+            @if ($koi->media->where('media_type', 'video')->isNotEmpty())
+                <button
+                    class="absolute group bottom-2 right-4 w-12 h-12 z-20 bg-white dark:bg-zinc-700 text-sky-500 border-2 border-sky-500 rounded-full flex items-center justify-center transition-transform hover:scale-105 hover:bg-sky-500 hover:text-white no-route"
+                    onclick="event.stopPropagation(); openVideoModal('{{ asset('storage/' . $koi->media->where('media_type', 'video')->first()->url_media) }}')">
+                    <i class="fa-solid fa-play text-xl"></i>
+                    <span
+                        class="absolute bottom-full mb-1 w-max px-1 py-0.5 text-xs text-white bg-black rounded hidden group-hover:block transform -translate-x-1/2 left-1/2">
+                        Video Ikan 🐟
+                    </span>
+                </button>
+            @endif
+            <!-- Modal untuk video -->
+            <div id="videoModal"
+                class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50"
+                onclick="closeVideoModal()">
+                <div class="bg-white dark:bg-zinc-800 p-0 rounded-lg max-w-7xl w-auto max-h-screen overflow-auto">
+                    <video id="modalVideo" class="w-full h-auto mt-0 rounded-lg" controls style="max-height: 90vh;">
+                        <source id="videoSource" src="" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+            </div>
+
+
+            <!-- Modal untuk Sertifikat -->
+            <div id="certModal"
+                class="fixed inset-0 z-50 items-center flex justify-center hidden bg-black bg-opacity-50"
+                onclick="closeModal()">
+                <div class="bg-white dark:bg-zinc-800 p-0 rounded-lg max-w-7x1 w-full">
+                    <img id="certImage" src="" alt="Certificate Image" class="w-full mt-0 rounded-lg">
+                </div>
+            </div>
+            <div class="absolute opacity-80 hover:opacity-100 bottom-2 left-2 bg-red-500 text-white p-1 rounded-full shadow-md text-center text-xs w-36"
+                id="countdown-wrapper-{{ $koi->id }}" data-koi-id="{{ $koi->id }}"
+                data-end-time="{{ $koi->end_time }}">
+                @if ($totalBids[(string) $koi->id]['has_winner'] ?? false)
+                    <span class="font-semibold">Sold by BIN</span>
+                @else
+                    <span id="countdown-{{ $koi->id }}" class="font-semibold">00:00</span>
+                @endif
+            </div>
+            <!-- Slot untuk Tombol -->
+            <div class="absolute top-2 right-2 flex space-x-2">
+                {{ $slot }}
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="p-4 border-t dark:border-zinc-700">
         <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-200 truncate">
             {{ $koi->judul }} {{ $koi->ukuran }}cm [{{ Str::ucfirst($koi->gender) }}]</h3>
 

@@ -69,7 +69,7 @@
 
     </x-slot>
 
-    <div class="py-12 p-2">
+    <div class="p-2">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 gap-4">
                 <form method="GET" action="{{ route('live.index') }}"
@@ -127,7 +127,7 @@
 
 
             </div>
-            <div class="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 xs:grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 @foreach ($kois as $koi)
                     <x-koi-card :koi="$koi" :total-bids="$totalBids[$koi->id] ?? 0" :wishlist="in_array($koi->id, $wishlist)" />
                 @endforeach

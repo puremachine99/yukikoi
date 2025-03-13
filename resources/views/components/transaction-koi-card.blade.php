@@ -15,6 +15,9 @@
                 Kode Lelang: <span class="font-bold">{{ $item->koi->auction_code }}</span>
             </p>
             <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                jenis Lelang: <span class="font-bold">{{ ucfirst($item->koi->auction->jenis) }}</span>
+            </p>
+            <p class="text-sm text-zinc-600 dark:text-zinc-400">
                 Jenis: {{ $item->koi->jenis_koi }} - {{ $item->koi->ukuran }} cm
             </p>
             <p class="text-sm text-zinc-600 dark:text-zinc-400">

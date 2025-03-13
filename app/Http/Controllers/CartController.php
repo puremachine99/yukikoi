@@ -240,6 +240,7 @@ class CartController extends Controller
             }
 
             // Hapus item dari cart
+            // Tambahkan reply dari webhook xendit untuk acc confirm checkout
             $cartItems->each->delete();
 
             // Redirect ke Xendit payment link

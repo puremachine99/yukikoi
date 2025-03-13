@@ -163,8 +163,8 @@ class TransactionController extends Controller
         $description .= "\nBiaya Penanganan: Rp " . number_format($transaction->handling_fee, 0, ',', '.');
         $description .= "\nBiaya Rekber: Rp " . number_format($rekberFee, 0, ',', '.');
 
-        $apiInstance = new \Xendit\Invoice\InvoiceApi();
-        $createInvoiceRequest = new \Xendit\Invoice\CreateInvoiceRequest([
+        $apiInstance = new InvoiceApi();
+        $createInvoiceRequest = new CreateInvoiceRequest([
             'external_id' => $externalId,
             'description' => $description,
             'amount' => $totalWithFees,
@@ -227,8 +227,8 @@ class TransactionController extends Controller
         }
 
         // Buat invoice di Xendit
-        $apiInstance = new \Xendit\Invoice\InvoiceApi();
-        $createInvoiceRequest = new \Xendit\Invoice\CreateInvoiceRequest([
+        $apiInstance = new InvoiceApi();
+        $createInvoiceRequest = new CreateInvoiceRequest([
             'external_id' => $invoice->invoice_code,
             'description' => "Pembayaran Lelang",
             'amount' => $totalAmount,

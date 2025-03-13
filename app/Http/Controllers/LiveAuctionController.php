@@ -8,6 +8,7 @@ use App\Models\Event;
 use App\Models\Wishlist;
 use App\Models\UserActivity;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
 class LiveAuctionController extends Controller
@@ -23,7 +24,18 @@ class LiveAuctionController extends Controller
         $minPrice = $request->input('min_price');
         $maxPrice = $request->input('max_price');
 
-        // Query utama untuk mengambil koi yang sedang dilelang (jenis reguler)
+        // **Hitung Preferensi User Berdasarkan Aktivitas**
+        $userPreferences = DB::table('activities')
+            ->selectRaw('
+            koi_id,
+            SUM(CASE WHEN activity_type = "view" THEN 1 ELSE 0 END) * 1 +
+            SUM(CASE WHEN activity_type = "like" THEN 3 ELSE 0 END) * 3 +
+            SUM(CASE WHEN activity_type = "bid" THEN 5 ELSE 0 END) * 5 AS weight
+        ')
+            ->where('user_id', $userId)
+            ->groupBy('koi_id');
+
+        // **Query utama untuk mengambil koi yang sedang dilelang (jenis reguler)**
         $query = Koi::with([
             'auction',
             'media' => function ($query) {
@@ -32,9 +44,13 @@ class LiveAuctionController extends Controller
             'bids' => function ($query) {
                 $query->latest();
             }
-        ])->whereHas('auction', function ($query) {
-            $query->where('jenis', 'reguler')->where('status', 'on going');
-        });
+        ])
+            ->leftJoinSub($userPreferences, 'user_pref', function ($join) {
+                $join->on('kois.id', '=', 'user_pref.koi_id');
+            })
+            ->whereHas('auction', function ($query) {
+                $query->where('jenis', 'reguler')->where('status', 'on going');
+            });
 
         // **Filter berdasarkan pencarian judul atau jenis koi**
         if (!empty($search)) {
@@ -59,36 +75,44 @@ class LiveAuctionController extends Controller
             $query->where('open_bid', '<=', $maxPrice);
         }
 
-        // **Gunakan paginate untuk mendukung pagination**
-        $kois = $query->paginate(30); // 
+        // **Ambil data dengan sorting berdasarkan weight dari preferensi user**
+        $kois = $query
+            ->orderByDesc('user_pref.weight')
+            ->orderByDesc('created_at') // Jika tidak ada preferensi, urutkan berdasarkan terbaru
+            ->select('kois.*') // Pastikan hanya kolom dari `kois` yang diambil
+            ->paginate(30);
 
-        // Ambil wishlist user
+        // **Ambil wishlist user**
         $wishlist = Wishlist::where('user_id', $userId)
             ->pluck('koi_id')
-            ->toArray() ?? [];
+            ->toArray();
 
-        // Hitung jumlah like untuk setiap koi
-        foreach ($kois as $koi) {
-            $koi->likes_count = UserActivity::where('koi_id', $koi->id)
-                ->where('activity_type', 'like')
-                ->count();
-            $koi->user_liked = UserActivity::where('koi_id', $koi->id)
-                ->where('user_id', $userId)
-                ->where('activity_type', 'like')
-                ->exists();
-        }
+        // **Ambil jumlah like untuk setiap koi**
+        $likes = UserActivity::whereIn('koi_id', $kois->pluck('id'))
+            ->where('activity_type', 'like')
+            ->selectRaw('koi_id, COUNT(*) as likes_count')
+            ->groupBy('koi_id')
+            ->get()
+            ->keyBy('koi_id');
 
-        // Hitung total bids
+        // **Hitung total bids**
         $totalBids = Bid::whereIn('koi_id', $kois->pluck('id'))
             ->selectRaw('koi_id, COUNT(*) as total_bids, MAX(amount) as latest_bid')
             ->groupBy('koi_id')
             ->get()
             ->keyBy('koi_id');
 
-        // dd($wishlist);
+        // **Tambahkan data likes dan bids ke koleksi**
+        foreach ($kois as $koi) {
+            $koi->likes_count = $likes[$koi->id]->likes_count ?? 0;
+            $koi->user_liked = UserActivity::where('koi_id', $koi->id)
+                ->where('user_id', $userId)
+                ->where('activity_type', 'like')
+                ->exists();
+        }
+
         return view('live.index', compact('kois', 'totalBids', 'wishlist'));
     }
-
 
 
 
