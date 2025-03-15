@@ -125,7 +125,7 @@
                 <!-- Pilihan Status -->
                 <div class="w-full md:w-auto flex items-center space-x-2">
                     <x-select x-model="selectedStatus" name="status" class="border px-3 py-2 rounded text-sm"
-                        @change="updateHiddenReason()">
+                        @change="updateHiddenReason(); checkCancelStatus()">
                         <option value="">Pilih Status</option>
                         <option value="siap dikirim">Siap Dikirim</option>
                         <option value="dikirim">Dikirim</option>
@@ -133,6 +133,12 @@
                         <option value="dibatalkan">Batalkan Pesanan</option>
                     </x-select>
 
+                    {{-- tombol pembatalan --}}
+                    <button type="button" x-show="selectedStatus === 'dibatalkan'"
+                        class="bg-red-500 text-white text-sm px-4 py-2 rounded-md"
+                        @click="showCancelModal('{{ $item->id }}')">
+                        Ajukan Pembatalan
+                    </button>
                     <!-- Pilihan alasan karantina -->
                     <x-select x-show="selectedStatus === 'karantina'" x-ref="reasonKarantina" x-model="reason"
                         @change="updateHiddenReason()" style="display: none;">
@@ -155,15 +161,11 @@
         </form>
     @else
         @if ($item->status == 'dikirim')
-            <div class="mt-4 flex flex-wrap md:flex-nowrap items-center justify-between">
-                <form action="{{ route('orders.updateStatus', ['order' => $item->id]) }}" method="POST">
-                    @csrf
-                    <input type="hidden" name="item_id" value="{{ $item->id }}">
-                    <input type="hidden" name="status" value="dikirim">
-                    <button type="submit" class="bg-blue-500 text-white text-sm px-4 py-2 rounded-md">
-                        Konfirmasi Pengiriman
-                    </button>
-                </form>
+            <div class="mt-4 flex items-center space-x-2">
+                <button class="bg-green-500 text-white px-4 py-2 rounded-md"
+                    onclick="showRatingModal('{{ $item->id }}')">Selesaikan</button>
+                <button class="bg-red-500 text-white px-4 py-2 rounded-md"
+                    onclick="showComplaintModal('{{ $item->id }}')">Komplain</button>
             </div>
         @endif
     @endif

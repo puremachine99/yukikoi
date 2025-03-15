@@ -6,12 +6,15 @@
         <img src="{{ asset('storage/' . $koi->auction->user->profile_photo) }}" alt="Farm Profile"
             class="w-12 h-12 rounded-full object-cover">
         <div class="ml-3">
-            <h4 class="text-md font-semibold text-gray-700 dark:text-gray-200">
-                {{ Str::ucfirst($koi->auction->user->farm_name) }}</h4>
+            <h5 class="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                {{ Str::ucfirst($koi->auction->user->farm_name) }} [{{ $koi->auction->user->city }}]</h5>
+
             <div class="text-sm text-yellow-500">
                 ⭐ {{ number_format($koi->auction->user->rating, 1) }} / 5
             </div>
+
         </div>
+
     </div>
 
     <!-- Body -->
@@ -46,7 +49,7 @@
                         ? 'Belum Mulai'
                         : ($koi->auction->status == 'on going'
                             ? 'Sedang
-                                        Berlangsung'
+                                                                                                    Berlangsung'
                             : 'Lelang Selesai') }}
                 </span>
             </div>
@@ -152,8 +155,13 @@
 
     <!-- Footer -->
     <div class="p-4 border-t dark:border-zinc-700">
-        <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-200 truncate">
-            {{ $koi->judul }} {{ $koi->ukuran }}cm [{{ Str::ucfirst($koi->gender) }}]</h3>
+        <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-200 truncate" data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            title="{{ $koi->judul }} - {{ $koi->ukuran }}cm 
+    {{ $koi->gender !== 'unchecked' ? '[' . strtoupper(substr($koi->gender, 0, 1)) . ']' : '' }}">
+            {{ $koi->judul }} - {{ $koi->ukuran }}cm
+            {{ $koi->gender !== 'unchecked' ? '[' . strtoupper(substr($koi->gender, 0, 1)) . ']' : '' }}
+        </h3>
 
         <div class="flex justify-between items-center mt-2">
             <!-- Views -->
@@ -208,11 +216,6 @@
         </div>
 
         <hr class="mt-3 mb-3">
-
-        <div class="flex justify-between text-sm text-black dark:text-gray-400 mt-2">
-            <span>Seller : {{ Str::ucfirst($koi->auction->user->farm_name) ?? '-' }}
-                <b>[{{ $koi->auction->user->city }}]</b></span>
-        </div>
 
         <div class="grid grid-cols-2 gap-2 mt-3 text-sm">
             <div class="text-gray-600 dark:text-gray-300">
