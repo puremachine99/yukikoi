@@ -78,6 +78,50 @@
             document.getElementById(id).classList.toggle("hidden");
         }
 
+        function updateStatusAndShowRating(itemId) {
+            Swal.fire({
+                title: 'Konfirmasi Status',
+                text: "Apakah Anda yakin ingin menyelesaikan transaksi ini?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Selesaikan',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch("{{ route('transactions.updateStatus') }}", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                            },
+                            body: JSON.stringify({
+                                item_id: itemId,
+                                status: "selesai"
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire('Berhasil!', 'Pesanan telah diselesaikan.', 'success')
+                                    .then(() => {
+                                        if (data.nextAction === "showRatingModal") {
+                                            showRatingModal(itemId); // Munculkan modal rating
+                                        } else {
+                                            location.reload(); // Reload halaman jika tidak perlu rating
+                                        }
+                                    });
+                            } else {
+                                Swal.fire('Gagal!', data.message, 'error');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            Swal.fire('Error', 'Terjadi kesalahan saat memperbarui status.', 'error');
+                        });
+                }
+            });
+        }
+
         function updateStatus(itemId, status) {
             Swal.fire({
                 title: 'Konfirmasi Status',
@@ -96,14 +140,16 @@
                             },
                             body: JSON.stringify({
                                 item_id: itemId,
-                                status: status
+                                status: "selesai"
                             })
-                        }).then(response => response.json())
+                        })
+                        .then(response => response.json())
                         .then(data => {
+                            console.log("Response dari server:", data);
                             if (data.success) {
-                                Swal.fire('Berhasil!', data.message, 'success').then(() => {
-                                    if (status === "selesai") {
-                                        showRatingModal(itemId); // Tampilkan rating jika selesai
+                                Swal.fire('Berhasil!', 'Pesanan telah diselesaikan.', 'success').then(() => {
+                                    if (data.nextAction === "showRatingModal") {
+                                        showRatingModal(itemId); // Munculkan modal rating jika sukses
                                     } else {
                                         location.reload();
                                     }
@@ -111,7 +157,12 @@
                             } else {
                                 Swal.fire('Gagal!', data.message, 'error');
                             }
+                        })
+                        .catch(error => {
+                            console.error('Fetch error:', error);
+                            Swal.fire('Error', 'Terjadi kesalahan saat memperbarui status.', 'error');
                         });
+
                 }
             });
         }
@@ -193,6 +244,7 @@
                 }
             });
         }
+
         function showRatingModal(itemId) {
             Swal.fire({
                 title: 'Beri Rating',
@@ -287,7 +339,7 @@
                     });
                 }
             });
-        }        
+        }
     </script>
 
 </x-app-layout>

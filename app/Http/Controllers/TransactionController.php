@@ -61,7 +61,6 @@ class TransactionController extends Controller
         return view('transactions.index', compact('tabs', 'status', 'groupedTransactions'));
     }
 
-
     public function sellerOrders(Request $request)
     {
         $userId = auth()->id();
@@ -101,7 +100,6 @@ class TransactionController extends Controller
 
         return view('orders.index', compact('tabs', 'status', 'groupedOrders'))->with('orders', $transactionItems);
     }
-
 
     public function show($id)
     {
@@ -257,7 +255,8 @@ class TransactionController extends Controller
     // app/Http/Controllers/TransactionController.php
     public function updateStatus(Request $request)
     {
-        // dd($request->all());
+        \Log::info('Update Status Attempt:', $request->all());
+
         $request->validate([
             'item_id' => 'required|exists:transaction_items,id',
             'status' => 'required|in:siap dikirim,dikirim,karantina,dibatalkan,selesai,proses pengajuan komplain',
@@ -265,47 +264,59 @@ class TransactionController extends Controller
             'karantina_end_date' => 'nullable|date|after:today'
         ]);
 
-        $itemId = $request->input('order'); // Ambil ID dari 'order' (bukan 'item_id')
-        $item = TransactionItem::findOrFail($itemId);
+        $item = TransactionItem::findOrFail($request->item_id);
         $user = auth()->user();
         $isSeller = $user->id === $item->seller_id;
         $isBuyer = $user->id === $item->transaction->user_id;
 
-        // **Cegah Seller Mengubah ke Status yang Tidak Diizinkan**
+        \Log::info("User ID: {$user->id} | Seller ID: {$item->seller_id} | Buyer ID: {$item->transaction->user_id}");
+
+        // **Cegah Seller Mengubah Status ke Selesai atau Komplain**
         if ($isSeller && in_array($request->status, ['selesai', 'proses pengajuan komplain'])) {
+            \Log::warning("Seller mencoba mengubah status tidak diperbolehkan!");
             return response()->json(['success' => false, 'message' => 'Seller tidak dapat mengubah status ke Selesai atau Komplain.'], 403);
         }
 
         // **Cegah Buyer Mengubah Status Selain Selesai atau Komplain**
         if ($isBuyer && !in_array($request->status, ['selesai', 'proses pengajuan komplain'])) {
+            \Log::warning("Buyer mencoba mengubah status tidak diperbolehkan!");
             return response()->json(['success' => false, 'message' => 'Buyer hanya bisa mengubah status ke Selesai atau Komplain.'], 403);
         }
 
-        // **Penanganan Status Karantina**
+        // **Siapkan Data Update**
         $updateData = ['status' => $request->status];
 
         if ($request->status === 'karantina') {
             if (!$request->reason) {
+                \Log::error("Karantina gagal: alasan kosong!");
                 return response()->json(['success' => false, 'message' => 'Alasan karantina harus diisi.'], 400);
             }
             $updateData['karantina_end_date'] = now()->addDays($request->reason === 'Ikan Sakit (7 hari)' ? 7 : 3);
             $updateData['karantina_reason'] = $request->reason;
         }
 
-        // **Penanganan Pembatalan**
         if ($request->status === 'dibatalkan') {
             if (!$request->reason) {
+                \Log::error("Pembatalan gagal: alasan kosong!");
                 return response()->json(['success' => false, 'message' => 'Alasan pembatalan harus diisi.'], 400);
             }
             $updateData['cancel_reason'] = $request->reason;
         }
 
-        // **Update Status**
-        $item->update($updateData);
+        // **Update Status di Transaction Item**
+        try {
+            $item->update($updateData);
+            \Log::info("Status berhasil diperbarui ke {$request->status}");
+        } catch (\Exception $e) {
+            \Log::error("Gagal update status: " . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Terjadi kesalahan saat memperbarui status.'], 500);
+        }
 
-        //perubahan status liat di observer TransactionItemObserver.php
-
-        return redirect()->route('orders.index')->with('success', 'Status transaksi berhasil diperbarui!');
+        return response()->json([
+            'success' => true,
+            'message' => 'Status transaksi berhasil diperbarui!',
+            'nextAction' => ($request->status === 'selesai') ? 'showRatingModal' : 'reload'
+        ]);
     }
 
 

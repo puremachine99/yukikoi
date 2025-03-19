@@ -101,7 +101,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/transactions/{transaction}/pay', [TransactionController::class, 'pay'])->name('transactions.pay');
 
     //Buyer
-    Route::post('/transactions/update-status', [TransactionController::class, 'updateStatus'])->name('transactions.updateStatus');
+    Route::post('/transactions/update-status', [TransactionController::class, 'updateStatus'])
+        ->name('transactions.updateStatus')
+        ->middleware('throttle:10,1'); // limit (10 kali per menit)
     Route::post('/transactions/retur', [TransactionController::class, 'retur'])->name('transactions.retur');
     Route::post('/transactions/rate', [TransactionController::class, 'storeRating'])->name('transactions.rate');
 
@@ -109,8 +111,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/complaint/{id}/update-status', [ComplaintController::class, 'updateStatus'])->name('complaints.update');
 
     //Seller
-    Route::get('/orders', [TransactionController::class, 'sellerOrders'])->name('orders.index'); 
-    Route::post('/orders/update-status', [TransactionController::class, 'updateStatus'])->name('orders.updateStatus'); 
+    Route::get('/orders', [TransactionController::class, 'sellerOrders'])->name('orders.index');
+    Route::post('/orders/update-status', [TransactionController::class, 'updateStatus'])->name('orders.updateStatus');
 });
 
 

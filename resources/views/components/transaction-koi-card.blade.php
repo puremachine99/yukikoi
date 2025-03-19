@@ -163,7 +163,8 @@
         @if ($item->status == 'dikirim')
             <div class="mt-4 flex items-center space-x-2">
                 <button class="bg-green-500 text-white px-4 py-2 rounded-md"
-                    onclick="showRatingModal('{{ $item->id }}')">Selesaikan</button>
+                    onclick="updateStatusAndShowRating('{{ $item->id }}')">Selesai</button>
+
                 <button class="bg-red-500 text-white px-4 py-2 rounded-md"
                     onclick="showComplaintModal('{{ $item->id }}')">Komplain</button>
             </div>
