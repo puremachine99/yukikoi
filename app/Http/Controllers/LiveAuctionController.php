@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Bid;
 use App\Models\Koi;
+use App\Models\User;
 use App\Models\Event;
 use App\Models\Wishlist;
 use App\Models\UserActivity;
 use Illuminate\Http\Request;
+use App\Models\TransactionItem;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
@@ -95,12 +97,36 @@ class LiveAuctionController extends Controller
             ->get()
             ->keyBy('koi_id');
 
-        // **Hitung total bids**
+        // Hitung total bids dan ambil data pemenang jika ada
         $totalBids = Bid::whereIn('koi_id', $kois->pluck('id'))
             ->selectRaw('koi_id, COUNT(*) as total_bids, MAX(amount) as latest_bid')
             ->groupBy('koi_id')
             ->get()
             ->keyBy('koi_id');
+
+        // Ambil data pemenang dari transaction_items (karena sudah pasti ada setelah menang)
+        $winners = TransactionItem::whereIn('koi_id', $kois->pluck('id'))
+            ->whereNotNull('transaction_id') // Pastikan sudah masuk transaksi
+            ->with('transaction.user') // Ambil nama user pemenang
+            ->get()
+            ->keyBy('koi_id');
+
+        // Tambahkan informasi pemenang ke dalam totalBids
+        foreach ($kois as $koi) {
+            $koiId = $koi->id;
+            $koi->total_bids = $totalBids[$koiId]->total_bids ?? 0;
+            $koi->latest_bid = $totalBids[$koiId]->latest_bid ?? 0;
+
+            // Cek apakah ada pemenang dari transaction_items
+            if (isset($winners[$koiId])) {
+                $koi->has_winner = true;
+                $koi->winner_name = $winners[$koiId]->transaction->user->name ?? 'N/A';
+            } else {
+                $koi->has_winner = false;
+                $koi->winner_name = null;
+            }
+        }
+
 
         // **Tambahkan data likes dan bids ke koleksi**
         foreach ($kois as $koi) {
@@ -113,8 +139,6 @@ class LiveAuctionController extends Controller
 
         return view('live.index', compact('kois', 'totalBids', 'wishlist'));
     }
-
-
 
     protected function getKois($userId, $auctionType = null)
     {

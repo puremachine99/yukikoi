@@ -31,13 +31,24 @@
                 <!-- Status Lelang dan Jumlah Bids -->
                 <div class="text-sm text-gray-700 dark:text-gray-200 mb-0">
                     <span
-                        class="font-semibold {{ $koi->auction->status == 'ready' ? 'text-blue-600' : ($koi->auction->status == 'on going' ? 'text-green-600' : 'text-red-600') }}">
-                        {{ $koi->auction->status == 'ready'
-                            ? 'Belum dimulai'
-                            : ($koi->auction->status == 'on going'
-                                ? 'On Going'
-                                : 'Complete') }}
+                        class="font-semibold 
+                        {{ $koi->has_winner
+                            ? 'text-gray-500'
+                            : ($koi->auction->status == 'ready'
+                                ? 'text-blue-600'
+                                : ($koi->auction->status == 'on going'
+                                    ? 'text-green-600'
+                                    : 'text-red-600')) }}">
+
+                        {{ $koi->has_winner
+                            ? 'Sold'
+                            : ($koi->auction->status == 'ready'
+                                ? 'Belum Dimulai'
+                                : ($koi->auction->status == 'on going'
+                                    ? 'On Going'
+                                    : 'Complete')) }}
                     </span>
+
                     <div class="text-sm text-gray-700 dark:text-gray-200">
                         <span>{{ $totalBids['total_bids'] ?? 0 }}x Bids</span>
                     </div>
@@ -49,7 +60,7 @@
                         ? 'Belum Mulai'
                         : ($koi->auction->status == 'on going'
                             ? 'Sedang
-                                                                                                    Berlangsung'
+                                                                                                                                                                                    Berlangsung'
                             : 'Lelang Selesai') }}
                 </span>
             </div>
@@ -228,14 +239,15 @@
             </div>
             <div class="text-blue-600 font-semibold">
                 Last Bid:
-                <span>{{ number_format($totalBids[(string) $koi->id]['latest_bid'] ?? $koi->open_bid, 0, ',', '.') }}</span>
+                <span>{{ number_format($koi->latest_bid, 0, ',', '.') }}</span>
             </div>
-            @if (!empty($totalBids[(string) $koi->id]['has_winner']) && $totalBids[(string) $koi->id]['has_winner'])
+            @if ($koi->has_winner)
                 <div class="text-yellow-600 font-semibold">
-                    Winner:
-                    <span>{{ $totalBids[(string) $koi->id]['winner_name'] ?? 'N/A' }}</span>
+                    Winner: <span>{{ $koi->winner_name }}</span>
                 </div>
             @endif
+
+
         </div>
     </div>
 </div>

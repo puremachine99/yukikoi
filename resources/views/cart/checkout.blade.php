@@ -182,8 +182,6 @@
                                             class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:bg-zinc-900 dark:border-zinc-700"></x-textarea>
                                     </div>
                                 </div>
-
-
                             </div>
 
                             {{-- fee ongkir --}}
@@ -205,25 +203,33 @@
                         </div>
                     @endforeach
                     <!-- Biaya dan Total -->
-                    <div class="mb-4 bg-blue-50 p-4 rounded-lg shadow-inner">
-                        <h4 class="text-lg font-semibold text-blue-600 mb-4">Rincian Pembayaran</h4>
-                        <table class="w-full text-sm text-gray-800">
+                    <div class="mb-4 p-4 rounded-lg shadow-inner bg-blue-50 dark:bg-zinc-800 dark:text-gray-300">
+
+                        <h4 class="text-lg font-semibold text-blue-600 dark:text-blue-400 mb-4">Rincian Pembayaran</h4>
+
+                        <table class="w-full text-sm text-gray-800 dark:text-gray-300">
                             <tr>
-                                <td class="py-2 font-semibold text-gray-600">Subtotal Semua Penjual</td>
-                                <td class="py-2 text-right">Rp
-                                    {{ number_format($cartsBySeller->flatten()->sum('price'), 0, ',', '.') }}</td>
-                            </tr>
-                            <tr>
-                                <td class="py-2 font-semibold text-gray-600">Biaya Aplikasi</td>
-                                <td class="py-2 text-right">Rp {{ number_format($applicationFee, 0, ',', '.') }}</td>
-                            </tr>
-                            <tr>
-                                <td class="py-2 font-semibold text-gray-600">Biaya Payment Gateway</td>
-                                <td class="py-2 text-right">Rp {{ number_format($paymentGatewayFee, 0, ',', '.') }}
+                                <td class="py-2 font-semibold text-gray-600 dark:text-gray-400">Subtotal Semua Penjual
+                                </td>
+                                <td class="py-2 text-right text-gray-800 dark:text-gray-200">
+                                    Rp {{ number_format($cartsBySeller->flatten()->sum('price'), 0, ',', '.') }}
                                 </td>
                             </tr>
                             <tr>
-                                <td class="py-2 font-semibold text-gray-600 dark:text-gray-300">
+                                <td class="py-2 font-semibold text-gray-600 dark:text-gray-400">Biaya Aplikasi</td>
+                                <td class="py-2 text-right text-gray-800 dark:text-gray-200">
+                                    Rp {{ number_format($applicationFee, 0, ',', '.') }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 font-semibold text-gray-600 dark:text-gray-400">Biaya Payment Gateway
+                                </td>
+                                <td class="py-2 text-right text-gray-800 dark:text-gray-200">
+                                    Rp {{ number_format($paymentGatewayFee, 0, ',', '.') }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 font-semibold text-gray-600 dark:text-gray-400">
                                     Biaya Rekber <small class="text-red-500">*</small> <span
                                         class="text-sm">(Opsional)</span>
                                 </td>
@@ -233,22 +239,26 @@
                                             class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600 dark:text-gray-400">Rp</span>
                                         <x-number-input id="rekber_fee" name="rekber_fee" min="0"
                                             step="500" value="0"
-                                            class="block w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-gray-800 dark:text-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                            onchange="validateRekberFee(this)"></x-number-input>
+                                            class="block w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-zinc-700 rounded-lg 
+                                            bg-white dark:bg-zinc-900 text-gray-800 dark:text-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                            onchange="validateRekberFee(this)">
+                                        </x-number-input>
                                     </div>
                                 </td>
                             </tr>
-
                             <tr>
-                                <td class="py-2 font-semibold text-gray-600">Total </td>
+                                <td class="py-2 font-semibold text-gray-600 dark:text-gray-400">Total </td>
                                 <td class="py-2 text-right">
-                                    <h4 class="text-lg font-bold">Rp <span
-                                            id="total_price_display">{{ number_format($cartsBySeller->flatten()->sum('price') + $applicationFee + $paymentGatewayFee, 0, ',', '.') }}</span>
+                                    <h4 class="text-lg font-bold text-gray-900 dark:text-gray-200">Rp
+                                        <span id="total_price_display">
+                                            {{ number_format($cartsBySeller->flatten()->sum('price') + $applicationFee + $paymentGatewayFee, 0, ',', '.') }}
+                                        </span>
                                     </h4>
                                 </td>
                             </tr>
                         </table>
                     </div>
+
                     <!-- Tombol -->
                     <div class="flex justify-end">
                         <button type="submit"
