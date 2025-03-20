@@ -75,18 +75,21 @@
 
     <script>
         $(document).ready(function() {
+
+            // **Toggles Accordion untuk Riwayat Status**
             $(".toggle-accordion").on("click", function() {
                 let target = $(this).data("target");
                 $("#" + target).toggleClass("hidden");
             });
 
-            function updateStatus(itemId, status) {
+            // **Update Status Pesanan dengan AJAX**
+            function updateStatus(itemId) {
                 Swal.fire({
-                    title: 'Konfirmasi Status',
-                    text: "Apakah Anda yakin ingin mengubah status menjadi " + status + "?",
+                    title: 'Konfirmasi Penyelesaian',
+                    text: "Apakah Anda yakin ingin menyelesaikan transaksi ini?",
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonText: 'Ya, Ubah',
+                    confirmButtonText: 'Ya, Selesaikan',
                     cancelButtonText: 'Batal'
                 }).then((result) => {
                     if (result.isConfirmed) {
@@ -98,7 +101,7 @@
                             },
                             data: JSON.stringify({
                                 item_id: itemId,
-                                status: status
+                                status: "selesai"
                             }),
                             contentType: "application/json",
                             beforeSend: function() {
@@ -141,7 +144,7 @@
                     }
                 });
             }
-
+            // **Menampilkan Modal Rating**
             function showRatingModal(itemId) {
                 Swal.fire({
                     title: 'Beri Rating',
@@ -208,8 +211,81 @@
                     }
                 });
             }
+
+            // **Menampilkan Modal Komplain**
+            function showComplaintModal(itemId) {
+                Swal.fire({
+                    title: 'Form Komplain / Retur',
+                    html: `
+                        <label class="block text-sm font-medium text-gray-700">Jenis Permintaan:</label>
+                        <select id="complaintType" class="swal2-input">
+                            <option value="retur">Retur (Barang Tidak Sesuai / Ikan Mati)</option>
+                            <option value="komplain">Komplain (Pelayanan Buruk / Lainnya)</option>
+                        </select>
+    
+                        <label class="block text-sm font-medium text-gray-700 mt-2">Alasan:</label>
+                        <textarea id="reason" class="swal2-textarea" placeholder="Jelaskan alasan..."></textarea>
+    
+                        <label class="block text-sm font-medium text-gray-700 mt-2">Unggah Bukti (Max 50MB, Video/Gambar):</label>
+                        <input type="file" id="proof" class="swal2-file" accept="video/*,image/*">
+                    `,
+                    showCancelButton: true,
+                    confirmButtonText: 'Kirim Permintaan',
+                    cancelButtonText: 'Batal',
+                    preConfirm: () => {
+                        const complaintType = $("#complaintType").val();
+                        const reason = $("#reason").val().trim();
+                        const proof = $("#proof")[0].files[0];
+
+                        if (!reason) {
+                            Swal.showValidationMessage('Alasan tidak boleh kosong!');
+                            return false;
+                        }
+
+                        if (!proof) {
+                            Swal.showValidationMessage('Bukti harus diunggah!');
+                            return false;
+                        }
+
+                        let formData = new FormData();
+                        formData.append('item_id', itemId);
+                        formData.append('type', complaintType);
+                        formData.append('reason', reason);
+                        formData.append('proof', proof);
+                        formData.append('_token', $('meta[name="csrf-token"]').attr("content"));
+
+                        return $.ajax({
+                            url: "{{ route('complaints.store') }}",
+                            type: "POST",
+                            data: formData,
+                            processData: false,
+                            contentType: false
+                        }).then(response => {
+                            if (!response.success) {
+                                throw new Error(response.message);
+                            }
+                            return response;
+                        }).catch(error => {
+                            Swal.showValidationMessage(error.message);
+                        });
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire('Berhasil!', 'Permintaan Komplain / Retur telah dikirim.', 'success')
+                            .then(() => {
+                                location.reload();
+                            });
+                    }
+                });
+            }
+
+            // **Expose function ke global scope**
+            window.updateStatus = updateStatus;
+            window.showRatingModal = showRatingModal;
+            window.showComplaintModal = showComplaintModal;
         });
     </script>
+
 
 
 </x-app-layout>

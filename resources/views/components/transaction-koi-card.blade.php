@@ -101,69 +101,28 @@
     </div>
 
     <!-- Footer Update Status -->
-    @if ($isSeller)
-        <form action="{{ route('orders.updateStatus', ['order' => $item->id]) }}" method="POST">
+
+    @if ($isSeller && $item->status != 'selesai')
+        <form action="{{ route('orders.updateStatus') }}" method="POST" data-ajax="true">
             @csrf
-            <div class="mt-4 flex flex-wrap md:flex-nowrap items-center justify-between" x-data="{
-                selectedStatus: '',
-                reason: '',
-                updateHiddenReason() {
-                    if (this.selectedStatus === 'karantina') {
-                        this.reason = this.$refs.reasonKarantina?.value || '';
-                    } else if (this.selectedStatus === 'dibatalkan') {
-                        this.reason = this.$refs.reasonBatal?.value || '';
-                    } else {
-                        this.reason = '';
-                    }
-                }
-            }">
-                <!-- Hidden Input -->
-                <input type="hidden" name="item_id" value="{{ $item->id }}">
-                <input type="hidden" name="reason" x-model="reason">
-
-                <!-- Pilihan Status -->
-                <div class="w-full md:w-auto flex items-center space-x-2">
-                    <x-select x-model="selectedStatus" name="status" class="border px-3 py-2 rounded text-sm"
-                        @change="updateHiddenReason(); checkCancelStatus()">
-                        <option value="">Pilih Status</option>
-                        <option value="siap dikirim">Siap Dikirim</option>
-                        <option value="dikirim">Dikirim</option>
-                        <option value="karantina">Karantina</option>
-                        <option value="dibatalkan">Batalkan Pesanan</option>
-                    </x-select>
-
-                    {{-- tombol pembatalan --}}
-                    <button type="button" x-show="selectedStatus === 'dibatalkan'"
-                        class="bg-red-500 text-white text-sm px-4 py-2 rounded-md"
-                        @click="showCancelModal('{{ $item->id }}')">
-                        Ajukan Pembatalan
-                    </button>
-                    <!-- Pilihan alasan karantina -->
-                    <x-select x-show="selectedStatus === 'karantina'" x-ref="reasonKarantina" x-model="reason"
-                        @change="updateHiddenReason()" style="display: none;">
-                        <option value="Ikan Sakit (7 hari)">Ikan Sakit (7 hari)</option>
-                        <option value="Ikan Buang Kotoran (3 hari)">Ikan Buang Kotoran (3 hari)</option>
-                    </x-select>
-
-                    <!-- Textarea alasan pembatalan -->
-                    <textarea x-show="selectedStatus === 'dibatalkan'" x-ref="reasonBatal" x-model="reason" @input="updateHiddenReason()"
-                        placeholder="Alasan Pembatalan..." class="border px-3 py-2 rounded text-sm w-64" style="display: none;"></textarea>
-                </div>
-
-                <!-- Tombol Update -->
-                <div class="mt-2 md:mt-0">
-                    <button type="submit" class="bg-blue-500 text-white text-sm px-4 py-2 rounded-md">
-                        Update Status
-                    </button>
-                </div>
+            <input type="hidden" name="item_id" value="{{ $item->id }}">
+            <div class="mt-4 flex items-center space-x-2">
+                <x-select name="status" data-item-id="{{ $item->id }}" class="border px-3 py-2 rounded text-sm">
+                    <option value="">Pilih Status</option>
+                    <option value="siap dikirim">Siap Dikirim</option>
+                    <option value="dikirim">Dikirim</option>
+                    <option value="karantina">Karantina</option>
+                    <option value="dibatalkan">Batalkan Pesanan</option>
+                </x-select>
+                <button type="submit" class="bg-blue-500 text-white text-sm px-4 py-2 rounded-md">Update
+                    Status</button>
             </div>
         </form>
     @else
         @if ($item->status == 'dikirim')
             <div class="mt-4 flex items-center space-x-2">
                 <button class="bg-green-500 text-white px-4 py-2 rounded-md"
-                    onclick="updateStatusAndShowRating('{{ $item->id }}')">Selesai</button>
-
+                    onclick="updateStatus('{{ $item->id }}')">Selesai</button>
                 <button class="bg-red-500 text-white px-4 py-2 rounded-md"
                     onclick="showComplaintModal('{{ $item->id }}')">Komplain</button>
             </div>

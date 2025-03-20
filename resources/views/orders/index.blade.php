@@ -54,7 +54,7 @@
 
             // Handle form submission dengan AJAX
             $("form[data-ajax='true']").on("submit", function(e) {
-                e.preventDefault(); // Mencegah reload halaman
+                e.preventDefault(); // Mencegah redirect ke halaman baru
 
                 let formData = new FormData(this);
                 let action = $(this).attr("action");
@@ -88,6 +88,9 @@
                         }).then(() => {
                             if (data.nextAction === "showRatingModal") {
                                 showRatingModal(formData.get("item_id"));
+                            } else if (data.redirect) {
+                                window.location.href = data
+                                .redirect; // Redirect ke halaman sesuai peran
                             } else {
                                 location.reload(); // Reload halaman setelah sukses
                             }

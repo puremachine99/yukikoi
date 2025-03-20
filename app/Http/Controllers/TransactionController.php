@@ -255,56 +255,48 @@ class TransactionController extends Controller
     {
         \Log::info('Update Status Attempt:', $request->all());
 
-        $request->validate([
+        $validated = $request->validate([
             'item_id' => 'required|exists:transaction_items,id',
             'status' => 'required|in:siap dikirim,dikirim,karantina,dibatalkan,selesai,proses pengajuan komplain',
             'reason' => 'nullable|string|max:255',
             'karantina_end_date' => 'nullable|date|after:today'
         ]);
 
-        $item = TransactionItem::findOrFail($request->item_id);
+        $item = TransactionItem::findOrFail($validated['item_id']);
         $user = auth()->user();
         $isSeller = $user->id === $item->seller_id;
         $isBuyer = $user->id === $item->transaction->user_id;
 
         \Log::info("User ID: {$user->id} | Seller ID: {$item->seller_id} | Buyer ID: {$item->transaction->user_id}");
 
-        // **Cegah Seller Mengubah Status ke Selesai atau Komplain**
-        if ($isSeller && in_array($request->status, ['selesai', 'proses pengajuan komplain'])) {
-            \Log::warning("Seller mencoba mengubah status yang tidak diperbolehkan!");
+        if ($isSeller && in_array($validated['status'], ['selesai', 'proses pengajuan komplain'])) {
             return response()->json(['success' => false, 'message' => 'Seller tidak dapat mengubah status ke Selesai atau Komplain.'], 403);
         }
 
-        // **Cegah Buyer Mengubah Status Selain Selesai atau Komplain**
-        if ($isBuyer && !in_array($request->status, ['selesai', 'proses pengajuan komplain'])) {
-            \Log::warning("Buyer mencoba mengubah status yang tidak diperbolehkan!");
+        if ($isBuyer && !in_array($validated['status'], ['selesai', 'proses pengajuan komplain'])) {
             return response()->json(['success' => false, 'message' => 'Buyer hanya bisa mengubah status ke Selesai atau Komplain.'], 403);
         }
 
-        // **Siapkan Data Update**
-        $updateData = ['status' => $request->status];
+        $updateData = ['status' => $validated['status']];
 
-        if ($request->status === 'karantina') {
-            if (!$request->reason) {
-                \Log::error("Karantina gagal: alasan kosong!");
+        if ($validated['status'] === 'karantina') {
+            if (!$validated['reason']) {
                 return response()->json(['success' => false, 'message' => 'Alasan karantina harus diisi.'], 400);
             }
-            $updateData['karantina_end_date'] = now()->addDays($request->reason === 'Ikan Sakit (7 hari)' ? 7 : 3);
-            $updateData['karantina_reason'] = $request->reason;
+            $updateData['karantina_end_date'] = now()->addDays($validated['reason'] === 'Ikan Sakit (7 hari)' ? 7 : 3);
+            $updateData['karantina_reason'] = $validated['reason'];
         }
 
-        if ($request->status === 'dibatalkan') {
-            if (!$request->reason) {
-                \Log::error("Pembatalan gagal: alasan kosong!");
+        if ($validated['status'] === 'dibatalkan') {
+            if (!$validated['reason']) {
                 return response()->json(['success' => false, 'message' => 'Alasan pembatalan harus diisi.'], 400);
             }
-            $updateData['cancel_reason'] = $request->reason;
+            $updateData['cancel_reason'] = $validated['reason'];
         }
 
-        // **Update Status di Transaction Item**
         try {
             $item->update($updateData);
-            \Log::info("Status berhasil diperbarui ke {$request->status}");
+            \Log::info("Status berhasil diperbarui ke {$validated['status']}");
         } catch (\Exception $e) {
             \Log::error("Gagal update status: " . $e->getMessage());
             return response()->json(['success' => false, 'message' => 'Terjadi kesalahan saat memperbarui status.'], 500);
@@ -313,9 +305,11 @@ class TransactionController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Status transaksi berhasil diperbarui!',
-            'nextAction' => ($request->status === 'selesai') ? 'showRatingModal' : 'reload'
+            'nextAction' => ($validated['status'] === 'selesai') ? 'showRatingModal' : 'reload'
         ]);
     }
+
+
 
     public function storeRating(Request $request)
     {
