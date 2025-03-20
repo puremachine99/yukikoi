@@ -37,72 +37,79 @@
         </div>
     </div>
 
-
     <script>
-        function toggleAccordion(id) {
-            document.getElementById(id).classList.toggle("hidden");
-        }
+        $(document).ready(function() {
+            $(".toggle-accordion").on("click", function() {
+                let target = $(this).data("target");
+                $("#" + target).toggleClass("hidden");
+            });
+            // Menampilkan form alasan jika status dipilih "karantina" atau "dibatalkan"
+            $("select[name='status']").on("change", function() {
+                let itemId = $(this).closest("form").find("input[name='item_id']").val();
+                let status = $(this).val();
 
-        document.addEventListener("DOMContentLoaded", function() {
-            @if (session('success'))
-                Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'success',
-                    title: "{{ session('success') }}",
-                    showConfirmButton: false,
-                    timer: 3000
-                });
-            @endif
-        });
+                $("#karantinaFields-" + itemId).toggle(status === "karantina");
+                $("#cancelFields-" + itemId).toggle(status === "dibatalkan");
+            });
 
-        // AJAX Update Status dengan SweetAlert
-        document.querySelectorAll("form[data-ajax='true']").forEach(form => {
-            form.addEventListener("submit", function(e) {
-                e.preventDefault();
+            // Handle form submission dengan AJAX
+            $("form[data-ajax='true']").on("submit", function(e) {
+                e.preventDefault(); // Mencegah reload halaman
+
                 let formData = new FormData(this);
-                let action = this.getAttribute("action");
+                let action = $(this).attr("action");
 
-                fetch(action, {
-                        method: "POST",
-                        headers: {
-                            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content,
-                            "Accept": "application/json"
-                        },
-                        body: formData
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            Swal.fire({
-                                toast: true,
-                                position: 'top-end',
-                                icon: 'success',
-                                title: data.message,
-                                showConfirmButton: false,
-                                timer: 3000
-                            });
-
-                            setTimeout(() => {
-                                location.reload();
-                            }, 1000);
-                        } else {
-                            Swal.fire({
-                                icon: "error",
-                                title: "Gagal!",
-                                text: data.message
-                            });
+                $.ajax({
+                    url: action,
+                    type: "POST",
+                    headers: {
+                        "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content")
+                    },
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    beforeSend: function() {
+                        Swal.fire({
+                            title: "Memproses...",
+                            text: "Mohon tunggu sebentar",
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            },
+                        });
+                    },
+                    success: function(data) {
+                        Swal.fire({
+                            icon: "success",
+                            title: "Berhasil!",
+                            text: data.message,
+                            showConfirmButton: false,
+                            timer: 2000
+                        }).then(() => {
+                            if (data.nextAction === "showRatingModal") {
+                                showRatingModal(formData.get("item_id"));
+                            } else {
+                                location.reload(); // Reload halaman setelah sukses
+                            }
+                        });
+                    },
+                    error: function(xhr) {
+                        let errorMessage = "Terjadi kesalahan saat memperbarui status.";
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
                         }
-                    })
-                    .catch(error => {
                         Swal.fire({
                             icon: "error",
                             title: "Gagal!",
-                            text: "Terjadi kesalahan saat memperbarui status."
+                            text: errorMessage
                         });
-                    });
+                    }
+                });
             });
+
         });
     </script>
+
+
 
 </x-app-layout>

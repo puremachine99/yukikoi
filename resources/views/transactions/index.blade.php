@@ -74,272 +74,142 @@
     </div>
 
     <script>
-        function toggleAccordion(id) {
-            document.getElementById(id).classList.toggle("hidden");
-        }
-
-        function updateStatusAndShowRating(itemId) {
-            Swal.fire({
-                title: 'Konfirmasi Status',
-                text: "Apakah Anda yakin ingin menyelesaikan transaksi ini?",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, Selesaikan',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    fetch("{{ route('transactions.updateStatus') }}", {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                            },
-                            body: JSON.stringify({
-                                item_id: itemId,
-                                status: "selesai"
-                            })
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                Swal.fire('Berhasil!', 'Pesanan telah diselesaikan.', 'success')
-                                    .then(() => {
-                                        if (data.nextAction === "showRatingModal") {
-                                            showRatingModal(itemId); // Munculkan modal rating
-                                        } else {
-                                            location.reload(); // Reload halaman jika tidak perlu rating
-                                        }
-                                    });
-                            } else {
-                                Swal.fire('Gagal!', data.message, 'error');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            Swal.fire('Error', 'Terjadi kesalahan saat memperbarui status.', 'error');
-                        });
-                }
+        $(document).ready(function() {
+            $(".toggle-accordion").on("click", function() {
+                let target = $(this).data("target");
+                $("#" + target).toggleClass("hidden");
             });
-        }
 
-        function updateStatus(itemId, status) {
-            Swal.fire({
-                title: 'Konfirmasi Status',
-                text: "Apakah Anda yakin ingin mengubah status item ini menjadi " + status + "?",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, Ubah',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    fetch("{{ route('transactions.updateStatus') }}", {
-                            method: "POST",
+            function updateStatus(itemId, status) {
+                Swal.fire({
+                    title: 'Konfirmasi Status',
+                    text: "Apakah Anda yakin ingin mengubah status menjadi " + status + "?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Ubah',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: "{{ route('transactions.updateStatus') }}",
+                            type: "POST",
                             headers: {
-                                "Content-Type": "application/json",
-                                "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content")
                             },
-                            body: JSON.stringify({
+                            data: JSON.stringify({
                                 item_id: itemId,
-                                status: "selesai"
-                            })
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            console.log("Response dari server:", data);
-                            if (data.success) {
-                                Swal.fire('Berhasil!', 'Pesanan telah diselesaikan.', 'success').then(() => {
+                                status: status
+                            }),
+                            contentType: "application/json",
+                            beforeSend: function() {
+                                Swal.fire({
+                                    title: "Memproses...",
+                                    text: "Mohon tunggu sebentar",
+                                    allowOutsideClick: false,
+                                    didOpen: () => {
+                                        Swal.showLoading();
+                                    },
+                                });
+                            },
+                            success: function(data) {
+                                Swal.fire({
+                                    icon: "success",
+                                    title: "Berhasil!",
+                                    text: data.message,
+                                    showConfirmButton: false,
+                                    timer: 2000
+                                }).then(() => {
                                     if (data.nextAction === "showRatingModal") {
-                                        showRatingModal(itemId); // Munculkan modal rating jika sukses
+                                        showRatingModal(itemId);
                                     } else {
                                         location.reload();
                                     }
                                 });
-                            } else {
-                                Swal.fire('Gagal!', data.message, 'error');
+                            },
+                            error: function(xhr) {
+                                let errorMessage = "Terjadi kesalahan saat memperbarui status.";
+                                if (xhr.responseJSON && xhr.responseJSON.message) {
+                                    errorMessage = xhr.responseJSON.message;
+                                }
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Gagal!",
+                                    text: errorMessage
+                                });
                             }
-                        })
-                        .catch(error => {
-                            console.error('Fetch error:', error);
-                            Swal.fire('Error', 'Terjadi kesalahan saat memperbarui status.', 'error');
                         });
+                    }
+                });
+            }
 
-                }
-            });
-        }
-
-        function showComplaintModal(itemId) {
-            Swal.fire({
-                title: 'Form Komplain / Retur',
-                html: `
-                        <label class="block text-sm font-medium text-gray-700">Jenis Permintaan:</label>
-                        <select id="complaintType" class="swal2-input">
-                            <option value="retur">Retur (Barang Tidak Sesuai / Ikan Mati)</option>
-                            <option value="komplain">Komplain (Pelayanan Buruk / Lainnya)</option>
-                        </select>
-
-                        <label class="block text-sm font-medium text-gray-700 mt-2">Alasan:</label>
-                        <textarea id="reason" class="swal2-textarea" placeholder="Jelaskan alasan..."></textarea>
-
-                        <label class="block text-sm font-medium text-gray-700 mt-2">Unggah Bukti (Max 50MB, Video/Gambar):</label>
-                        <input type="file" id="proof" class="swal2-file" accept="video/*,image/*">
+            function showRatingModal(itemId) {
+                Swal.fire({
+                    title: 'Beri Rating',
+                    html: `
+                        <div style="text-align: left;">
+                            <label><strong>Kesesuaian Ikan:</strong></label>
+                            <div id="rating_quality" class="rateyo"></div>
+    
+                            <label><strong>Kondisi Pengiriman:</strong></label>
+                            <div id="rating_shipping" class="rateyo"></div>
+    
+                            <label><strong>Pelayanan Seller:</strong></label>
+                            <div id="rating_service" class="rateyo"></div>
+    
+                            <label><strong>Ulasan:</strong></label>
+                            <textarea id="review" class="swal2-textarea" placeholder="Tulis ulasan..."></textarea>
+    
+                            <input type="hidden" id="rating_quality_value">
+                            <input type="hidden" id="rating_shipping_value">
+                            <input type="hidden" id="rating_service_value">
+                        </div>
                     `,
-                showCancelButton: true,
-                confirmButtonText: 'Kirim Permintaan',
-                cancelButtonText: 'Batal',
-                preConfirm: () => {
-                    const complaintType = document.getElementById('complaintType').value;
-                    const reason = document.getElementById('reason').value.trim();
-                    const proof = document.getElementById('proof').files[0];
-
-                    if (!reason) {
-                        Swal.showValidationMessage('Alasan tidak boleh kosong!');
-                        return false;
+                    didOpen: () => {
+                        $(".rateyo").rateYo({
+                            rating: 0,
+                            fullStar: true,
+                            starWidth: "25px",
+                            onSet: function(rating, rateYoInstance) {
+                                $(rateYoInstance.node).siblings("input").val(rating);
+                            }
+                        });
+                    },
+                    showCancelButton: true,
+                    confirmButtonText: 'Kirim Rating',
+                    preConfirm: () => {
+                        return {
+                            rating_quality: $("#rating_quality_value").val(),
+                            rating_shipping: $("#rating_shipping_value").val(),
+                            rating_service: $("#rating_service_value").val(),
+                            review: $("#review").val()
+                        };
                     }
-
-                    if (!proof) {
-                        Swal.showValidationMessage('Bukti harus diunggah!');
-                        return false;
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: "{{ route('transactions.rate') }}",
+                            type: "POST",
+                            headers: {
+                                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content")
+                            },
+                            data: JSON.stringify({
+                                transaction_item_id: itemId,
+                                rating_quality: result.value.rating_quality,
+                                rating_shipping: result.value.rating_shipping,
+                                rating_service: result.value.rating_service,
+                                review: result.value.review
+                            }),
+                            contentType: "application/json",
+                            success: function() {
+                                Swal.fire("Sukses!", "Rating berhasil dikirim.", "success")
+                                    .then(() => location.reload());
+                            }
+                        });
                     }
-
-                    console.log("File yang akan dikirim:", proof);
-                    console.log("Tipe File:", proof.type);
-                    console.log("Ukuran File:", proof.size);
-
-                    let formData = new FormData();
-                    formData.append('item_id', itemId);
-                    formData.append('type', complaintType);
-                    formData.append('reason', reason);
-                    formData.append('proof', proof);
-                    formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
-
-                    return fetch("{{ route('complaints.store') }}", {
-                        method: "POST",
-                        body: formData
-                    }).then(response => {
-                        if (!response.ok) {
-                            // Jika server error, cek apakah respons HTML
-                            return response.text().then(text => {
-                                console.error("Server Response:", text);
-                                throw new Error(
-                                    "Server mengembalikan error. Cek Network tab untuk detail."
-                                );
-                            });
-                        }
-                        return response.json();
-                    }).then(data => {
-                        if (!data.success) {
-                            throw new Error(data.message);
-                        }
-                        return data;
-                    }).catch(error => {
-                        console.error("Error Response:", error);
-                        Swal.showValidationMessage(error);
-                    });
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire('Berhasil!', 'Permintaan Komplain / Retur telah dikirim.', 'success').then(() => {
-                        location.reload();
-                    });
-                }
-            });
-        }
-
-        function showRatingModal(itemId) {
-            Swal.fire({
-                title: 'Beri Rating',
-                html: `
-                    <div style="text-align: left;">
-                        <label><strong>Kesesuaian Ikan:</strong></label>
-                        <div id="rating_quality" class="rateyo"></div>
-
-                        <label><strong>Kondisi Pengiriman:</strong></label>
-                        <div id="rating_shipping" class="rateyo"></div>
-
-                        <label><strong>Pelayanan Seller:</strong></label>
-                        <div id="rating_service" class="rateyo"></div>
-
-                        <label><strong>Ulasan:</strong></label>
-                        <textarea id="review" class="swal2-textarea" placeholder="Tulis ulasan..."></textarea>
-
-                        <!-- Hidden input untuk menyimpan nilai rating -->
-                        <input type="hidden" id="rating_quality_value">
-                        <input type="hidden" id="rating_shipping_value">
-                        <input type="hidden" id="rating_service_value">
-                    </div>
-                `,
-                didOpen: () => {
-                    // Periksa apakah jQuery sudah dimuat
-                    if (typeof $.fn.rateYo === 'undefined') {
-                        console.error('RateYo is not loaded!');
-                        return;
-                    }
-
-                    // Inisialisasi RateYo untuk setiap kategori rating
-                    $("#rating_quality").rateYo({
-                        rating: 0,
-                        fullStar: true,
-                        starWidth: "25px",
-                        onSet: function(rating) {
-                            $("#rating_quality_value").val(rating);
-                        }
-                    });
-
-                    $("#rating_shipping").rateYo({
-                        rating: 0,
-                        fullStar: true,
-                        starWidth: "25px",
-                        onSet: function(rating) {
-                            $("#rating_shipping_value").val(rating);
-                        }
-                    });
-
-                    $("#rating_service").rateYo({
-                        rating: 0,
-                        fullStar: true,
-                        starWidth: "25px",
-                        onSet: function(rating) {
-                            $("#rating_service_value").val(rating);
-                        }
-                    });
-                },
-                showCancelButton: true,
-                confirmButtonText: 'Kirim Rating',
-                preConfirm: () => {
-                    return {
-                        rating_quality: $("#rating_quality_value").val(),
-                        rating_shipping: $("#rating_shipping_value").val(),
-                        rating_service: $("#rating_service_value").val(),
-                        review: document.getElementById('review').value
-                    };
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    fetch("{{ route('transactions.rate') }}", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                        },
-                        body: JSON.stringify({
-                            transaction_item_id: itemId,
-                            rating_quality: result.value.rating_quality,
-                            rating_shipping: result.value.rating_shipping,
-                            rating_service: result.value.rating_service,
-                            review: result.value.review
-                        })
-                    }).then(response => response.json()).then(data => {
-                        if (data.success) {
-                            Swal.fire('Sukses!', 'Rating berhasil dikirim.', 'success').then(() => {
-                                location.reload();
-                            });
-                        } else {
-                            Swal.fire('Gagal!', data.message, 'error');
-                        }
-                    });
-                }
-            });
-        }
+                });
+            }
+        });
     </script>
+
 
 </x-app-layout>

@@ -81,10 +81,9 @@
         </div>
     </div>
 
-    <!-- Row Akordion Full Width -->
     <div class="mt-4">
-        <button onclick="toggleAccordion('history-{{ $item->id }}')"
-            class="text-indigo-500 hover:underline text-sm">
+        <button class="toggle-accordion text-indigo-500 hover:underline text-sm"
+            data-target="history-{{ $item->id }}">
             Lihat Riwayat Status
         </button>
         <div id="history-{{ $item->id }}" class="hidden bg-zinc-100 dark:bg-zinc-700 p-3 mt-2 rounded-md">
@@ -170,7 +169,8 @@
             </div>
         @endif
     @endif
-
+    {{-- submit seller update status tidak redirect ke halaman order, 
+harusnya redirect + kasih swal toast berhasil atau gagal. --}}
 
 
 </div>

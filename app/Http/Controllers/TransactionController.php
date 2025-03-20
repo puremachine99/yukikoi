@@ -130,8 +130,6 @@ class TransactionController extends Controller
         return view('transactions.show', compact('transaction', 'buyer', 'seller', 'winningMethod'));
     }
 
-    // app/Http/Controllers/TransactionController.php
-
     public function pay(Request $request, Transaction $transaction)
     {
         $request->validate([
@@ -273,13 +271,13 @@ class TransactionController extends Controller
 
         // **Cegah Seller Mengubah Status ke Selesai atau Komplain**
         if ($isSeller && in_array($request->status, ['selesai', 'proses pengajuan komplain'])) {
-            \Log::warning("Seller mencoba mengubah status tidak diperbolehkan!");
+            \Log::warning("Seller mencoba mengubah status yang tidak diperbolehkan!");
             return response()->json(['success' => false, 'message' => 'Seller tidak dapat mengubah status ke Selesai atau Komplain.'], 403);
         }
 
         // **Cegah Buyer Mengubah Status Selain Selesai atau Komplain**
         if ($isBuyer && !in_array($request->status, ['selesai', 'proses pengajuan komplain'])) {
-            \Log::warning("Buyer mencoba mengubah status tidak diperbolehkan!");
+            \Log::warning("Buyer mencoba mengubah status yang tidak diperbolehkan!");
             return response()->json(['success' => false, 'message' => 'Buyer hanya bisa mengubah status ke Selesai atau Komplain.'], 403);
         }
 
@@ -318,7 +316,6 @@ class TransactionController extends Controller
             'nextAction' => ($request->status === 'selesai') ? 'showRatingModal' : 'reload'
         ]);
     }
-
 
     public function storeRating(Request $request)
     {
