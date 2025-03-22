@@ -25,7 +25,15 @@ class KoiEnricher
             ->selectRaw('koi_id, COUNT(*) as likes_count')
             ->groupBy('koi_id')
             ->get()
-            ->keyBy('koi_id');
+            ->keyBy(fn($item) => (string) $item->koi_id);
+
+        $likesUserKoiIds = UserActivity::where('user_id', $userId)
+            ->where('activity_type', 'like')
+            ->whereIn('koi_id', $koiIds)
+            ->pluck('koi_id')
+            ->map(fn($id) => (string) $id)
+            ->toArray();
+
 
         $views = UserActivity::whereIn('koi_id', $koiIds)
             ->where('activity_type', 'view')
@@ -56,13 +64,14 @@ class KoiEnricher
             $koi->status_lelang = $auction->status;
             $koi->end_time = $auction->end_time;
 
-            $koi->total_bids = $bids[$koi->id]->total_bids ?? 0;
-            $koi->last_bid = $bids[$koi->id]->last_bid ?? null;
+            $koiId = (string) $koi->id;
+            $koi->total_bids = $bids[$koiId]->total_bids ?? 0;
+            $koi->last_bid = $bids[$koiId]->last_bid ?? null;
 
             $koi->likes_count = $likes[$koi->id]->likes_count ?? 0;
             $koi->views_count = $views[$koi->id]->views_count ?? 0;
 
-            $koi->user_liked = $userId ? in_array($koi->id, $wishlists) : false;
+            $koi->user_liked = in_array($koiId, $likesUserKoiIds, true);
             $koi->wishlisted = $userId ? in_array($koi->id, $wishlists) : false;
 
             if (isset($winners[$koi->id])) {

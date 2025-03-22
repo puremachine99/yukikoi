@@ -50,7 +50,7 @@
                     </span>
 
                     <div class="text-sm text-gray-700 dark:text-gray-200">
-                        <span>{{ $totalBids['total_bids'] ?? 0 }}x Bids</span>
+                        <span>{{ $koi->total_bids ?? 0 }}x Bids</span>
                     </div>
                 </div>
 
@@ -241,7 +241,7 @@
             </div>
             <div class="text-blue-600 font-semibold">
                 Last Bid:
-                <span>{{ number_format($koi->latest_bid, 0, ',', '.') }}</span>
+                <span>{{ number_format($koi->last_bid ?? 0, 0, ',', '.') }}</span>
             </div>
             @if ($koi->has_winner)
                 <div class="text-yellow-600 font-semibold">
