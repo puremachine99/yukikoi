@@ -245,18 +245,16 @@
             Swal.fire({
                 title: 'Bukti Video Pembatalan',
                 html: `
-                <video controls style="width:100%;border-radius:8px;">
-                    <source src="${videoUrl}" type="video/mp4">
-                    Browser Anda tidak mendukung video.
-                </video>
-            `,
+                    <video controls style="width:100%;border-radius:8px;">
+                        <source src="${videoUrl}" type="video/mp4">
+                        Browser Anda tidak mendukung video.
+                    </video>
+                `,
                 showCloseButton: true,
                 showConfirmButton: false,
                 width: '600px'
             });
         }
     </script>
-
-
 
 </x-app-layout>

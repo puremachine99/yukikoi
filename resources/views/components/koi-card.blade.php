@@ -10,7 +10,7 @@
                 {{ Str::ucfirst($koi->auction->user->farm_name) }} [{{ $koi->auction->user->city }}]</h5>
 
             <div class="text-sm text-yellow-500">
-                ⭐ {{ number_format($koi->auction->user->rating, 1) }} / 5
+                ⭐ {{ number_format($koi->auction->user->overall_rating, 1) }} / 5
             </div>
 
         </div>

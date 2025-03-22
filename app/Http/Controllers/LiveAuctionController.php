@@ -12,11 +12,11 @@ use Illuminate\Http\Request;
 use App\Models\TransactionItem;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-
+use App\Services\KoiEnricher;
 class LiveAuctionController extends Controller
 {
 
-    public function index(Request $request)
+    public function index(Request $request, KoiEnricher $enricher)
     {
         $userId = Auth::id(); // ID user yang sedang login
 
@@ -39,7 +39,7 @@ class LiveAuctionController extends Controller
 
         // **Query utama untuk mengambil koi yang sedang dilelang (jenis reguler)**
         $query = Koi::with([
-            'auction',
+            'auction.user',
             'media' => function ($query) {
                 $query->where('media_type', 'photo');
             },
@@ -79,65 +79,22 @@ class LiveAuctionController extends Controller
 
         // **Ambil data dengan sorting berdasarkan weight dari preferensi user**
         $kois = $query
+            ->with([
+                'auction.user',
+                'media' => fn($q) => $q->where('media_type', 'photo'),
+                'bids' => fn($q) => $q->latest()
+            ])
+            ->select('kois.*')
             ->orderByDesc('user_pref.weight')
-            ->orderByDesc('created_at') // Jika tidak ada preferensi, urutkan berdasarkan terbaru
-            ->select('kois.*') // Pastikan hanya kolom dari `kois` yang diambil
+            ->orderByDesc('created_at')
             ->paginate(30);
 
-        // **Ambil wishlist user**
-        $wishlist = Wishlist::where('user_id', $userId)
-            ->pluck('koi_id')
-            ->toArray();
+        $wishlist = Wishlist::where('user_id', $userId)->pluck('koi_id')->toArray();
 
-        // **Ambil jumlah like untuk setiap koi**
-        $likes = UserActivity::whereIn('koi_id', $kois->pluck('id'))
-            ->where('activity_type', 'like')
-            ->selectRaw('koi_id, COUNT(*) as likes_count')
-            ->groupBy('koi_id')
-            ->get()
-            ->keyBy('koi_id');
+        // ✅ Inject data enrichment langsung dari service
+        $kois = $enricher->enrichCollection($kois, $userId);
 
-        // Hitung total bids dan ambil data pemenang jika ada
-        $totalBids = Bid::whereIn('koi_id', $kois->pluck('id'))
-            ->selectRaw('koi_id, COUNT(*) as total_bids, MAX(amount) as latest_bid')
-            ->groupBy('koi_id')
-            ->get()
-            ->keyBy('koi_id');
-
-        // Ambil data pemenang dari transaction_items (karena sudah pasti ada setelah menang)
-        $winners = TransactionItem::whereIn('koi_id', $kois->pluck('id'))
-            ->whereNotNull('transaction_id') // Pastikan sudah masuk transaksi
-            ->with('transaction.user') // Ambil nama user pemenang
-            ->get()
-            ->keyBy('koi_id');
-
-        // Tambahkan informasi pemenang ke dalam totalBids
-        foreach ($kois as $koi) {
-            $koiId = $koi->id;
-            $koi->total_bids = $totalBids[$koiId]->total_bids ?? 0;
-            $koi->latest_bid = $totalBids[$koiId]->latest_bid ?? 0;
-
-            // Cek apakah ada pemenang dari transaction_items
-            if (isset($winners[$koiId])) {
-                $koi->has_winner = true;
-                $koi->winner_name = $winners[$koiId]->transaction->user->name ?? 'N/A';
-            } else {
-                $koi->has_winner = false;
-                $koi->winner_name = null;
-            }
-        }
-
-
-        // **Tambahkan data likes dan bids ke koleksi**
-        foreach ($kois as $koi) {
-            $koi->likes_count = $likes[$koi->id]->likes_count ?? 0;
-            $koi->user_liked = UserActivity::where('koi_id', $koi->id)
-                ->where('user_id', $userId)
-                ->where('activity_type', 'like')
-                ->exists();
-        }
-
-        return view('live.index', compact('kois', 'totalBids', 'wishlist'));
+        return view('live.index', compact('kois', 'wishlist'));
     }
 
     protected function getKois($userId, $auctionType = null)
