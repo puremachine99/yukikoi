@@ -113,6 +113,17 @@ Route::middleware(['auth'])->group(function () {
     //Seller
     Route::get('/orders', [TransactionController::class, 'sellerOrders'])->name('orders.index');
     Route::post('/orders/update-status', [TransactionController::class, 'updateStatus'])->name('orders.updateStatus');
+    Route::post('/upload/cancel-video', function (Illuminate\Http\Request $request) {
+        if ($request->hasFile('video')) {
+            $path = $request->file('video')->store('videos', 'public');
+            return response()->json([
+                'success' => true,
+                'path' => '/storage/' . $path,
+            ]);
+        }
+        return response()->json(['success' => false], 400);
+    })->name('upload.cancel.video');
+
 });
 
 

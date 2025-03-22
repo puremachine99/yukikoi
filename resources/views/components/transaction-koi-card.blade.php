@@ -51,12 +51,30 @@
                     $item->status == 'komplain ditolak' ||
                     $item->status == 'karantina')
                 <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
-                    Alasan : <span class="font-bold">{{ $item->karantina_reason }}{{ $item->cancel_reason }}</span>
+                    Alasan :
+                    <span class="font-bold">
+                        {{ $item->karantina_reason }}
+
+                        @if ($item->cancel_reason)
+                            @php
+                                $cancel = json_decode($item->cancel_reason);
+                            @endphp
+
+                            @if (json_last_error() === JSON_ERROR_NONE)
+                                {{ $cancel->reason ?? '' }}
+                                <a href="javascript:void(0)"
+                                    onclick="showCancelVideoModal('{{ $cancel->video_url ?? '' }}')"
+                                    class="inline-block ml-2 px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition">
+                                    Lihat Video
+                                </a>
+                            @else
+                                {{ $item->cancel_reason }}
+                            @endif
+                        @endif
+                    </span>
                 </p>
+
             @endif
-
-
-
 
         </div>
 
@@ -107,13 +125,14 @@
             @csrf
             <input type="hidden" name="item_id" value="{{ $item->id }}">
             <div class="mt-4 flex items-center space-x-2">
-                <x-select name="status" data-item-id="{{ $item->id }}" class="border px-3 py-2 rounded text-sm">
+                <x-select name="status" class="border px-3 py-2 rounded text-sm">
                     <option value="">Pilih Status</option>
                     <option value="siap dikirim">Siap Dikirim</option>
                     <option value="dikirim">Dikirim</option>
                     <option value="karantina">Karantina</option>
                     <option value="dibatalkan">Batalkan Pesanan</option>
                 </x-select>
+
                 <button type="submit" class="bg-blue-500 text-white text-sm px-4 py-2 rounded-md">Update
                     Status</button>
             </div>
