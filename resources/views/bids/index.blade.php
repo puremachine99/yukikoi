@@ -87,15 +87,15 @@
                                         if (event.winner.id === loggedInUserId) {
                                             koiRow.classList.add('bg-green-100');
                                             actionsCell.innerHTML = `
-                                                <span class='text-green-500 font-bold'>
-                                                    Winner: ${event.winner.name} - Rp ${new Intl.NumberFormat('id-ID').format(event.winner.amount)}
-                                                </span>`;
+                                                                            <span class='text-green-500 font-bold'>
+                                                                                Winner: ${event.winner.name} - Rp ${new Intl.NumberFormat('id-ID').format(event.winner.amount)}
+                                                                            </span>`;
                                         } else {
                                             koiRow.classList.add('bg-red-100');
                                             actionsCell.innerHTML = `
-                                                <span class='text-red-500 font-bold'>
-                                                    Defeated by: ${event.winner.name} - Rp ${new Intl.NumberFormat('id-ID').format(event.winner.amount)}
-                                                </span>`;
+                                                                            <span class='text-red-500 font-bold'>
+                                                                                Defeated by: ${event.winner.name} - Rp ${new Intl.NumberFormat('id-ID').format(event.winner.amount)}
+                                                                            </span>`;
                                         }
                                     }
                                 });">
@@ -108,7 +108,10 @@
                                 <div class="flex-1">
                                     <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">
                                         {{ $bid->koi->kode_ikan . '. ' . $bid->koi->judul . ' ' . $bid->koi->ukuran }}
-                                        cm <span class="uppercase">({{ $bid->koi->gender }})</span>
+                                        cm <span class="uppercase">
+                                            ({{ $bid->koi->gender === 'male' ? 'M' : ($bid->koi->gender === 'female' ? 'F' : '') }})
+                                        </span>
+
                                     </h3>
                                     <p class="text-sm text-gray-500">
                                         {{ $farmName }}
@@ -196,7 +199,8 @@
                     koiId: koiId,
                     userId: parseInt('{{ auth()->id() }}'),
                     csrfToken: "{{ csrf_token() }}",
-                    openBid: parseInt(koiRow.find(`#bid-amount-${koiId}`).data('last-bid')) || parseInt(koiRow.find(`#bid-amount-${koiId}`).data('open-bid')),
+                    openBid: parseInt(koiRow.find(`#bid-amount-${koiId}`).data('last-bid')) || parseInt(
+                        koiRow.find(`#bid-amount-${koiId}`).data('open-bid')),
                     increment: parseInt(koiRow.find(`#bid-amount-${koiId}`).data('increment')),
                     lastBid: parseInt(koiRow.find(`#price-cell-${koiId}`).text().replace(/\./g, '')) ||
                         0,

@@ -286,6 +286,4 @@
         });
     </script>
  
-
-
 </x-app-layout>

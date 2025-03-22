@@ -33,7 +33,7 @@
                     <span
                         class="font-semibold 
                         {{ $koi->has_winner
-                            ? 'text-gray-500'
+                            ? 'text-red-500'
                             : ($koi->auction->status == 'ready'
                                 ? 'text-blue-600'
                                 : ($koi->auction->status == 'on going'
@@ -55,14 +55,16 @@
                 </div>
 
                 <span
-                    class="absolute  bottom-full mb-1 w-max px-1 py-0.5 text-xs text-white bg-black rounded hidden group-hover:block transform -translate-x-1/2 left-1/2">
-                    {{ $koi->auction->status == 'ready'
-                        ? 'Belum Mulai'
-                        : ($koi->auction->status == 'on going'
-                            ? 'Sedang
-                                                                                                                                                                                    Berlangsung'
-                            : 'Lelang Selesai') }}
+                    class="absolute bottom-full mb-1 w-max px-1 py-0.5 text-xs text-white bg-black rounded hidden group-hover:block transform -translate-x-1/2 left-1/2">
+                    {{ $koi->has_winner
+                        ? 'Terjual'
+                        : ($koi->auction->status == 'ready'
+                            ? 'Belum Mulai'
+                            : ($koi->auction->status == 'on going'
+                                ? 'Sedang Berlangsung'
+                                : 'Lelang Selesai')) }}
                 </span>
+
             </div>
 
             {{-- logo yuki koi --}}

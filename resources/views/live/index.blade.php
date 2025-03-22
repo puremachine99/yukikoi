@@ -126,7 +126,7 @@
                 </form>
 
 
-            </div>
+        </div>
             <div class="grid grid-cols-1 xs:grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 @foreach ($kois as $koi)
                     <x-koi-card :koi="$koi" :total-bids="$totalBids[$koi->id] ?? 0" :wishlist="in_array($koi->id, $wishlist)" />
