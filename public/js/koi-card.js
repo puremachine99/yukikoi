@@ -99,3 +99,22 @@ function toggleWishlist(koiId) {
         wishlistIcon.toggleClass("text-yellow-500");
     });
 }
+
+// ============================== VIDEO MODAL FUNCTIONALITY ===============================
+window.openVideoModal = function (videoUrl) {
+    const modal = document.getElementById("videoModal");
+    const video = document.getElementById("modalVideo");
+    const source = document.getElementById("videoSource");
+
+    source.src = videoUrl;
+    video.load();
+    modal.classList.remove("hidden");
+};
+
+window.closeVideoModal = function () {
+    const modal = document.getElementById("videoModal");
+    const video = document.getElementById("modalVideo");
+
+    video.pause();
+    modal.classList.add("hidden");
+};

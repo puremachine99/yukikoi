@@ -20,7 +20,7 @@
     <!-- Body -->
     <div class="p-4 relative">
         <div class="relative">
-            <img src="{{ asset('storage/' . $koi->media->first()->url_media) }}" alt="Koi Image"
+            <img src="{{ asset('storage/' . $koi->photo_url) }}" alt="Koi Image"
                 class="object-cover w-full h-auto md:h-96 lg:h-[400px]">
             <div class="watermark-overlay">
                 <img src="{{ asset('images/logo.png') }}" alt="Watermark Logo" class="watermark-logo">
@@ -120,7 +120,7 @@
             @if ($koi->media->where('media_type', 'video')->isNotEmpty())
                 <button
                     class="absolute group bottom-2 right-4 w-12 h-12 z-20 bg-white dark:bg-zinc-700 text-sky-500 border-2 border-sky-500 rounded-full flex items-center justify-center transition-transform hover:scale-105 hover:bg-sky-500 hover:text-white no-route"
-                    onclick="event.stopPropagation(); openVideoModal('{{ asset('storage/' . $koi->media->where('media_type', 'video')->first()->url_media) }}')">
+                    onclick="event.stopPropagation(); openVideoModal('{{ asset('storage/' . $koi->koi_vid) }}')">
                     <i class="fa-solid fa-play text-xl"></i>
                     <span
                         class="absolute bottom-full mb-1 w-max px-1 py-0.5 text-xs text-white bg-black rounded hidden group-hover:block transform -translate-x-1/2 left-1/2">
@@ -248,7 +248,6 @@
                     Winner: <span>{{ $koi->winner_name }}</span>
                 </div>
             @endif
-
 
         </div>
     </div>

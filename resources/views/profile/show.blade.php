@@ -353,7 +353,7 @@
                                 {{ __('Ikan Koi yang Dimiliki Seller') }}</h2>
                             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 @foreach ($kois as $koi)
-                                    <x-koi-card :koi="$koi" :total-bids="$totalBids[$koi->id] ?? 0" />
+                                    <x-koi-card :koi="$koi" :total-bids="$totalBids[$koi->id] ?? []" :wishlist="in_array($koi->id, $wishlist)" />
                                 @endforeach
                             </div>
                         </div>
@@ -541,236 +541,63 @@
             WhatsApp</a>
     </div>
 
+    @vite(['resources/js/app.js', 'public/js/koi-interactions.js'])
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const kois = @json($kois);
+        $('#shareProfileBtn').on('click', function(e) {
+            e.preventDefault();
 
-            kois.forEach((koi) => {
-                if (koi.auction.status === 'on going') {
-                    const countdownElement = document.getElementById(`countdown-${koi.id}`);
-                    const countdownWrapper = document.getElementById(`countdown-wrapper-${koi.id}`);
+            const shareData = {
+                title: '{{ $user->name }} Profile on Yuki Koi Auction',
+                text: 'Cek profil seller koi keren ini!',
+                url: '{{ route('profile.show', $user->id) }}'
+            };
 
-                    // Ensure the DOM elements exist before proceeding
-                    if (!countdownElement || !countdownWrapper) {
-                        // console.warn(`Countdown elements not found for koi ID: ${koi.id}`);
-                        return;
-                    }
-
-                    const endTime = new Date(koi.auction.end_time.replace(/-/g, '/')).getTime();
-
-                    const countdownInterval = setInterval(() => {
-                        const now = new Date().getTime();
-                        const distance = endTime - now;
-
-                        if (distance > 0) {
-                            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-                            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 *
-                                60 * 60));
-                            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-                            // Update countdown display
-                            countdownElement.innerHTML =
-                                `${days > 0 ? days + ' hari, ' : ''}${hours}:${minutes}:${seconds}`;
-
-                            // Adjust styles based on remaining time
-                            if (distance <= 60 * 60 * 1000) { // Less than 1 hour
-                                countdownWrapper.classList.remove("bg-yellow-500", "text-black");
-                                countdownWrapper.classList.add("bg-red-500", "text-white");
-                            } else {
-                                countdownWrapper.classList.remove("bg-red-500", "text-white");
-                                countdownWrapper.classList.add("bg-yellow-500", "text-black");
-                            }
-                        } else {
-                            // Stop the countdown and update text
-                            clearInterval(countdownInterval);
-                            countdownElement.innerHTML = 'Lelang Berakhir';
-                        }
-                    }, 1000);
-                }
-            });
-        });
-
-
-        @if (session('success'))
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: 'success',
-                title: '{{ session('success') }}',
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true,
-            });
-        @endif
-
-        @if (session('error'))
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: 'error',
-                title: '{{ session('error') }}',
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true,
-            });
-        @endif
-
-        document.getElementById('shareProfileBtn').addEventListener('click', async () => {
             if (navigator.share) {
-                try {
-                    await navigator.share({
-                        title: '{{ $user->name }} Profile on Yuki Koi Auction',
-                        text: 'Check out this awesome Koi seller profile!',
-                        url: '{{ route('profile.show', $user->id) }}'
+                navigator.share(shareData)
+                    .then(() => {
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'success',
+                            title: 'Berhasil dibagikan!',
+                            showConfirmButton: false,
+                            timer: 2000,
+                            timerProgressBar: true
+                        });
+                    })
+                    .catch(() => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'Gagal membagikan profil!',
+                            toast: true,
+                            position: 'top-end',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
                     });
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil',
-                        text: 'Profil telah berhasil dibagikan!',
-                        timer: 2000,
-                        showConfirmButton: false,
-                    });
-                } catch (error) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal',
-                        text: 'Terjadi kesalahan saat mencoba membagikan profil.',
-                        timer: 2000,
-                        showConfirmButton: false,
-                    });
-                }
             } else {
-                // Swal untuk fallback ke media sosial jika Web Share API tidak didukung
                 Swal.fire({
-                    title: 'Browser tidak mendukung fitur berbagi',
+                    title: 'Browser tidak mendukung Web Share 😔',
                     html: `
-                    <p>Kamu bisa membagikan profil ini melalui:</p>
-                    <div style="display: flex; justify-content: space-around; margin-top: 10px;">
-                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ route('profile.show', $user->id) }}" target="_blank"
-                            class="swal2-styled"
-                            style="background-color: #3b5998; padding: 10px; border-radius: 5px; color: white;">Facebook</a>
-
-                        <a href="https://twitter.com/intent/tweet?url={{ route('profile.show', $user->id) }}&text=Check out this profile on Yuki Koi Auction!"
-                            target="_blank" class="swal2-styled"
-                            style="background-color: #1da1f2; padding: 10px; border-radius: 5px; color: white;">Twitter</a>
-
-                        <a href="https://api.whatsapp.com/send?text=Check out this profile on Yuki Koi Auction! {{ route('profile.show', $user->id) }}"
-                            target="_blank" class="swal2-styled"
-                            style="background-color: #25d366; padding: 10px; border-radius: 5px; color: white;">WhatsApp</a>
-                    </div>
+                        <p class="mb-3">Bagikan profil ini melalui salah satu platform:</p>
+                        <div class="flex justify-center gap-2 text-white">
+                            <a href="https://www.facebook.com/sharer/sharer.php?u={{ route('profile.show', $user->id) }}" target="_blank"
+                                class="bg-[#3b5998] hover:opacity-80 px-4 py-2 rounded text-sm">Facebook</a>
+                            <a href="https://twitter.com/intent/tweet?url={{ route('profile.show', $user->id) }}&text=Cek profil seller ini di Yuki Koi Auction!"
+                                target="_blank" class="bg-[#1da1f2] hover:opacity-80 px-4 py-2 rounded text-sm">Twitter</a>
+                            <a href="https://api.whatsapp.com/send?text=Cek profil seller ini di Yuki Koi Auction! {{ route('profile.show', $user->id) }}"
+                                target="_blank" class="bg-[#25d366] hover:opacity-80 px-4 py-2 rounded text-sm">WhatsApp</a>
+                        </div>
                     `,
-                    showCancelButton: false,
-                    showConfirmButton: false
+                    showConfirmButton: false,
+                    showCloseButton: true,
+                    width: 500,
+                    padding: '1.5rem'
                 });
             }
         });
     </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.card-navigate').forEach(card => {
-                card.addEventListener('click', function(event) {
-                    // Cek apakah elemen yang diklik memiliki kelas koi-action
-                    if (!event.target.closest('.koi-action')) {
-                        window.location.href = this.dataset.url;
-                    }
-                });
-            });
-        });
-    </script>
-    <script>
-        // ============================== CONFIGURATIONS ===============================
-        const CONFIG = {
-            csrfToken: document.querySelector('meta[name="csrf-token"]').content,
-            routes: {
-                toggleLike: '/koi/{id}/like',
-                toggleWishlist: '/wishlist/toggle'
-            }
-        };
-
-        // ============================== TIMER FUNCTIONALITY ===============================
-        $(document).ready(function() {
-            function updateCountdown() {
-                $('[data-end-time]').each(function() {
-                    const $wrapper = $(this);
-                    const koiId = $wrapper.data('koi-id');
-                    const endTime = new Date($wrapper.data('end-time')).getTime();
-                    const $countdownElement = $(`#countdown-${koiId}`);
-
-                    if (!$countdownElement.length) return;
-
-                    const now = new Date().getTime();
-                    const distance = endTime - now;
-
-                    if (distance > 0) {
-                        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-                        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-                        $countdownElement.text(`${days}Hr ${hours}:${minutes}:${seconds}`);
-
-                        if (distance <= 60 * 60 * 1000) {
-                            $wrapper.removeClass('bg-yellow-500 text-black').addClass(
-                                'bg-red-500 text-white');
-                        } else {
-                            $wrapper.removeClass('bg-red-500 text-white').addClass(
-                                'bg-yellow-500 text-black');
-                        }
-                    } else {
-                        $countdownElement.text('Lelang Berakhir');
-                        $wrapper.removeClass('bg-yellow-500 bg-red-500').addClass('bg-gray-500 text-white');
-                    }
-                });
-
-                // Recursive update setiap detik
-                setTimeout(updateCountdown, 1000);
-            }
-
-            // Jalankan pertama kali saat halaman dimuat
-            updateCountdown();
-        });
 
 
-        // ============================== NAVIGATION FUNCTIONALITY ===============================
-        $('.card-navigate').click(function(event) {
-            if (!$(event.target).closest('.koi-action').length) {
-                window.location.href = $(this).data('url');
-            }
-        });
-
-        // ============================== LIKE FUNCTIONALITY ===============================
-        function toggleLike(koiId) {
-            const likeIcon = $(`#like-icon-${koiId}`);
-            const likesCountElement = $(`#likes-count-${koiId}`);
-            const isLiked = likeIcon.hasClass('text-red-600');
-            let currentLikes = parseInt(likesCountElement.text(), 10) || 0; // Default ke 0 jika NaN
-
-            likeIcon.toggleClass('text-red-600');
-            likesCountElement.text(isLiked ? currentLikes - 1 : currentLikes + 1);
-
-            $.post(CONFIG.routes.toggleLike.replace('{id}', koiId), {
-                _token: CONFIG.csrfToken
-            }).fail(() => {
-                likeIcon.toggleClass('text-red-600');
-                likesCountElement.text(currentLikes); // Kembalikan ke nilai sebelumnya jika gagal
-            });
-        }
-
-
-        // ============================== WISHLIST FUNCTIONALITY ===============================
-        function toggleWishlist(koiId) {
-            const wishlistIcon = $(`#wishlist-icon-${koiId}`);
-            const isWishlisted = wishlistIcon.hasClass('text-yellow-500');
-
-            wishlistIcon.toggleClass('text-yellow-500');
-
-            $.post(CONFIG.routes.toggleWishlist, {
-                _token: CONFIG.csrfToken,
-                koi_id: koiId
-            }).fail(() => {
-                wishlistIcon.toggleClass('text-yellow-500');
-            });
-        }
-    </script>
 </x-app-layout>

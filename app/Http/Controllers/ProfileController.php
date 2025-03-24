@@ -7,10 +7,12 @@ use App\Models\Koi;
 use App\Models\User;
 use App\Models\Rating;
 use App\Models\Auction;
+use App\Models\Wishlist;
 use Illuminate\View\View;
 use App\Models\Certificate;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
+use App\Services\KoiEnricher;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
@@ -35,116 +37,88 @@ class ProfileController extends Controller
         return Redirect::route('profile.show', $user->id);
     }
 
-    public function show($id)
+    public function show($id, KoiEnricher $enricher)
     {
-        // Ambil user beserta auctions, kois, bids, dan media dengan eager loading
-        $user = User::with([
-            'auctions.koi.media' => function ($query) {
-                $query->where('media_type', 'photo'); // Hanya media yang berupa foto
-            },
-            'auctions.koi.bids' => function ($query) {
-                $query->latest(); // Urutkan bid dari yang terakhir
-            }
-        ])->findOrFail($id);
+        // Ambil user yang dimaksud
+        $user = User::with('auctions')->findOrFail($id);
 
-        // Ambil semua lelang yang dimiliki oleh user
-        $auctions = $user->auctions;
+        $userId = Auth::id();
 
-        // Eager load koi, media, dan bids untuk lelang yang dimiliki user
-        $kois = Koi::whereHas('auction', function ($query) use ($user) {
-            $query->where('user_id', $user->id)
-                ->whereIn('status', ['on going', 'ready', 'completed']); // Filter status lelang
-        })->with([
-                    'media' => function ($query) {
-                        $query->where('media_type', 'photo'); // Hanya media yang berupa foto
-                    },
-                    'bids' => function ($query) {
-                        $query->latest(); // Urutkan bid dari yang terakhir
-                    }
-                ])->get();
+        // Ambil semua auction milik user (user sebagai seller)
+        $auctions = Auction::with('koi')
+            ->where('user_id', $user->id)
+            ->whereIn('status', ['on going', 'ready', 'completed'])
+            ->get();
 
-        // Hitung total bid dan informasi pemenang untuk setiap koi
+        // Ambil koi dari semua auction tersebut
+        $kois = $auctions->pluck('koi')->flatten();
+
+        // Gunakan KoiEnricher untuk memperkaya data koi (wishlist, likes, rating seller, dll)
+        $kois = $enricher->enrichCollection($kois, $userId);
+
+        // Hitung total bid dan info pemenang untuk tiap koi
         $totalBids = $kois->mapWithKeys(function ($koi) {
-            $winnerBid = $koi->bids->firstWhere('is_win', true); // Ambil bid yang menjadi pemenang
+            $winnerBid = $koi->bids->firstWhere('is_win', true);
 
             return [
                 $koi->id => [
                     'total_bids' => $koi->bids->count(),
-                    'latest_bid' => $koi->bids->isNotEmpty() ? $koi->bids->first()->amount : $koi->open_bid,
-                    'has_winner' => $winnerBid ? true : false,
-                    'winner_name' => $winnerBid ? $winnerBid->user->name : null,
+                    'latest_bid' => $koi->bids->first()?->amount ?? $koi->open_bid,
+                    'has_winner' => (bool) $winnerBid,
+                    'winner_name' => $winnerBid?->user->name,
                 ]
             ];
         });
 
-        // Hitung total keuntungan per auction berdasarkan latest_bid dari tiap koi
+        // Hitung total profit dari tiap auction
         $auctions = $auctions->map(function ($auction) {
-            $totalProfit = $auction->koi->sum(function ($koi) {
-                if ($koi->bids->isNotEmpty()) {
-                    return optional($koi->bids->first())->amount ?? 0;
-                }
-                return 0;
-            });
+            $totalProfit = $auction->koi->sum(fn($koi) => $koi->bids->first()?->amount ?? 0);
             $auction->total_profit = $totalProfit;
             return $auction;
         });
 
-        // Statistik user (misalnya, ini untuk ditampilkan di view)
+        // Statistik user
         $userStats = [
             'lelang_dibuat' => Auction::where('user_id', $user->id)->count(),
-            'lelang_diikuti' => Bid::where('user_id', $user->id)
-                ->whereHas('koi.auction')
-                ->distinct('koi_id')
-                ->count(), // Jumlah lelang yang diikuti user
-            'koi_dimenangkan' => Bid::where('user_id', $user->id)
-                ->where('is_win', true)
-                ->count(), // Jumlah koi yang dimenangkan
-            'jumlah_koi' => $kois->count(), // Jumlah koi yang dimiliki user
-            'jumlah_sertifikat' => Certificate::whereHas('koi.auction', function ($query) use ($user) {
-                $query->where('user_id', $user->id);
-            })->count(), // Jumlah sertifikat koi
-            'jumlah_pengeluaran' => Bid::where('user_id', $user->id)
-                ->where('is_win', true)
-                ->sum('amount'), // Total uang yang dihabiskan untuk membeli koi
+            'lelang_diikuti' => Bid::where('user_id', $user->id)->whereHas('koi.auction')->distinct('koi_id')->count(),
+            'koi_dimenangkan' => Bid::where('user_id', $user->id)->where('is_win', true)->count(),
+            'jumlah_koi' => $kois->count(),
+            'jumlah_sertifikat' => Certificate::whereHas('koi.auction', fn($q) => $q->where('user_id', $user->id))->count(),
+            'jumlah_pengeluaran' => Bid::where('user_id', $user->id)->where('is_win', true)->sum('amount'),
 
             // Tambahan statistik
-            'koi_terdaftar' => Koi::whereHas('auction', function ($query) use ($user) {
-                $query->where('user_id', $user->id);
-            })->count(), // Jumlah koi terlelang
-            'koi_terlelang' => Bid::whereHas('koi.auction', function ($query) use ($user) {
-                $query->where('user_id', $user->id);
-            })->where('is_win', true)->count(), // Jumlah koi terlelang
-
-            'jumlah_pendapatan' => Bid::whereHas('koi.auction', function ($query) use ($user) {
-                $query->where('user_id', $user->id);
-            })->sum('amount'), // Jumlah total pendapatan dari lelang
-
-            'jumlah_kontest_diikuti' => Auction::where('user_id', $user->id)
-                ->whereIn('jenis', ['keeping_contest', 'grow_out'])
-                ->count(), // Jumlah kontes (KC/GO) yang diikuti
-
-            'jumlah_sniping' => Bid::where('user_id', $user->id)
-                ->where('is_sniping', true)
-                ->count(), // Jumlah bid yang dilakukan dalam waktu sniping
-
-            'jumlah_menang_sniping' => Bid::where('user_id', $user->id)
-                ->where('is_win', true)
-                ->where('is_sniping', true)
-                ->count(), // Jumlah menang bid dalam waktu sniping
+            'koi_terdaftar' => Koi::whereHas('auction', fn($q) => $q->where('user_id', $user->id))->count(),
+            'koi_terlelang' => Bid::whereHas('koi.auction', fn($q) => $q->where('user_id', $user->id))->where('is_win', true)->count(),
+            'jumlah_pendapatan' => Bid::whereHas('koi.auction', fn($q) => $q->where('user_id', $user->id))->sum('amount'),
+            'jumlah_kontest_diikuti' => Auction::where('user_id', $user->id)->whereIn('jenis', ['keeping_contest', 'grow_out'])->count(),
+            'jumlah_sniping' => Bid::where('user_id', $user->id)->where('is_sniping', true)->count(),
+            'jumlah_menang_sniping' => Bid::where('user_id', $user->id)->where('is_win', true)->where('is_sniping', true)->count(),
         ];
-        // Ambil rata-rata rating seller
+
+        // Rating seller
         $ratings = Rating::where('seller_id', $user->id)
             ->selectRaw('seller_id, 
-                 AVG(rating_quality) as avg_quality, 
-                 AVG(rating_shipping) as avg_shipping, 
-                 AVG(rating_service) as avg_service, 
-                 (AVG(rating_quality) + AVG(rating_shipping) + AVG(rating_service)) / 3 as overall_rating')
+                AVG(rating_quality) as avg_quality, 
+                AVG(rating_shipping) as avg_shipping, 
+                AVG(rating_service) as avg_service, 
+                (AVG(rating_quality) + AVG(rating_shipping) + AVG(rating_service)) / 3 as overall_rating')
             ->groupBy('seller_id')
             ->first();
 
-        // Kirim data ke view
-        return view('profile.show', compact('user', 'kois', 'auctions', 'totalBids', 'userStats', 'ratings'));
+        $wishlist = Wishlist::where('user_id', $userId)->pluck('koi_id')->toArray();
+
+        return view('profile.show', compact(
+            'user',
+            'kois',
+            'auctions',
+            'totalBids',
+            'userStats',
+            'ratings',
+            'wishlist'
+        ));
+
     }
+
 
 
     public function edit(Request $request): View

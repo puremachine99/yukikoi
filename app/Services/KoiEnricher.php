@@ -64,7 +64,8 @@ class KoiEnricher
             $koi->seller_avatar = $auction->user->profile_photo ?? null;
 
 
-            $koi->photo_url = $koi->media->first()->url ?? null;
+            $koi->photo_url = $koi->media->firstWhere('media_type', 'photo')?->url_media ?? null;
+            $koi->koi_vid = $koi->media->firstWhere('media_type', 'video')?->url_media ?? null;
             $koi->status_lelang = $auction->status;
             $koi->end_time = $auction->end_time;
 
@@ -102,7 +103,7 @@ class KoiEnricher
 
         $query = Koi::with([
             'auction.user',
-            'media' => fn($q) => $q->where('media_type', 'photo'),
+            'media' => fn($q) => $q->whereIn('media_type', ['photo', 'video']),
             'bids' => fn($q) => $q->latest()
         ])
             ->leftJoinSub($userPreferences, 'user_pref', function ($join) {
@@ -152,7 +153,7 @@ class KoiEnricher
         $kois = $auction->koi()
             ->with([
                 'auction.user',
-                'media' => fn($q) => $q->where('media_type', 'photo'),
+                'media' => fn($q) => $q->whereIn('media_type', ['photo', 'video']),
                 'bids' => fn($q) => $q->latest()
             ])
             ->get();
