@@ -63,9 +63,9 @@ class KoiEnricher
             $koi->seller_city = $auction->user->city ?? '-';
             $koi->seller_avatar = $auction->user->profile_photo ?? null;
 
-
             $koi->photo_url = $koi->media->firstWhere('media_type', 'photo')?->url_media ?? null;
             $koi->koi_vid = $koi->media->firstWhere('media_type', 'video')?->url_media ?? null;
+
             $koi->status_lelang = $auction->status;
             $koi->end_time = $auction->end_time;
 
@@ -78,7 +78,6 @@ class KoiEnricher
 
             $koi->user_liked = in_array($koiId, $likesUserKoiIds, true);
             $koi->wishlisted = $userId ? in_array($koi->id, $wishlists) : false;
-
 
             if (isset($winners[$koi->id])) {
                 $koi->has_winner = true;
@@ -99,6 +98,7 @@ class KoiEnricher
         $minPrice = $request->input('min_price');
         $maxPrice = $request->input('max_price');
 
+        // Ambil preferensi user + tambahkan koi milik sendiri
         $userPreferences = $this->getUserPreferences($userId);
 
         $query = Koi::with([
@@ -129,11 +129,51 @@ class KoiEnricher
             ->select('kois.*')
             ->orderByRaw('COALESCE(user_pref.weight, 0) DESC')
             ->orderByDesc('kois.created_at')
-            ->get(); // ->paginate(30);
-
+            ->get();
 
         return $this->enrichCollection($kois, $userId);
     }
+
+
+
+    // public function getLiveAuctionKois(Request $request, $userId)
+    // {
+    //     $query = Koi::with([
+    //         'auction.user',
+    //         'media' => fn($q) => $q->whereIn('media_type', ['photo', 'video']),
+    //         'bids' => fn($q) => $q->latest()
+    //     ])
+    //         ->whereHas(
+    //             'auction',
+    //             fn($q) =>
+    //             $q->where('jenis', 'reguler')->where('status', 'on going')
+    //         );
+
+    //     // Filter opsional
+    //     if ($search = $request->input('q')) {
+    //         $query->where(function ($q) use ($search) {
+    //             $q->where('judul', 'like', "%$search%")
+    //                 ->orWhere('jenis_koi', 'like', "%$search%");
+    //         });
+    //     }
+
+    //     if ($gender = $request->input('gender')) {
+    //         $query->where('gender', $gender);
+    //     }
+
+    //     if ($minPrice = $request->input('min_price')) {
+    //         $query->where('open_bid', '>=', $minPrice);
+    //     }
+
+    //     if ($maxPrice = $request->input('max_price')) {
+    //         $query->where('open_bid', '<=', $maxPrice);
+    //     }
+
+    //     // Ambil semua koi tanpa algoritma sorting preferensi
+    //     $kois = $query->orderByDesc('created_at')->get();
+
+    //     return $this->enrichCollection($kois, $userId);
+    // }
 
     private function getUserPreferences($userId)
     {
@@ -146,6 +186,21 @@ class KoiEnricher
         ')
             ->where('user_id', $userId)
             ->groupBy('koi_id');
+    }
+    public function getUserKois($user, $userId = null)
+    {
+        $kois = Koi::whereHas('auction', function ($query) use ($user) {
+            $query->where('user_id', $user->id)
+                ->whereIn('status', ['on going', 'ready', 'completed']);
+        })
+            ->with([
+                'auction.user',
+                'media' => fn($q) => $q->whereIn('media_type', ['photo', 'video']),
+                'bids' => fn($q) => $q->latest()
+            ])
+            ->get();
+
+        return $this->enrichCollection($kois, $userId);
     }
 
     public function getAuctionKois($auction, $userId = null)

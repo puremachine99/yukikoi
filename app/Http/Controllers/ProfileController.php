@@ -7,7 +7,6 @@ use App\Models\Koi;
 use App\Models\User;
 use App\Models\Rating;
 use App\Models\Auction;
-use App\Models\Wishlist;
 use Illuminate\View\View;
 use App\Models\Certificate;
 use App\Models\Transaction;
@@ -18,6 +17,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Redirect;
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\Wishlist;
 
 class ProfileController extends Controller
 {
