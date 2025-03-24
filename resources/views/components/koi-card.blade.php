@@ -3,11 +3,11 @@
 
     <!-- Header -->
     <div class="flex items-center p-4 border-b dark:border-zinc-700">
-        <img src="{{ asset('storage/' . $koi->auction->user->profile_photo) }}" alt="Farm Profile"
+        <img src="{{ asset('storage/' . $koi->seller_avatar) }}" alt="Farm Profile"
             class="w-12 h-12 rounded-full object-cover">
         <div class="ml-3">
             <h5 class="text-sm font-semibold text-gray-700 dark:text-gray-200">
-                {{ Str::ucfirst($koi->auction->user->farm_name) }} [{{ $koi->auction->user->city }}]</h5>
+                {{ Str::ucfirst($koi->farm_name) }} [{{ $koi->seller_city }}]</h5>
 
             <div class="text-sm text-yellow-500">
                 ⭐ {{ number_format($koi->auction->user->overall_rating, 1) }} / 5

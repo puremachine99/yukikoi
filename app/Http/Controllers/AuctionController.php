@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use Log;
 use App\Models\Koi;
 use App\Models\User;
-use App\Models\Auction;
-use Illuminate\Http\Request;
-
 use App\Models\Ember;
+use App\Models\Auction;
+
+use App\Models\Wishlist;
+use Illuminate\Http\Request;
+use App\Services\KoiEnricher;
 use Illuminate\Support\Facades\Auth;
 
 class AuctionController extends Controller
@@ -220,63 +222,77 @@ class AuctionController extends Controller
         return redirect()->route('auctions.index')->with('success', 'Auction created successfully!');
     }
 
-    public function show($auction_code)
-    {
-        $auction = Auction::where('auction_code', $auction_code)
-            ->with([
-                'user',
-                'koi.bids.user',
-                'koi.media', // Eager load media
-                'koi.certificates' // Eager load certificates
-            ])
-            ->firstOrFail();
+    // public function show($auction_code)
+    // {
+    //     $auction = Auction::where('auction_code', $auction_code)
+    //         ->with([
+    //             'user',
+    //             'koi.bids.user',
+    //             'koi.media', // Eager load media
+    //             'koi.certificates' // Eager load certificates
+    //         ])
+    //         ->firstOrFail();
 
-        // Ambil data koi dari lelang yang sedang berlangsung
-        $kois = $auction->koi;
+    //     // Ambil data koi dari lelang yang sedang berlangsung
+    //     $kois = $auction->koi;
 
-        // Ambil user ID yang sedang login
-        $user_id = Auth::id();
+    //     // Ambil user ID yang sedang login
+    //     $user_id = Auth::id();
 
-        // Ambil koi yang sudah di-mark oleh user (Ember)
-        $ember = Ember::where('user_id', $user_id)->pluck('koi_id')->toArray();
+    //     // Ambil koi yang sudah di-mark oleh user (Ember)
+    //     $ember = Ember::where('user_id', $user_id)->pluck('koi_id')->toArray();
 
-        // Hitung total bid dan informasi pemenang untuk setiap koi
-        $totalBids = $kois->mapWithKeys(function ($koi) {
-            $winnerBid = $koi->bids->firstWhere('is_win', true); // Ambil bid yang menjadi pemenang
+    //     // Hitung total bid dan informasi pemenang untuk setiap koi
+    //     $totalBids = $kois->mapWithKeys(function ($koi) {
+    //         $winnerBid = $koi->bids->firstWhere('is_win', true); // Ambil bid yang menjadi pemenang
 
-            return [
-                $koi->id => [
-                    'total_bids' => $koi->bids->count(),
-                    'latest_bid' => $koi->bids->isNotEmpty() ? $koi->bids->first()->amount : $koi->open_bid,
-                    'has_winner' => $winnerBid ? true : false,
-                    'winner_name' => $winnerBid ? $winnerBid->user->name : null,
-                ]
-            ];
-        });
+    //         return [
+    //             $koi->id => [
+    //                 'total_bids' => $koi->bids->count(),
+    //                 'latest_bid' => $koi->bids->isNotEmpty() ? $koi->bids->first()->amount : $koi->open_bid,
+    //                 'has_winner' => $winnerBid ? true : false,
+    //                 'winner_name' => $winnerBid ? $winnerBid->user->name : null,
+    //             ]
+    //         ];
+    //     });
 
-        // Ambil history bids dari setiap koi
-        $bidsHistory = $kois->mapWithKeys(function ($koi) {
-            return [
-                $koi->id => [
-                    'koi_title' => $koi->judul,
-                    'bids' => $koi->bids->take(5)->reverse()->map(function ($bid) {
-                        return [
-                            'user_phone' => substr($bid->user->phone_number, 0, 5) . 'XXX',
-                            'amount' => number_format($bid->amount, 0, ',', '.'),
-                            'created_at' => \Carbon\Carbon::parse($bid->created_at)->format('d M Y, H:i'),
-                            'increment' => $bid->increment > 0 ? '+' . number_format($bid->increment, 0, ',', '.') : '[OB]',
-                        ];
-                    })
-                ]
-            ];
-        });
+    //     // Ambil history bids dari setiap koi
+    //     $bidsHistory = $kois->mapWithKeys(function ($koi) {
+    //         return [
+    //             $koi->id => [
+    //                 'koi_title' => $koi->judul,
+    //                 'bids' => $koi->bids->take(5)->reverse()->map(function ($bid) {
+    //                     return [
+    //                         'user_phone' => substr($bid->user->phone_number, 0, 5) . 'XXX',
+    //                         'amount' => number_format($bid->amount, 0, ',', '.'),
+    //                         'created_at' => \Carbon\Carbon::parse($bid->created_at)->format('d M Y, H:i'),
+    //                         'increment' => $bid->increment > 0 ? '+' . number_format($bid->increment, 0, ',', '.') : '[OB]',
+    //                     ];
+    //                 })
+    //             ]
+    //         ];
+    //     });
 
-        return view('auctions.show', compact('kois', 'auction', 'auction_code', 'ember', 'bidsHistory', 'totalBids'));
-    }
+    //     return view('auctions.show', compact('kois', 'auction', 'auction_code', 'ember', 'bidsHistory', 'totalBids'));
+    // }
 
     /**
      * Show the form for editing the specified resource.
      */
+
+    public function show($auction_code, KoiEnricher $enricher)
+    {
+        $auction = Auction::where('auction_code', $auction_code)
+            ->with('user') // cukup user aja, kois nanti lewat relasi
+            ->firstOrFail();
+
+        $userId = Auth::id();
+
+        $kois = $enricher->getAuctionKois($auction, $userId);
+        $wishlist = Wishlist::where('user_id', $userId)->pluck('koi_id')->toArray();
+        return view('auctions.show', compact('auction', 'kois', 'auction_code', 'wishlist'));
+    }
+
     public function edit($auctionCode)
     {
         // Cari auction berdasarkan auction_code

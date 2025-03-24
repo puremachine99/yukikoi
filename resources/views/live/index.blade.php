@@ -126,18 +126,17 @@
                 </form>
 
 
-        </div>
+            </div>
             <div class="grid grid-cols-1 xs:grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 @foreach ($kois as $koi)
-                    <x-koi-card :koi="$koi" :total-bids="$totalBids[$koi->id] ?? 0" :wishlist="in_array($koi->id, $wishlist)" />
+                    <x-koi-card :koi="$koi" :total-bids="$totalBids[$koi->id] ?? []" :wishlist="$wishlist" />
                 @endforeach
             </div>
 
             <!-- Pagination -->
-            <div class="mt-4">
-                {{ $kois->links('pagination::tailwind') }} {{-- Jika pakai Tailwind --}}
-
-            </div>
+            {{-- <div class="mt-4">
+                {{ $kois->links('pagination::tailwind') }} 
+            </div> --}}
 
         </div>
     </div>

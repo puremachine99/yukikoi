@@ -1,320 +1,207 @@
-<!-- resources/views/koi/index.blade.php -->
 <x-app-layout>
+    <style>
+        @font-face {
+            font-family: 'OnsenJapanDemoRegular';
+            src: url('/fonts/OnsenJapanDemoRegular.ttf') format('truetype');
+        }
+
+        .vertical-text {
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+            letter-spacing: -0.2rem;
+            z-index: 99;
+            /* Adjust spacing between letters if needed */
+        }
+
+        .vertical-text-jp {
+            font-family: 'OnsenJapanDemoRegular', sans-serif;
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+            letter-spacing: -0.2rem;
+            z-index: 99;
+        }
+
+        .watermarked-image {
+            position: relative;
+            display: inline-block;
+            overflow: hidden;
+        }
+
+        .koi-image {
+            width: 100%;
+            height: auto;
+        }
+
+        .watermark-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.1;
+            /* Adjust opacity to make it look like a watermark */
+            pointer-events: none;
+            /* Make watermark unclickable */
+        }
+
+        .watermark-logo {
+            width: 80%;
+            /* Adjust size as needed */
+            max-width: 500px;
+            height: auto;
+            filter: grayscale(100%);
+            /* Optional: make the watermark grayscale */
+        }
+
+
+        .text-outline {
+            text-shadow:
+                -1px -1px 0 #000,
+                1px -1px 0 #000,
+                -1px 1px 0 #000,
+                1px 1px 0 #000;
+        }
+    </style>
     <x-slot name="header">
-        <div class="flex justify-items-start">
-            <!-- Tombol Kembali ke Daftar Lelang -->
-            <a href="{{ route('auctions.index') }}"
-                class="inline-flex items-center mr-4 px-4 py-2 bg-gray-600 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-gray-300 focus:bg-gray-700 dark:focus:bg-gray-300 active:bg-gray-800 dark:active:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-800 transition ease-in-out duration-150">
-                <i class="fa-solid fa-arrow-left"></i> &nbsp;LELANG
-            </a>
-            <h2 class="font-semibold text-xl text-center text-zinc-800 dark:text-zinc-200 leading-tight">
-                {{ __('DAFTAR KOI ') }} #{{ $auction_code }}
-            </h2>
-        </div>
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+            Detail Lelang: {{ $auction->auction_code }}
+        </h2>
+        <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+            Seller: <strong>{{ $auction->user->farm_name }}</strong> ({{ $auction->user->city }})
+        </p>
     </x-slot>
 
-    <div class="py-6" x-data="{ open: false }">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <div class="p-4 sm:p-8 bg-white dark:bg-zinc-800 shadow sm:rounded-lg">
-                <div class="bg-white dark:bg-zinc-800 rounded-lg shadow-md p-6">
-                    <div class="flex items-center mb-6">
-                        <!-- Foto Profil Lingkaran -->
-                        <img src="{{ $auction->user->profile_photo ? asset('storage/' . $auction->user->profile_photo) : asset('default-profile.png') }}"
-                            alt="Profile Photo" class="rounded-full h-16 w-16 object-cover mr-4">
-                        <div>
-                            <!-- Judul Auction dengan Ikon -->
-                            <h2 class="font-semibold text-2xl text-zinc-800 dark:text-zinc-200 mb-1">
-                                {{ Str::upper($auction->title) }}
-                                <i class="fa-solid fa-circle-check text-sky-500"></i>
-                            </h2>
-
-                        </div>
+    <div class="py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {{-- INFO AUCTION (HEADER) --}}
+            <div class="bg-white dark:bg-zinc-800 rounded-lg shadow p-6 mb-6">
+                <h3 class="text-lg font-bold text-zinc-800 dark:text-white">Informasi Lelang</h3>
+                <div
+                    class="mt-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-sm text-zinc-600 dark:text-zinc-300">
+                    <div><strong>Kode:</strong> {{ $auction->auction_code }}</div>
+                    <div><strong>Jenis:</strong> {{ ucfirst($auction->jenis) }}</div>
+                    <div><strong>Status:</strong>
+                        <span
+                            class="px-2 py-1 rounded-full text-xs font-semibold
+                            {{ $auction->status == 'on going'
+                                ? 'bg-green-500 text-white'
+                                : ($auction->status == 'ready'
+                                    ? 'bg-blue-500 text-white'
+                                    : 'bg-gray-500 text-white') }}">
+                            {{ ucfirst($auction->status) }}
+                        </span>
                     </div>
-
-                    <!-- Informasi Lelang -->
-                    <div class="space-y-3">
-                        <!-- Farm Name -->
-                        <div class="flex items-center">
-                            <i class="fa-solid fa-leaf text-sky-500 mr-2"></i>
-                            <a href="{{ route('profile.show', ['id' => $auction->user->id]) }}"
-                                class="text-md font-semibold text-zinc-800 dark:text-zinc-200 hover:underline">
-                                {{ __('Seller : ') }}
-                                <span class="font-normal text-zinc-700 dark:text-zinc-300">
-                                    {{ $auction->user->farm_name ?: '-' }} [{{ $auction->user->city }}]
-                                </span>
-                            </a>
-
-                        </div>
-
-                        <!-- Domisili -->
-                        <div class="flex items-center">
-                            <i class="fa-solid fa-location-dot text-red-500 mr-2"></i>
-                            <p class="text-md font-semibold text-zinc-800 dark:text-zinc-200">
-                                {{ __('Domisili: ') }}
-                                <span
-                                    class="font-normal text-zinc-700 dark:text-zinc-300">{{ $auction->user->city ?: '-' }}</span>
-                            </p>
-                        </div>
-
-                        <!-- Waktu Mulai -->
-                        <div class="flex items-center">
-                            <i class="fa-solid fa-calendar-check text-green-500 mr-2"></i>
-                            <p class="text-md font-semibold text-zinc-800 dark:text-zinc-200">
-                                {{ __('Waktu Mulai: ') }}
-                                <span
-                                    class="font-normal text-zinc-700 dark:text-zinc-300">{{ $auction->start_time ? $auction->start_time : '-' }}</span>
-                                <span class="text-sm text-gray-600 dark:text-gray-400">
-                                    ({{ $auction->start_time ? $auction->start_time->diffForHumans() : '-' }})
-                                </span>
-                            </p>
-                        </div>
-
-                        <!-- Waktu Berakhir -->
-                        <div class="flex items-center">
-                            <i class="fa-solid fa-calendar-xmark text-red-500 mr-2"></i>
-                            <p class="text-md font-semibold text-zinc-800 dark:text-zinc-200">
-                                {{ __('Waktu Berakhir: ') }}
-                                <span
-                                    class="font-normal text-zinc-700 dark:text-zinc-300">{{ $auction->end_time ? $auction->end_time : '-' }}</span>
-                                (<span id="countdown"
-                                    class="font-normal text-sm text-gray-600 dark:text-gray-400"></span>)
-                            </p>
-                        </div>
-                    </div>
+                    <div><strong>Tanggal Mulai:</strong>
+                        {{ \Carbon\Carbon::parse($auction->start_time)->format('d M Y H:i') }}</div>
                 </div>
+            </div>
 
+            {{-- KOI LIST (BODY) --}}
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                @foreach ($kois as $koi)
+                    <x-koi-card :koi="$koi" :total-bids="$koi->total_bids ?? []" :wishlist="$wishlist" />
+                @endforeach
+            </div>
 
-                <hr class="mt-4 mb-4">
-                {{-- <div class="flex items-center space-x-4 mb-6">
-                    <!-- Pencarian Koi -->
-                    <input type="text" id="searchKoi" placeholder="Cari Koi..."
-                        class="border border-gray-300 dark:border-zinc-600 rounded-md p-2 w-1/3 dark:bg-zinc-800 dark:text-zinc-100"
-                        oninput="filterKois()" />
-
-                    <!-- Filter Jenis Koi -->
-                    <select id="filterJenisKoi"
-                        class="border border-gray-300 dark:border-zinc-600 rounded-md p-2 w-1/3 dark:bg-zinc-800 dark:text-zinc-100"
-                        onchange="filterKois()">
-                        <option value="">{{ __('Semua Jenis') }}</option>
-                        <!-- Separator: Paling Populer -->
-                        <option disabled>--- Paling Populer ---</option>
-                        <option value="Kohaku">Kohaku</option>
-                        <option value="Asagi">Asagi</option>
-                        <option value="Showa Sanshoku (Showa)">Showa</option>
-                        <option value="Doitsu">Doitsu</option>
-                        <option value="Taisho Sanshoku (Sanke)">Sanke (Taisho Sansoku)</option>
-                        <option value="Tancho">Tancho</option>
-
-                        <!-- Separator: Varietas -->
-                        <option disabled>--- Varietas ---</option>
-                        <option value="Bekko">Bekko</option>
-                        <option value="Goshiki">Goshiki</option>
-                        <option value="Koromo">Koromo</option>
-                        <option value="Kujaku">Kujaku</option>
-                        <option value="Shiro Utsuri (Shiro)">Shiro Utsuri (Shiro)</option>
-                        <option value="Shusui">Shusui</option>
-                        <option value="Ochiba">Ochiba</option>
-                        <option value="Hi/Ki Utsurimono">Hi/Ki Utsurimono</option>
-                        <option value="Hikari Moyomono">Hikari Moyomono</option>
-                        <option value="Hikari Mujimono">Hikari Mujimono</option>
-                        <option value="Hikari Utsurimono">Hikari Utsurimono</option>
-                        <option value="Kawarimono A">Kawarimono A</option>
-                        <option value="Kawarimono B">Kawarimono B</option>
-                        <option value="Kinginrin A">Kinginrin A</option>
-                        <option value="Kinginrin B">Kinginrin B</option>
-                        <option value="Kinginrin C">Kinginrin C</option>
-
-                        <!-- Separator: Sub Varietas -->
-                        <option disabled>--- Sub Varietas ---</option>
-                        <option value="Shiro Bekko">Shiro Bekko</option>
-                        <option value="Ki Bekko">Ki Bekko</option>
-                        <option value="Aka Bekko">Aka Bekko</option>
-                        <option value="Ai Goromo">Ai Goromo</option>
-                        <option value="Sumi Goromo">Sumi Goromo</option>
-                        <option value="Budo Goromo">Budo Goromo</option>
-                        <option value="Tancho Kohaku">Tancho Kohaku</option>
-                        <option value="Tancho Sanke">Tancho Sanke</option>
-                        <option value="Tancho Showa">Tancho Showa</option>
-                    </select>
-
-                    <!-- Filter Gender Koi -->
-                    <select id="filterGenderKoi"
-                        class="border border-gray-300 dark:border-zinc-600 rounded-md p-2 w-1/3 dark:bg-zinc-800 dark:text-zinc-100"
-                        onchange="filterKois()">
-                        <option value="">{{ __('Semua Gender') }}</option>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Unchecked">Unchecked</option>
-                    </select>
-                </div> --}}
-
-                <div class="container mx-auto px-4">
-                    @if ($kois->isEmpty())
-                        <p class="text-zinc-600 dark:text-zinc-400">
-                            {{ $message ?? __('Belum ada koi di lelang ini.') }}
-                        </p>
-                    @else
-                        <div id="koiContainer" class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                            @foreach ($kois as $koi)
-                                @include('auctions.partials.koi_list', ['koi' => $koi])
-                            @endforeach
-                        </div>
-                    @endif
-                </div>
-
+            {{-- FOOTER / CTA --}}
+            <div class="mt-10 text-center text-sm text-zinc-500 dark:text-zinc-400">
+                Tampilkan {{ count($kois) }} koi dari lelang <strong>{{ $auction->auction_code }}</strong>.
             </div>
         </div>
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const kois = @json($kois);
+        // ============================== CONFIGURATIONS ===============================
+        const CONFIG = {
+            csrfToken: document.querySelector('meta[name="csrf-token"]').content,
+            routes: {
+                toggleLike: '/koi/{id}/like',
+                toggleWishlist: '/wishlist/toggle'
+            }
+        };
 
-            kois.forEach((koi) => {
-                if (koi.auction.status === 'on going') {
-                    const countdownElement = document.getElementById(`countdown-${koi.id}`);
-                    const endTime = new Date("{{ $koi->auction->end_time }}".replace(/-/g, '/')).getTime();
+        // ============================== TIMER FUNCTIONALITY ===============================
+        $(document).ready(function() {
+            function updateCountdown() {
+                $('[data-end-time]').each(function() {
+                    const $wrapper = $(this);
+                    const koiId = $wrapper.data('koi-id');
+                    const endTime = new Date($wrapper.data('end-time')).getTime();
+                    const $countdownElement = $(`#countdown-${koiId}`);
 
-                    const countdownInterval = setInterval(() => {
-                        const now = new Date().getTime();
-                        const distance = endTime - now;
+                    if (!$countdownElement.length) return;
 
+                    const now = new Date().getTime();
+                    const distance = endTime - now;
+
+                    if (distance > 0) {
                         const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-                        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 *
-                            60));
+                        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                         const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
                         const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-                        if (distance > 0) {
-                            countdownElement.innerHTML =
-                                `${days > 0 ? days + ' hari, ' : ''}${hours}:${minutes}:${seconds}`;
+                        $countdownElement.text(`${days}Hr ${hours}:${minutes}:${seconds}`);
+
+                        if (distance <= 60 * 60 * 1000) {
+                            $wrapper.removeClass('bg-yellow-500 text-black').addClass(
+                                'bg-red-500 text-white');
                         } else {
-                            clearInterval(countdownInterval);
-                            countdownElement.innerHTML = 'Lelang Berakhir';
+                            $wrapper.removeClass('bg-red-500 text-white').addClass(
+                                'bg-yellow-500 text-black');
                         }
-                    }, 1000);
-                }
-            });
-        });
-
-        function redirectToKoiPage(event, url) {
-            // Jika elemen yang diklik memiliki kelas 'no-route', cegah redirect
-            if (event.target.closest('.no-route')) return;
-            window.location.href = url;
-        }
-
-
-
-        let scrollPosition = 0;
-
-
-        function openModal(imageUrl) {
-            scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
-            const certImage = document.getElementById('certImage');
-            const certModal = document.getElementById('certModal');
-            if (certImage && certModal) {
-                certImage.src = imageUrl;
-                certModal.classList.remove('hidden');
-                document.body.style.overflow = 'hidden';
-            }
-        }
-
-        function closeModal() {
-            const certModal = document.getElementById('certModal');
-            if (certModal) {
-                certModal.classList.add('hidden');
-                document.body.style.overflow = '';
-                window.scrollTo(0, scrollPosition);
-            }
-        }
-
-        function openVideoModal(videoUrl) {
-            scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
-            const video = document.getElementById('modalVideo');
-            const videoSource = document.getElementById('videoSource');
-            const videoModal = document.getElementById('videoModal');
-            if (video && videoSource && videoModal) {
-                videoSource.src = videoUrl;
-                video.load();
-                video.play();
-                videoModal.classList.remove('hidden');
-                document.body.style.overflow = 'hidden';
-            }
-        }
-
-        function closeVideoModal() {
-            const video = document.getElementById('modalVideo');
-            const videoModal = document.getElementById('videoModal');
-            if (video && videoModal) {
-                video.pause();
-                video.currentTime = 0;
-                videoModal.classList.add('hidden');
-                document.body.style.overflow = '';
-                window.scrollTo(0, scrollPosition);
-            }
-        }
-
-        // Mengambil end_time dari database dalam format Y-m-d H:i:s
-        var endTime = new Date("{{ $auction->end_time }}".replace(/-/g, '/')).getTime();
-
-        document.addEventListener("DOMContentLoaded", function() {
-            // Get elements for filters and koi items
-            const searchInput = document.getElementById('searchKoi');
-            const jenisSelect = document.getElementById('filterJenisKoi');
-            const genderSelect = document.getElementById('filterGenderKoi');
-            const koiItems = document.querySelectorAll('.koi-item');
-            const noDataMessage = document.getElementById('noDataMessage');
-
-            function filterKois() {
-                // Retrieve filter values
-                const searchQuery = searchInput.value.toLowerCase();
-                const selectedJenis = jenisSelect.value.toLowerCase();
-                const selectedGender = genderSelect.value.toLowerCase();
-
-                let isAnyVisible = false;
-
-                // Loop through each koi item to check if it matches the filters
-                koiItems.forEach(item => {
-                    // Get data attributes for filtering
-                    const jenis = item.getAttribute('data-jenis').toLowerCase();
-                    const gender = item.getAttribute('data-gender').toLowerCase();
-                    const searchData = item.getAttribute('data-search').toLowerCase();
-
-                    // Initialize item visibility
-                    let isVisible = true;
-
-                    // Apply search filter
-                    if (searchQuery && !searchData.includes(searchQuery)) {
-                        isVisible = false;
-                    }
-                    // Apply jenis filter
-                    if (selectedJenis && jenis !== selectedJenis) {
-                        isVisible = false;
-                    }
-                    // Apply gender filter
-                    if (selectedGender && gender !== selectedGender) {
-                        isVisible = false;
-                    }
-
-                    // Show or hide item based on the combined filters
-                    item.style.display = isVisible ? 'block' : 'none';
-
-                    // Check if any item is visible
-                    if (isVisible) {
-                        isAnyVisible = true;
+                    } else {
+                        $countdownElement.text('Lelang Berakhir');
+                        $wrapper.removeClass('bg-yellow-500 bg-red-500').addClass('bg-gray-500 text-white');
                     }
                 });
 
-                // Display "No Data" message if no items are visible
-                noDataMessage.style.display = isAnyVisible ? 'none' : 'block';
+                // Recursive update setiap detik
+                setTimeout(updateCountdown, 1000);
             }
 
-            // Attach event listeners for real-time filtering
-            searchInput.addEventListener('input', filterKois);
-            jenisSelect.addEventListener('change', filterKois);
-            genderSelect.addEventListener('change', filterKois);
+            // Jalankan pertama kali saat halaman dimuat
+            updateCountdown();
         });
+
+
+        // ============================== NAVIGATION FUNCTIONALITY ===============================
+        $('.card-navigate').click(function(event) {
+            if (!$(event.target).closest('.koi-action').length) {
+                window.location.href = $(this).data('url');
+            }
+        });
+
+        // ============================== LIKE FUNCTIONALITY ===============================
+        function toggleLike(koiId) {
+            const likeIcon = $(`#like-icon-${koiId}`);
+            const likesCountElement = $(`#likes-count-${koiId}`);
+            const isLiked = likeIcon.hasClass('text-red-600');
+            let currentLikes = parseInt(likesCountElement.text(), 10) || 0; // Default ke 0 jika NaN
+
+            likeIcon.toggleClass('text-red-600');
+            likesCountElement.text(isLiked ? currentLikes - 1 : currentLikes + 1);
+
+            $.post(CONFIG.routes.toggleLike.replace('{id}', koiId), {
+                _token: CONFIG.csrfToken
+            }).fail(() => {
+                likeIcon.toggleClass('text-red-600');
+                likesCountElement.text(currentLikes); // Kembalikan ke nilai sebelumnya jika gagal
+            });
+        }
+
+
+        // ============================== WISHLIST FUNCTIONALITY ===============================
+        function toggleWishlist(koiId) {
+            const wishlistIcon = $(`#wishlist-icon-${koiId}`);
+            const isWishlisted = wishlistIcon.hasClass('text-yellow-500');
+
+            wishlistIcon.toggleClass('text-yellow-500');
+
+            $.post(CONFIG.routes.toggleWishlist, {
+                _token: CONFIG.csrfToken,
+                koi_id: koiId
+            }).fail(() => {
+                wishlistIcon.toggleClass('text-yellow-500');
+            });
+        }
     </script>
-
-
 </x-app-layout>

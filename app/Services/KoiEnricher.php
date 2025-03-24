@@ -2,10 +2,12 @@
 namespace App\Services;
 
 use App\Models\Bid;
-use App\Models\Rating;
+use App\Models\Koi;
 use App\Models\Wishlist;
 use App\Models\UserActivity;
 use App\Models\TransactionItem;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 
 class KoiEnricher
 {
@@ -57,8 +59,10 @@ class KoiEnricher
             $auction = $koi->auction;
 
             $koi->seller_name = $auction->user->name ?? '-';
-            $koi->seller_avatar = $auction->user->avatar_url ?? null;
-            $koi->seller_rating = $auction->user->rating ?? 0;
+            $koi->farm_name = $auction->user->farm_name ?? '-';
+            $koi->seller_city = $auction->user->city ?? '-';
+            $koi->seller_avatar = $auction->user->profile_photo ?? null;
+
 
             $koi->photo_url = $koi->media->first()->url ?? null;
             $koi->status_lelang = $auction->status;
@@ -74,6 +78,7 @@ class KoiEnricher
             $koi->user_liked = in_array($koiId, $likesUserKoiIds, true);
             $koi->wishlisted = $userId ? in_array($koi->id, $wishlists) : false;
 
+
             if (isset($winners[$koi->id])) {
                 $koi->has_winner = true;
                 $koi->winner_name = $winners[$koi->id]->transaction->user->name ?? null;
@@ -85,4 +90,75 @@ class KoiEnricher
 
         return $kois;
     }
+
+    public function getLiveAuctionKois(Request $request, $userId)
+    {
+        $search = $request->input('q');
+        $gender = $request->input('gender');
+        $minPrice = $request->input('min_price');
+        $maxPrice = $request->input('max_price');
+
+        $userPreferences = $this->getUserPreferences($userId);
+
+        $query = Koi::with([
+            'auction.user',
+            'media' => fn($q) => $q->where('media_type', 'photo'),
+            'bids' => fn($q) => $q->latest()
+        ])
+            ->leftJoinSub($userPreferences, 'user_pref', function ($join) {
+                $join->on('kois.id', '=', 'user_pref.koi_id');
+            })
+            ->whereHas('auction', fn($q) => $q->where('jenis', 'reguler')->where('status', 'on going'));
+
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('judul', 'like', "%$search%")
+                    ->orWhere('jenis_koi', 'like', "%$search%");
+            });
+        }
+
+        if ($gender)
+            $query->where('gender', $gender);
+        if ($minPrice)
+            $query->where('open_bid', '>=', $minPrice);
+        if ($maxPrice)
+            $query->where('open_bid', '<=', $maxPrice);
+
+        $kois = $query
+            ->select('kois.*')
+            ->orderByRaw('COALESCE(user_pref.weight, 0) DESC')
+            ->orderByDesc('kois.created_at')
+            ->get(); // ->paginate(30);
+
+
+        return $this->enrichCollection($kois, $userId);
+    }
+
+    private function getUserPreferences($userId)
+    {
+        return DB::table('activities')
+            ->selectRaw('
+            koi_id,
+            SUM(CASE WHEN activity_type = "view" THEN 1 ELSE 0 END) * 1 +
+            SUM(CASE WHEN activity_type = "like" THEN 3 ELSE 0 END) * 3 +
+            SUM(CASE WHEN activity_type = "bid" THEN 5 ELSE 0 END) * 5 AS weight
+        ')
+            ->where('user_id', $userId)
+            ->groupBy('koi_id');
+    }
+
+    public function getAuctionKois($auction, $userId = null)
+    {
+        $kois = $auction->koi()
+            ->with([
+                'auction.user',
+                'media' => fn($q) => $q->where('media_type', 'photo'),
+                'bids' => fn($q) => $q->latest()
+            ])
+            ->get();
+
+        return $this->enrichCollection($kois, $userId);
+    }
+
+
 }
