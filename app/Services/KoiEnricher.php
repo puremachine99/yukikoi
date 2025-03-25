@@ -134,8 +134,6 @@ class KoiEnricher
         return $this->enrichCollection($kois, $userId);
     }
 
-
-
     // public function getLiveAuctionKois(Request $request, $userId)
     // {
     //     $query = Koi::with([

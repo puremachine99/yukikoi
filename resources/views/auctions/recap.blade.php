@@ -17,7 +17,8 @@
                     <div><strong>Total Koi:</strong> {{ $kois->count() }} Ekor</div>
                     <div><strong>Total Peserta:</strong> {{ $totalParticipants->count() }} User</div>
                     <div><strong>Total Bid:</strong> {{ $totalBids }} Kali</div>
-                    <div><strong>Total Pendapatan:</strong> Rp {{ number_format($totalRevenue, 0, ',', '.') }}</div>
+                    <div><strong>Total Pendapatan:</strong> Rp {{ number_format($totalRevenue * 1000, 0, ',', '.') }}
+                    </div>
                 </div>
             </div>
 
@@ -48,8 +49,9 @@
                                         Rp {{ number_format($koi->latest_bid ?? 0, 0, ',', '.') }}
                                     </td>
                                     <td class="px-4 py-2">
-                                        @if($koi->winner)
-                                            {{ $koi->winner->user->name }} (Rp {{ number_format($koi->winner->amount, 0, ',', '.') }})
+                                        @if ($koi->winner)
+                                            {{ $koi->winner->user->name }} (Rp
+                                            {{ number_format($koi->winner->amount, 0, ',', '.') }})
                                         @else
                                             ❌ Tidak Ada Pemenang
                                         @endif
@@ -67,16 +69,18 @@
                 <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-200">Statistik Performa Lelang</h3>
                 <ul class="mt-3 text-sm text-gray-600 dark:text-gray-300 space-y-2">
                     <li>🏆 <strong>Total Pemenang:</strong> {{ $kois->whereNotNull('winner')->count() }} User</li>
-                    <li>📊 <strong>Rata-rata Harga Koi Naik:</strong> 
-                        {{ $kois->avg(fn($koi) => $koi->latest_bid / max($koi->open_bid, 1) * 100) }}%
+                    <li>📊 <strong>Rata-rata Harga Koi Naik:</strong>
+                        {{ $kois->avg(fn($koi) => ($koi->latest_bid / max($koi->open_bid, 1)) * 100) }}%
                     </li>
-                    <li>💰 <strong>Total Pendapatan:</strong> Rp {{ number_format($totalRevenue, 0, ',', '.') }}</li>
-                    <li>🔥 <strong>Koi dengan Bid Tertinggi:</strong> 
-                        {{ optional($kois->sortByDesc('latest_bid')->first())->judul ?? 'Tidak Ada' }} 
-                        (Rp {{ number_format(optional($kois->sortByDesc('latest_bid')->first())->latest_bid ?? 0, 0, ',', '.') }})
+                    <li>💰 <strong>Total Pendapatan:</strong> Rp {{ number_format($totalRevenue * 1000, 0, ',', '.') }}
                     </li>
-                    <li>🚀 <strong>Koi yang Terjual Paling Cepat:</strong> 
-                        {{ optional($kois->sortByDesc('total_bids')->first())->judul ?? 'Tidak Ada' }} 
+                    <li>🔥 <strong>Koi dengan Bid Tertinggi:</strong>
+                        {{ optional($kois->sortByDesc('latest_bid')->first())->judul ?? 'Tidak Ada' }}
+                        (Rp
+                        {{ number_format(optional($kois->sortByDesc('latest_bid')->first())->latest_bid ?? 0, 0, ',', '.') }})
+                    </li>
+                    <li>🚀 <strong>Koi yang Terjual Paling Cepat:</strong>
+                        {{ optional($kois->sortByDesc('total_bids')->first())->judul ?? 'Tidak Ada' }}
                         ({{ optional($kois->sortByDesc('total_bids')->first())->total_bids ?? 0 }} bid)
                     </li>
                 </ul>
