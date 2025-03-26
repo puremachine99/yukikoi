@@ -20,17 +20,21 @@ return new class extends Migration
             $table->json('reward_data');
             $table->integer('total_reward')->nullable();
             $table->integer('fixed_reward_total')->nullable();
-            $table->timestamp('submission_time');
-            $table->timestamp('judging_time')->nullable();
-            $table->timestamp('start_time');
-            $table->timestamp('end_time');
+            
+            $table->dateTime('submission_time')->nullable();
+            $table->dateTime('judging_time')->nullable();
+            $table->dateTime('start_time')->nullable();
+            $table->dateTime('end_time')->nullable();
+            $table->dateTime('approved_at')->nullable();
+
             $table->string('event_code')->unique();
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $table->string('approval_code')->nullable();
             $table->foreignId('approved_by')->nullable()->constrained('users')->onDelete('set null');
-            $table->timestamp('approved_at')->nullable();
-            $table->enum('status',['draft', 'pending', 'rejected', 'ready', 'on going', 'completed'])->default('pending');
+            
+            $table->enum('status', ['draft', 'pending', 'rejected', 'ready', 'on going', 'completed'])->default('pending');
             $table->text('doorprize')->nullable();
+            
             $table->timestamps();
         });
     }
