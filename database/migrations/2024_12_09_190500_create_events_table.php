@@ -21,7 +21,7 @@ return new class extends Migration
             $table->integer('total_reward')->nullable();
             $table->integer('fixed_reward_total')->nullable();
             $table->timestamp('submission_time');
-            $table->timestamp('judging_time');
+            $table->timestamp('judging_time')->nullable();
             $table->timestamp('start_time');
             $table->timestamp('end_time');
             $table->string('event_code')->unique();
