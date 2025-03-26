@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->string('plan_name'); // e.g., 'Monthly', 'Yearly'
-            $table->timestamp('start_at');
-            $table->timestamp('end_at');
+            $table->datetime('start_at')->nullable();
+            $table->datetime('end_at')->nullable();
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
