@@ -109,6 +109,6 @@
         </div>
     </div>
 
-    @vite(['resources/js/app.js', 'public/js/koi-card.js'])
+    @vite(['resources/js/app.js', 'resources/js/koi-card.js'])
 
 </x-app-layout>

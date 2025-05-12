@@ -541,7 +541,7 @@
             WhatsApp</a>
     </div>
 
-    @vite(['resources/js/app.js', 'public/js/koi-interactions.js'])
+    @vite(['resources/js/app.js', 'resources/js/koi-card.js'])
     <script>
         $('#shareProfileBtn').on('click', function(e) {
             e.preventDefault();

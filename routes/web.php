@@ -22,6 +22,7 @@ use App\Http\Controllers\{
     EventController,
     WishlistController,
     ComplaintController,
+    AdminController
 };
 
 // Group routes for event module
@@ -229,5 +230,30 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
 // Xendit Webhook
 Route::post('/webhook/xendit', [XenditWebhookController::class, 'handle']);
+
+// Admin Routes
+
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', [AdminController::class, 'index'])->name('dashboard');
+    Route::get('/users', [AdminController::class, 'users'])->name('users');
+    Route::get('/users/{id}', [AdminController::class, 'showUser'])->name('users.show');
+    Route::get('/kois', [AdminController::class, 'kois'])->name('kois');
+    Route::get('/kois/{id}', [AdminController::class, 'showKoi'])->name('kois.show');
+    Route::get('/auctions', [AdminController::class, 'auctions'])->name('auctions');
+    Route::get('/auctions/{id}', [AdminController::class, 'showAuction'])->name('auctions.show');
+    Route::get('/certificates', [AdminController::class, 'certificates'])->name('certificates');
+    Route::get('/media', [AdminController::class, 'media'])->name('media');
+    Route::get('/transactions', [AdminController::class, 'transactions'])->name('transactions');
+    Route::get('/transactions/{id}', [AdminController::class, 'showTransaction'])->name('transactions.show');
+    Route::get('/events', [AdminController::class, 'events'])->name('events');
+    Route::get('/events/{id}', [AdminController::class, 'showEvent'])->name('events.show');
+    Route::get('/complaints', [AdminController::class, 'complaints'])->name('complaints');
+    Route::get('/complaints/{id}', [AdminController::class, 'showComplaint'])->name('complaints.show');
+    Route::get('/reports', [AdminController::class, 'reports'])->name('reports');
+    Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
+    Route::post('/settings', [AdminController::class, 'saveSettings'])->name('settings.save');
+});
+
 // Auth Routes
 require __DIR__ . '/auth.php';
+
