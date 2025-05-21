@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Models\Koi;
+use App\Http\Middleware\AdminMiddleware;
 use App\Events\PlaceBid;
 use App\Http\Controllers\{
     BidController,
@@ -23,6 +24,8 @@ use App\Http\Controllers\{
     WishlistController,
     ComplaintController,
 };
+use App\Http\Controllers\Admin\{
+    DashboardController};
 
 // Group routes for event module
 Route::middleware('auth')->group(function () {
@@ -227,7 +230,19 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::resource('users', UserController::class);
 });
 
+
+Route::middleware(['auth', '\App\Http\Middleware\AdminMiddleware::class'])->group(function () {
+    Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
+});
+
+
 // Xendit Webhook
 Route::post('/webhook/xendit', [XenditWebhookController::class, 'handle']);
+
+
+
 // Auth Routes
 require __DIR__ . '/auth.php';
+
+
+// ... existing routes ...

@@ -24,6 +24,12 @@
                     <x-nav-link>
                         {{ __('Market') }}
                     </x-nav-link>
+                    {{-- Add this section for Admin Link --}}
+                    @if(Auth::check() && Auth::user()->role === 'admin')
+                        <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
+                            {{ __('Admin Panel') }}
+                        </x-nav-link>
+                    @endif
                 </div>
             </div>
 
@@ -205,6 +211,12 @@
                     <x-responsive-nav-link :href="route('profile.index')">
                         {{ __('Profile') }}
                     </x-responsive-nav-link>
+                    {{-- Add this section for Admin Link (Responsive) --}}
+                    @if(Auth::check() && Auth::user()->role === 'admin')
+                        <x-responsive-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
+                            {{ __('Admin Panel') }}
+                        </x-responsive-nav-link>
+                    @endif
                     <x-responsive-nav-link :href="route('transactions.index')">
                         {{ __('Pesanan Saya') }}
                     </x-responsive-nav-link>
