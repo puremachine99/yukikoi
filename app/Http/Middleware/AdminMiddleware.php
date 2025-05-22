@@ -20,9 +20,7 @@ class AdminMiddleware
             return $next($request);
         }
 
-        // Redirect non-admin users or return an unauthorized response
-        // You can redirect them to the home page or show a 403 error
-        // abort(403, 'Unauthorized action.');
-        return redirect('/')->with('error', 'You do not have admin access.');
+        // Tampilkan 404 jika bukan admin
+        abort(404);
     }
 }

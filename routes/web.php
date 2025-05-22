@@ -220,19 +220,30 @@ Route::middleware('auth')->group(function () {
 Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
 Route::get('/profile/{id}', [ProfileController::class, 'show'])->name('profile.show');
 
-// Ikan Routes - Admin Only
-Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::resource('ikan', IkanController::class);
-});
 
-// User Routes - Admin Only
-Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::resource('users', UserController::class);
-});
+Route::middleware(['auth', '\App\Http\Middleware\AdminMiddleware::class'])->prefix('admin')->name('admin.')->group(function () {
+    // Dashboard
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+    // Users
+    Route::get('/users', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('users.index');
+    Route::get('/users/bnr', [\App\Http\Controllers\Admin\UserController::class, 'create'])->name('users.bnr');
+    Route::post('/users/bnr', [\App\Http\Controllers\Admin\UserController::class, 'store'])->name('users.store');
+    Route::delete('/users/{user}', [\App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('users.destroy');
 
-Route::middleware(['auth', '\App\Http\Middleware\AdminMiddleware::class'])->group(function () {
-    Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
+    // Tambahkan route lain sesuai kebutuhan, misal edit, update, destroy
+
+    // Auctions (contoh, sesuaikan dengan controller dan kebutuhan)
+    Route::get('/auctions', [\App\Http\Controllers\Admin\AuctionController::class, 'index'])->name('auctions.index');
+    // Tambahkan route lain sesuai kebutuhan
+
+    // Event (contoh, sesuaikan dengan controller dan kebutuhan)
+    Route::get('/events', [\App\Http\Controllers\Admin\EventController::class, 'index'])->name('events.index');
+    // Tambahkan route lain sesuai kebutuhan
+
+    // Ads (contoh, sesuaikan dengan controller dan kebutuhan)
+    Route::get('/ads', [\App\Http\Controllers\Admin\AdsController::class, 'index'])->name('ads.index');
+    // Tambahkan route lain sesuai kebutuhan
 });
 
 

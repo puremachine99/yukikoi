@@ -1,28 +1,112 @@
-<aside class="w-64 h-screen bg-zinc-900 text-white flex flex-col fixed">
-    <div class="flex items-center justify-center h-16 border-b border-zinc-700">
-        <span class="text-xl font-bold">Admin Panel</span>
-    </div>
+<aside class="w-64 h-screen bg-gray-100 text-zinc-800 flex flex-col border-r border-zinc-200 shadow-sm fixed">
+
     <nav class="flex-1 py-4">
-        <ul>
+        <ul class="space-y-2 p-5">
+            <!-- Dashboard -->
             <li>
                 <a href="{{ route('admin.dashboard') }}"
-                   class="flex items-center px-6 py-3 hover:bg-zinc-800 transition {{ request()->routeIs('admin.dashboard') ? 'bg-zinc-800 font-semibold' : '' }}">
-                    <i class="fa-solid fa-gauge mr-3"></i> Dashboard
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg transition duration-150
+                   {{ request()->routeIs('admin.dashboard')
+                       ? 'bg-white text-gray-700 font-semibold shadow-lg'
+                       : 'hover:shadow-md hover:bg-zinc-100' }}">
+                    <i class="fa-solid fa-gauge w-5 h-5"></i> Dashboard
                 </a>
             </li>
+            <!-- Users Menu Tree -->
+            <x-admin.sidebar-menu-tree
+                icon="fa-solid fa-users"
+                title="Users"
+                :active="request()->routeIs('admin.users.*')"
+                :routes="[
+                    [
+                        'href' => route('admin.users.index'),
+                        'label' => 'List Users',
+                        'active' => request()->routeIs('admin.users.index')
+                    ],
+                    [
+                        'href' => route('admin.users.bnr'),
+                        'label' => 'User Bnr',
+                        'active' => request()->routeIs('admin.users.bnr')
+                    ]
+                ]"
+            />
+            <!-- Auctions Menu Tree -->
+            <x-admin.sidebar-menu-tree
+                icon="fa-solid fa-gavel"
+                title="Auctions"
+                :active="request()->routeIs('admin.auctions.*')"
+                :routes="[
+                    [
+                        'href' => route('admin.auctions.index'),
+                        'label' => 'List Auctions',
+                        'active' => request()->routeIs('admin.auctions.index')
+                    ],
+                    [
+                        'href' => '#',
+                        'label' => 'Rekapitulasi',
+                        'active' => false
+                    ]
+                ]"
+            />
+            <!-- Event Menu Tree -->
+            <x-admin.sidebar-menu-tree
+                icon="fa-solid fa-calendar-days"
+                title="Event"
+                :active="request()->routeIs('admin.events.*')"
+                :routes="[
+                    [
+                        'href' => route('admin.events.index'),
+                        'label' => 'List Event',
+                        'active' => request()->routeIs('admin.events.index')
+                    ],
+                    [
+                        'href' => '#',
+                        'label' => 'Event Request',
+                        'active' => false
+                    ],
+                    [
+                        'href' => '#',
+                        'label' => 'Rekapitulasi',
+                        'active' => false
+                    ]
+                ]"
+            />
+            <!-- Ads Menu Tree -->
+            <x-admin.sidebar-menu-tree
+                icon="fa-solid fa-bullhorn"
+                title="Ads"
+                :active="request()->routeIs('admin.ads.*')"
+                :routes="[
+                    [
+                        'href' => route('admin.ads.index'),
+                        'label' => 'List Ads',
+                        'active' => request()->routeIs('admin.ads.index')
+                    ],
+                    [
+                        'href' => '#',
+                        'label' => 'Ads Request',
+                        'active' => false
+                    ],
+                    [
+                        'href' => '#',
+                        'label' => 'Kategori Ads',
+                        'active' => false
+                    ],
+                    [
+                        'href' => '#',
+                        'label' => 'Rekapitulasi Ads',
+                        'active' => false
+                    ]
+                ]"
+            />
+            <!-- Settings -->
             <li>
-                <a href="{{ route('users.index') }}"
-                   class="flex items-center px-6 py-3 hover:bg-zinc-800 transition {{ request()->routeIs('users.*') ? 'bg-zinc-800 font-semibold' : '' }}">
-                    <i class="fa-solid fa-users mr-3"></i> Users
+                <a href="#"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg transition duration-150
+                    hover:shadow-md hover:bg-white hover:text-indigo-500">
+                    <i class="fa-solid fa-gear w-5 h-5"></i> Settings
                 </a>
             </li>
-            <li>
-                <a href="{{ route('ikan.index') }}"
-                   class="flex items-center px-6 py-3 hover:bg-zinc-800 transition {{ request()->routeIs('ikan.*') ? 'bg-zinc-800 font-semibold' : '' }}">
-                    <i class="fa-solid fa-fish mr-3"></i> Ikan
-                </a>
-            </li>
-            <!-- Tambahkan menu lain sesuai kebutuhan -->
         </ul>
     </nav>
 </aside>

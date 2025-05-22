@@ -24,12 +24,6 @@
                     <x-nav-link>
                         {{ __('Market') }}
                     </x-nav-link>
-                    {{-- Add this section for Admin Link --}}
-                    @if(Auth::check() && Auth::user()->role === 'admin')
-                        <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
-                            {{ __('Admin Panel') }}
-                        </x-nav-link>
-                    @endif
                 </div>
             </div>
 
@@ -112,6 +106,13 @@
                                 {{ __('Profile') }}
                             </x-dropdown-link>
                             <hr class="border-zinc-300">
+
+                            @if (Auth::check() && Auth::user()->role === 'admin')
+                                <x-dropdown-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
+                                    {{ __('Admin Panel') }}
+                                </x-dropdown-link>
+                                <hr class="border-zinc-300">
+                            @endif
 
                             <!-- Buyer Section -->
                             <div class="px-4 py-2 text-xs text-zinc-500 dark:text-zinc-400">Buyer</div>
@@ -212,7 +213,7 @@
                         {{ __('Profile') }}
                     </x-responsive-nav-link>
                     {{-- Add this section for Admin Link (Responsive) --}}
-                    @if(Auth::check() && Auth::user()->role === 'admin')
+                    @if (Auth::check() && Auth::user()->role === 'admin')
                         <x-responsive-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
                             {{ __('Admin Panel') }}
                         </x-responsive-nav-link>
