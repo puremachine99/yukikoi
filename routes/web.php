@@ -25,7 +25,8 @@ use App\Http\Controllers\{
     ComplaintController,
 };
 use App\Http\Controllers\Admin\{
-    DashboardController};
+    DashboardController
+};
 
 // Group routes for event module
 Route::middleware('auth')->group(function () {
@@ -250,7 +251,14 @@ Route::middleware(['auth', '\App\Http\Middleware\AdminMiddleware::class'])->pref
 // Xendit Webhook
 Route::post('/webhook/xendit', [XenditWebhookController::class, 'handle']);
 
-
+Route::get('/version', function () {
+    return [
+        'laravel_version' => app()->version(),
+        'php_version' => phpversion(),
+        'app_version' => config('app.version', '1.0.0'), // Tambahkan di config/app.php
+        'environment' => config('app.env'),
+    ];
+});
 
 // Auth Routes
 require __DIR__ . '/auth.php';

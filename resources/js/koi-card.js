@@ -118,3 +118,6 @@ window.closeVideoModal = function () {
     video.pause();
     modal.classList.add("hidden");
 };
+
+// Jadikan fungsi tersedia secara global
+window.toggleWishlist = toggleWishlist;
