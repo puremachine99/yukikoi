@@ -2,6 +2,7 @@ require("dotenv").config();
 const { makeWASocket, useMultiFileAuthState } = require("@whiskeysockets/baileys");
 const pino = require("pino");
 const qrcode = require("qrcode-terminal");
+const path = require("path");
 
 async function startBot() {
     const { state, saveCreds } = await useMultiFileAuthState("auth_info");
@@ -33,4 +34,6 @@ async function startBot() {
     });
 }
 
+// Auth state (agar selalu di dalam folder bot)
+const authFolder = path.join(__dirname, "auth_info");
 startBot().catch((err) => console.log("Error starting bot:", err));
