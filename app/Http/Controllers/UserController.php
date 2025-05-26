@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
@@ -9,6 +10,18 @@ class UserController extends Controller
     /**
      * Display a listing of the resource.
      */
+    public function byWa($wa)
+    {
+        $user = User::where('phone_number', $wa)->first();
+        if (!$user) {
+            return response()->json(['error' => 'Not found'], 404);
+        }
+        return response()->json([
+            'name' => $user->name,
+            'email' => $user->email,
+            // add more fields as needed
+        ]);
+    }
     public function index()
     {
         //

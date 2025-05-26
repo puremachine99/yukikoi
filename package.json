@@ -19,6 +19,9 @@
         "vite": "^5.0"
     },
     "dependencies": {
-        "swiper": "^11.1.12"
+        "@whiskeysockets/baileys": "^6.7.17",
+        "dotenv": "^16.5.0",
+        "swiper": "^11.1.12",
+        "whasapi": "^1.1.1-d"
     }
 }
