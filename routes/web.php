@@ -170,7 +170,7 @@ Route::middleware([\App\Http\Middleware\CountViews::class])->group(function () {
 
 // Bid Routes - Bidder, Seller, Priority Seller, Admin
 Route::middleware(['auth'])->group(function () {
-    Route::get('/user-bids', [BidController::class, 'userBids'])->name('bids.user');
+    Route::get('/user-bids', [BidController::class, 'userBids'])->name('bids.user'); // monitoring bid user
     Route::post('/bids/place', [BidController::class, 'store'])->name('bids.store');
     Route::post('/bids/buyNow', [BidController::class, 'buyNow'])->name('bids.buyNow');
     Route::post('/bids/check', [BidController::class, 'checkBid'])->name('bids.check');

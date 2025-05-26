@@ -87,15 +87,15 @@
                                         if (event.winner.id === loggedInUserId) {
                                             koiRow.classList.add('bg-green-100');
                                             actionsCell.innerHTML = `
-                                                                            <span class='text-green-500 font-bold'>
-                                                                                Winner: ${event.winner.name} - Rp ${new Intl.NumberFormat('id-ID').format(event.winner.amount)}
-                                                                            </span>`;
+                                                                                                                                    <span class='text-green-500 font-bold'>
+                                                                                                                                        Winner: ${event.winner.name} - Rp ${new Intl.NumberFormat('id-ID').format(event.winner.amount)}
+                                                                                                                                    </span>`;
                                         } else {
                                             koiRow.classList.add('bg-red-100');
                                             actionsCell.innerHTML = `
-                                                                            <span class='text-red-500 font-bold'>
-                                                                                Defeated by: ${event.winner.name} - Rp ${new Intl.NumberFormat('id-ID').format(event.winner.amount)}
-                                                                            </span>`;
+                                                                                                                                    <span class='text-red-500 font-bold'>
+                                                                                                                                        Defeated by: ${event.winner.name} - Rp ${new Intl.NumberFormat('id-ID').format(event.winner.amount)}
+                                                                                                                                    </span>`;
                                         }
                                     }
                                 });">
@@ -159,7 +159,6 @@
                                         BIN
                                     </button>
                                     <button id="minus-btn-{{ $bid->koi->id }}"
-                                        onclick="handleMinus('{{ $bid->koi->id }}')"
                                         class="bg-gray-300 w-10 text-gray-700 px-2 py-1 rounded-md hover:bg-gray-400 text-xs">-</button>
                                     <input id="bid-amount-{{ $bid->koi->id }}" type="number"
                                         value="{{ $latestBid ? $latestBid->amount + $bid->koi->kelipatan_bid : $bid->koi->open_bid + $bid->koi->kelipatan_bid }}"
@@ -185,24 +184,21 @@
         </div>
     </div>
     <script>
-        // ========================================== MULTI KOI BID SYSTEM ==========================================
         $(document).ready(function() {
-            // Inisialisasi untuk semua koi
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
             $('[data-koi-row]').each(function() {
                 const koiRow = $(this);
                 const koiId = koiRow.data('koi-id');
-                const auctionStatus = koiRow.data('auction-status');
-
-                // Config untuk setiap koi
                 const CONFIG = {
                     koiId: koiId,
                     userId: parseInt('{{ auth()->id() }}'),
-                    csrfToken: "{{ csrf_token() }}",
-                    openBid: parseInt(koiRow.find(`#bid-amount-${koiId}`).data('last-bid')) || parseInt(
-                        koiRow.find(`#bid-amount-${koiId}`).data('open-bid')),
+                    openBid: parseInt(koiRow.find(`#bid-amount-${koiId}`).data('last-bid')) || parseInt(koiRow.find(`#bid-amount-${koiId}`).data('open-bid')),
                     increment: parseInt(koiRow.find(`#bid-amount-${koiId}`).data('increment')),
-                    lastBid: parseInt(koiRow.find(`#price-cell-${koiId}`).text().replace(/\./g, '')) ||
-                        0,
+                    lastBid: parseInt(koiRow.find(`#price-cell-${koiId}`).text().replace(/\./g, '')) || 0,
                     binPrice: parseInt(koiRow.data('bin-price')) || 0,
                     routes: {
                         pinConfirm: "{{ route('pin.confirm') }}",
@@ -210,97 +206,59 @@
                         bin: "{{ route('bids.bin') }}"
                     }
                 };
-                console.log(CONFIG);
-                // Inisialisasi nilai awal
-                let minimumBid = CONFIG.lastBid > 0 ?
-                    CONFIG.lastBid + CONFIG.increment :
-                    CONFIG.openBid + CONFIG.increment;
-
+                let minimumBid = CONFIG.lastBid > 0 ? CONFIG.lastBid + CONFIG.increment : CONFIG.openBid + CONFIG.increment;
                 $(`#bid-amount-${koiId}`).val(minimumBid);
-
-                // ============================== EVENT HANDLERS ==============================
-                // Plus Button
                 $(`#plus-btn-${koiId}`).on('click', function() {
                     const current = parseInt($(`#bid-amount-${koiId}`).val());
-                    const newAmount = current + CONFIG.increment;
-                    $(`#bid-amount-${koiId}`).val(newAmount);
+                    $(`#bid-amount-${koiId}`).val(current + CONFIG.increment);
                 });
-
-                // Minus Button
                 $(`#minus-btn-${koiId}`).on('click', function() {
                     const current = parseInt($(`#bid-amount-${koiId}`).val());
-                    const newAmount = Math.max(
-                        CONFIG.openBid + CONFIG.increment,
-                        current - CONFIG.increment
-                    );
-                    $(`#bid-amount-${koiId}`).val(newAmount);
+                    $(`#bid-amount-${koiId}`).val(Math.max(CONFIG.openBid + CONFIG.increment, current - CONFIG.increment));
                 });
-
-                // Place Bid Button
                 $(`#place-bid-${koiId}`).on('click', function() {
                     const amount = parseInt($(`#bid-amount-${koiId}`).val());
                     if (validateBid(koiId, amount)) {
                         handlePinValidation(koiId, 'BID', amount);
                     }
                 });
-
-                // BIN Button
                 $(`#bin-btn-${koiId}`).on('click', function() {
                     handlePinValidation(koiId, 'BIN', CONFIG.binPrice);
                 });
-
-                // Real-time Bid Updates
                 Echo.channel(`koi.${koiId}`)
                     .listen('PlaceBid', (event) => {
-                        const newAmount = event.bid.amount;
-                        updateBidDisplay(koiId, newAmount);
+                        updateBidDisplay(koiId, event.bid.amount);
                     })
                     .listen('AuctionWon', (event) => {
                         handleAuctionResult(koiId, event.winner);
                     });
             });
-
-            // ============================== SHARED FUNCTIONS ==============================
             function validateBid(koiId, amount) {
                 const increment = $(`#bid-amount-${koiId}`).data('increment');
                 const lastBid = parseInt($(`#price-cell-${koiId}`).text().replace(/\./g, ''));
-                const minBid = lastBid > 0 ? lastBid + increment :
-                    parseInt($(`#bid-amount-${koiId}`).data('open-bid')) + increment;
-
+                const minBid = lastBid > 0 ? lastBid + increment : parseInt($(`#bid-amount-${koiId}`).data('open-bid')) + increment;
                 if (amount < minBid) {
                     showAlert('error', `Bid harus minimal Rp ${formatCurrency(minBid)}`);
                     return false;
                 }
-
                 if ((amount - minBid) % increment !== 0) {
                     showAlert('error', `Bid harus kelipatan Rp ${formatCurrency(increment)}`);
                     return false;
                 }
-
                 return true;
             }
-
             function handlePinValidation(koiId, actionType, amount) {
                 Swal.fire({
                     title: 'Verifikasi PIN',
                     input: 'text',
-                    inputAttributes: {
-                        maxlength: 4,
-                        inputmode: 'numeric'
-                    },
+                    inputAttributes: { maxlength: 4, inputmode: 'numeric' },
                     showCancelButton: true,
                     confirmButtonText: 'Konfirmasi',
                     preConfirm: (pin) => {
                         return $.ajax({
                             url: "{{ route('pin.confirm') }}",
                             method: 'POST',
-                            headers: {
-                                'X-CSRF-TOKEN': "{{ csrf_token() }}"
-                            },
-                            data: {
-                                koi_id: koiId,
-                                pin: pin
-                            }
+                            data: { koi_id: koiId, pin: pin }
                         });
                     }
                 }).then((result) => {
@@ -311,20 +269,12 @@
                     }
                 });
             }
-
             function processBid(koiId, actionType, amount) {
                 const route = actionType === 'BID' ? "{{ route('bids.store') }}" : "{{ route('bids.bin') }}";
-
                 $.ajax({
                     url: route,
                     method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': "{{ csrf_token() }}"
-                    },
-                    data: {
-                        koi_id: koiId,
-                        bid_amount: amount
-                    },
+                    data: { koi_id: koiId, bid_amount: amount },
                     success: function(response) {
                         if (response.success) {
                             if (actionType === 'BIN') window.location.reload();
@@ -336,37 +286,28 @@
                     }
                 });
             }
-
             function updateBidDisplay(koiId, amount) {
                 $(`#price-cell-${koiId}`).text(formatCurrency(amount));
                 const newMinBid = amount + parseInt($(`#bid-amount-${koiId}`).data('increment'));
                 $(`#bid-amount-${koiId}`).val(newMinBid);
-
-                // Update user's last bid
                 $(`#my-bid-cell-${koiId}`).text(formatCurrency(amount));
             }
-
             function handleAuctionResult(koiId, winner) {
                 const actionsCell = $(`#actions-cell-${koiId}`);
                 const isWinner = winner.user_id === {{ auth()->id() }};
-
                 actionsCell.html(`
                     <span class="${isWinner ? 'text-green-500' : 'text-red-500'} font-bold">
                         ${isWinner ? 'Winner' : 'Defeated by'}: 
                         ${winner.name} - Rp ${formatCurrency(winner.amount)}
                     </span>
                 `);
-
                 $(`#koi-row-${koiId}`)
                     .removeClass('bg-gray-100')
                     .addClass(isWinner ? 'bg-green-100' : 'bg-red-100');
             }
-
-            // ============================== UTILITIES ==============================
             function formatCurrency(amount) {
                 return new Intl.NumberFormat('id-ID').format(amount);
             }
-
             function showAlert(type, message) {
                 Swal.fire({
                     icon: type,

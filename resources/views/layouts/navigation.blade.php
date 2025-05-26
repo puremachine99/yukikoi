@@ -51,7 +51,7 @@
                     </x-dropdown>
 
                     <!-- Pesanan Masuk -->
-                    <a href="{{ route('orders.index') }}"
+                    {{-- <a href="{{ route('orders.index') }}"
                         class="relative flex items-center justify-center w-10 h-10 text-zinc-500 dark:text-zinc-400 bg-white dark:bg-zinc-800 rounded-full hover:text-zinc-700 dark:hover:text-zinc-300 focus:outline-none transition ease-in-out duration-150"
                         data-bs-toggle="tooltip" data-bs-placement="bottom" title="Pesanan Masuk">
                         <i class="fa-solid fa-box text-lg"></i>
@@ -61,7 +61,7 @@
                                 {{ $orderCount }}
                             </span>
                         @endif
-                    </a>
+                    </a> --}}
 
                     <!-- Keranjang -->
                     <a href="{{ route('cart.index') }}"
@@ -127,13 +127,23 @@
 
                             <!-- Seller Section -->
                             <div class="px-4 py-2 text-xs text-zinc-500 dark:text-zinc-400">Seller</div>
+                            <x-dropdown-link :href="route('orders.index')">
+                                <span class="relative flex items-center">
+                                    Pesanan Masuk
+                                    @if ($orderCount > 0)
+                                        <span
+                                            class="ml-2 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-600 rounded-full">
+                                            {{ $orderCount }}
+                                        </span>
+                                    @endif
+                                </span>
+                            </x-dropdown-link>
                             <x-dropdown-link :href="route('auctions.index')">
                                 {{ __('Lelang Saya') }}
                             </x-dropdown-link>
                             <x-dropdown-link :href="route('events.list')">
                                 {{ __('Event Saya') }}
                             </x-dropdown-link>
-
                             <hr class="border-zinc-300">
 
                             <!-- Theme Toggle -->
