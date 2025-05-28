@@ -1,39 +1,42 @@
-require("dotenv").config();
-const { makeWASocket, useMultiFileAuthState } = require("@whiskeysockets/baileys");
-const pino = require("pino");
+const express = require("express");
 const qrcode = require("qrcode-terminal");
-const path = require("path");
+const axios = require("axios");
+const { LocalAuth, Client } = require("whatsapp-web.js");
+const { getDb } = require("./database.cjs");
+const meCommand = require("./commands/users/me.cjs");
 
-async function startBot() {
-    const { state, saveCreds } = await useMultiFileAuthState("auth_info");
-    const sock = makeWASocket({
-        auth: state,
-        logger: pino({ level: "silent" }),
-        printQRInTerminal: false,
-    });
+const app = express();
+const port = process.env.PORT || 3000;
 
-    sock.ev.on("connection.update", ({ connection, qr }) => {
-        if (qr) {
-            qrcode.generate(qr, { small: true });
-            console.log("Scan QR code di atas dengan WhatsApp Anda");
-        }
-        if (connection === "open") {
-            console.log("Bot siap!");
-        }
-    });
+const client = new Client({
+    authStrategy: new LocalAuth({ clientId: "yukikoi-bot" }),
+});
 
-    sock.ev.on("creds.update", saveCreds);
+// cetak qr di terminal, login, report stat
+client.on("qr", (qr) => qrcode.generate(qr, { small: true }));
+client.on("authenticated", () => console.log("qr sudah discan"));
+client.on("ready", () => console.log("Client is ready!"));
 
-    sock.ev.on("messages.upsert", async ({ messages }) => {
-        const msg = messages[0];
-        if (!msg.message || msg.key.fromMe) return;
-        const text = msg.message.conversation || msg.message.extendedTextMessage?.text || "";
-        if (text.trim().toLowerCase() === "ping") {
-            await sock.sendMessage(msg.key.remoteJid, { text: "pong" });
-        }
-    });
-}
+client.on("message", async (chat) => {
+    const chatBody = chat.body.toLowerCase();
+    const chatFrom = chat.from;
+    if (chatBody === "me") {
+        await meCommand(chat, chatFrom);
+    }
+    const chatId = chat.id._serialized;
+    const chatType = chat.type;
+    let botChat = "";
+    if (chatBody === "ping") {
+        botChat = "pong";
+        chat.reply(botChat);
+        console.log(chatFrom + ":" + chatBody);
+        console.log("bot : " + botChat);
+    } 
+});
 
-// Auth state (agar selalu di dalam folder bot)
-const authFolder = path.join(__dirname, "auth_info");
-startBot().catch((err) => console.log("Error starting bot:", err));
+// Initialize the client
+client.initialize();
+// start bot e
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+});

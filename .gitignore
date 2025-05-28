@@ -18,6 +18,9 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+/bot/auth_info/
+/.wwebjs_auth
+/.wwebjs_cache
 
 **/caddy
 frankenphp
