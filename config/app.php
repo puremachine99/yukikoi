@@ -1,7 +1,7 @@
 <?php
 
 return [
-
+    'whatsapp_bot_url' => env('WHATSAPP_BOT_URL', 'http://localhost:3000'),
     /*
     |--------------------------------------------------------------------------
     | Application Name
