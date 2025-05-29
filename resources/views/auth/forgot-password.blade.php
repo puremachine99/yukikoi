@@ -1,25 +1,46 @@
 <x-guest-layout>
     <div class="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
-        {{ __('Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one.') }}
+        {{ __('Lupa kata sandi? Gak masalah. Cukup kasih tahu kami nomor WhatsApp kamu, dan kami bakal kirim link untuk atur ulang kata sandi kamu') }}
     </div>
 
     <!-- Session Status -->
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
-    <form method="POST" action="{{ route('password.email') }}">
+    <form method="POST" action="{{ route('password.request') }}">
         @csrf
 
-        <!-- Email Address -->
+        <!-- Phone Number -->
         <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+            <x-input-label for="phone_number" :value="__('Nomor WhatsApp Terdaftar')" />
+            <x-text-input id="phone_number" class="block mt-1 w-full" 
+                type="text" 
+                name="phone_number" 
+                :value="old('phone_number')" 
+                required autofocus />
+            <x-input-error :messages="$errors->get('phone_number')" class="mt-2" />
         </div>
 
-        <div class="flex items-center justify-end mt-4">
+        <div class="flex items-center justify-between mt-4">
+            <a class="underline text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                href="{{ route('login') }}">
+                Kembali ke Login
+            </a>
+            
             <x-primary-button>
-                {{ __('Email Password Reset Link') }}
+                {{ __('Kirim OTP') }}
             </x-primary-button>
         </div>
     </form>
+
+    @if (Route::has('password.request'))
+        <div class="mt-4 text-center">
+            <span class="text-sm text-zinc-600 dark:text-zinc-400">
+                Belum punya akun? 
+                <a class="underline hover:text-zinc-900 dark:hover:text-zinc-100" href="{{ route('register') }}">
+                    Daftar disini
+                </a>
+            </span>
+        </div>
+    @endif
 </x-guest-layout>
+

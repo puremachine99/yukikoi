@@ -32,25 +32,10 @@ Route::get('/send-wa', function () {
 });
 
 Route::post('/send-wa', [WhatsAppController::class, 'sendTestMessage']);
-Route::get('/test-connection', function () {
-    $url = rtrim(config('app.whatsapp_bot_url'), '/') . '/health-check';
+// routes/web.php
+Route::post('/send-otp', [WhatsAppController::class, 'sendOtp']);
+Route::post('/verify-otp', [WhatsAppController::class, 'verifyOtp']);
 
-    try {
-        $response = Http::get($url);
-        return response()->json([
-            'success' => true,
-            'response' => $response->json()
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'error' => $e->getMessage(),
-            'attempted_url' => $url,
-            'php_version' => PHP_VERSION,
-            'curl_info' => curl_version()
-        ], 500);
-    }
-});
 
 // Group routes for event module
 Route::middleware('auth')->group(function () {
