@@ -4,116 +4,144 @@ const axios = require("axios");
 const { LocalAuth, Client } = require("whatsapp-web.js");
 const { getDb } = require("./database.cjs");
 const meCommand = require("./commands/users/me.cjs");
+const BOT_CONFIG = {
+    operationalHours: {
+        start: "08:00", // format 24 jam, kosongkan jika tidak ingin membatasi
+        end: "22:00", // format 24 jam, kosongkan jika tidak ingin membatasi
+    },
+    adminNumbers: ["6281234567890"], // contoh: daftar admin
+    signature: process.env.WA_SIGNATURE || "\n\n-- Yukikoi Bot",
+    // Tambahkan config lain di sini sesuai kebutuhan
+};
 
-console.log("[BOOT] Yukikoi Bot mulai nyala... 🔌");
-console.log("[BOOT] Tunggu sebentar ya, lagi siap-siap...");
+function isWithinOperationalHours() {
+    const { start, end } = BOT_CONFIG.operationalHours;
+    if (!start || !end || (start === "0:00" && end === "0:00")) {
+        return true; // Tidak ada pembatasan jam
+    }
+    const now = new Date();
+    const [startH, startM] = start.split(":").map(Number);
+    const [endH, endM] = end.split(":").map(Number);
+    const startTime = new Date(now);
+    startTime.setHours(startH, startM, 0, 0);
+    const endTime = new Date(now);
+    endTime.setHours(endH, endM, 59, 999);
+    return now >= startTime && now <= endTime;
+}
+
+// [hh:mm:ss]
+function timestamp() {
+    return new Date().toTimeString().split(" ")[0];
+}
+
+const log = (tag, msg) => {
+    console.log(`[${tag.toUpperCase()}][${timestamp()}] ${msg}`);
+};
+
+log("SYS", "Inisialisasi sistem Yukikoi Bot dimulai...");
 
 const app = express();
 const port = process.env.PORT || 3000;
-console.log(`[SERVER] Aku jalan di port ${port} nih 🏃‍♂️`);
-
-// Middleware setup
 app.use(express.json());
-console.log("[SERVER] Tambahan fitur JSON udah aktif ✔️");
+
+log("SRV", `Server akan berjalan pada port ${port}`);
 
 const client = new Client({
     authStrategy: new LocalAuth({ clientId: "yukikoi-bot" }),
 });
-console.log("[WA] Aku siap connect ke WhatsApp...");
 
-// Event handlers with Gojek-style logging
+log("XWA", "Persiapan koneksi ke WhatsApp Web dimulai");
+
+// Event WhatsApp Client
 client.on("qr", (qr) => {
-    console.log("[WA] QR code nih! 📱");
-    console.log("[WA] Scan ini ya buat login...");
+    log("XWA", "Kode QR diterima. Silakan pindai untuk autentikasi.");
     qrcode.generate(qr, { small: true });
 });
 
 client.on("authenticated", () => {
-    console.log("[WA] Yeay! Login berhasil 🎉");
-    console.log("[WA] Sekarang aku bisa kirim pesan");
+    log("XWA", "Autentikasi berhasil. Klien siap digunakan.");
 });
 
 client.on("ready", () => {
-    console.log("[WA] Aku udah siap banget nih!");
-    console.log("[WA] Tinggal tunggu pesan masuk...");
+    log("XWA", "YukiKoi Bot dan WhatsApp Web siap. Menunggu pesan masuk...");
 });
 
 client.on("auth_failure", (msg) => {
-    console.log("[WA] Wah, gagal login nih");
-    console.log(`[WA] Errornya: ${msg}`);
+    log("ERR", `Gagal autentikasi: ${msg}`);
 });
 
 client.on("disconnected", (reason) => {
-    console.log("[WA] Aduh, aku terputus");
-    console.log(`[WA] Penyebabnya: ${reason}`);
+    log("XWA", `Koneksi terputus. Alasan: ${reason}`);
 });
 
 client.on("message", async (chat) => {
-    console.log(`[CHAT] Dapat pesan dari ${chat.from}`);
-    console.log(`[CHAT] Isinya: "${chat.body}"`);
-
+    if (!isWithinOperationalHours()) {
+        await chat.reply(
+            "⚠️ Bot hanya aktif pada jam operasional: " +
+                BOT_CONFIG.operationalHours.start +
+                " - " +
+                BOT_CONFIG.operationalHours.end
+        );
+        return;
+    }
     const chatBody = chat.body.toLowerCase();
     const chatFrom = chat.from;
 
+    log("MSG", `Pesan diterima dari ${chatFrom} dengan isi: "${chatBody}"`);
+
     if (chatBody === "me") {
-        console.log("[CMD] Ada yang panggil 'me' nih...");
+        log("CMD", "Menjalankan perintah: me");
         await meCommand(chat, chatFrom);
-        console.log("[CMD] Perintah 'me' selesai diproses");
+        log("CMD", "Perintah 'me' selesai dijalankan");
     }
 
     if (chatBody === "ping") {
-        console.log("[CHAT] Ada yang ping, aku balas pong deh 🏓");
         await chat.reply("pong");
-        console.log("[CHAT] Pesan udah dibalas 👍");
+        log("CMD", "Membalas ping dengan pong");
     }
 });
 
-// Initialize the client
-console.log("[WA] Mau connect ke WhatsApp dulu ya...");
+// Inisialisasi WhatsApp client
+log("XWA", "Menginisialisasi koneksi ke WhatsApp Web...");
 client.initialize();
 
-// API Endpoint with casual logging
+// Endpoint API kirim pesan
 app.post("/send-message", async (req, res) => {
-    console.log("[API] Platform kirim pesan nih! 📨");
-    console.log(`[API] Detailnya:`, req.body);
+    const { phone_number, message } = req.body;
+    log(
+        "API",
+        `Permintaan pengiriman pesan diterima: ${JSON.stringify(req.body)}`
+    );
 
     try {
-        const phone = req.body.phone_number.replace(/\D/g, "");
+        const phone = phone_number.replace(/\D/g, "");
         const chatId = `${phone}@c.us`;
 
-        console.log(`[API] Kirim ke: ${chatId}`);
-
         if (!client.info) {
-            console.log("[API] Wah, aku belum siap ");
-            throw new Error("WhatsApp client belum ready");
+            throw new Error("Klien WhatsApp belum siap");
         }
 
-        console.log("[API] Oke, kirim sekarang ");
-        const sent = await client.sendMessage(chatId, req.body.message);
-        console.log(`[API] Pesan terkirim 🚀 ID: ${sent.id.id}`);
+        const sent = await client.sendMessage(chatId, message);
+        log("API", `Pesan berhasil dikirim ke ${chatId}. ID: ${sent.id.id}`);
 
         res.json({
             success: true,
-            message: "Pesan udah jalan!",
+            message: "Pesan berhasil dikirim",
             message_id: sent.id.id,
             timestamp: new Date().toISOString(),
         });
     } catch (error) {
-        console.log("[API] Yah, error nih 😢");
-        console.log(`[API] Errornya: ${error.message}`);
+        log("ERR", `Gagal mengirim pesan: ${error.message}`);
         res.status(500).json({
             success: false,
-            message: "Aduh, gagal kirim pesan",
+            message: "Terjadi kesalahan saat mengirim pesan",
             error: error.message,
         });
     }
 });
 
-// Server startup
+// Menyalakan server
 app.listen(port, () => {
-    console.log(`[SERVER] Yukikoi Bot udah nyala! 🎊`);
-    console.log(`[SERVER] Endpoint aktif: http://localhost:${port}/send-message`);
-    console.log("[SERVER] Aku siap melayani 😊");
+    log("SRV", `Server aktif di http://localhost:${port}/send-message`);
+    log("SYS", "Menunggu Auth dari Whatsapp...");
 });
-
-console.log("[BOOT] Semua setup selesai! Aku tunggu pekerjaan pertama...");

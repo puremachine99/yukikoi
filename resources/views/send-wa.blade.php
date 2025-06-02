@@ -34,10 +34,10 @@
                 <input 
                     type="text" 
                     name="phone_number" 
-                    required
-                    placeholder="6281234567890" 
+                    placeholder="6281234567890,6289876543210 (leave blank to send to all users)" 
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 >
+                <small class="text-xs text-gray-500">Pisahkan nomor dengan koma, atau kosongkan untuk broadcast ke semua user.</small>
             </div>
             
             <div>
@@ -63,6 +63,9 @@
             </button>
         </form>
 
+        <div class="mb-4 text-center text-sm text-gray-700">
+            <strong>Jam Server Sekarang:</strong> {{ now()->format('H:i:s') }} ({{ config('app.timezone') }})
+        </div>
         <div class="mt-6 text-center text-sm text-gray-500">
             <p>Pastiin nomor udah bener ya, biar pesan nyampe!</p>
         </div>

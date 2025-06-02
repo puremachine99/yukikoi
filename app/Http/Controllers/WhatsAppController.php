@@ -14,68 +14,76 @@ class WhatsAppController extends Controller
     public function sendTestMessage(Request $request)
     {
         $request->validate([
-            'phone_number' => 'required|string|regex:/^628\d{9,12}$/',
             'message' => 'required|string|min:3|max:255'
         ]);
 
-        // =============================================
-        // Temp Msg - signature YukiKoi Bot
-        // Format: [Original message] + Signature
-        $originalMessage = $request->message;
-        $signature = "\n\n--\nDikirim oleh YukiKoi Bot🎏";
-        $finalMessage = $originalMessage . $signature;
-        // =============================================
-
-        $botUrl = config('app.whatsapp_bot_url') . '/send-message';
-        $phoneNumber = $request->phone_number;
-
-        Log::channel('whatsapp')->info('Mengirim pesan WhatsApp', [
-            'action' => 'send_message',
-            'phone' => $phoneNumber,
-            'message' => $finalMessage,
-            'bot_url' => $botUrl
-        ]);
-
-        try {
-            $response = Http::timeout(15)
-                ->retry(3, 500) // 3 attempts, 500ms delay
-                ->withHeaders([
-                    'Accept' => 'application/json',
-                    'Content-Type' => 'application/json',
-                    'X-Request-From' => 'laravel-app'
-                ])
-                ->post($botUrl, [
-                    'phone_number' => $phoneNumber,
-                    'message' => $finalMessage
-                ]);
-
-            $responseData = $response->json();
-
-            if ($response->successful()) {
-                Log::channel('whatsapp')->info('Pesan terkirim', [
-                    'status' => 'success',
-                    'message_id' => $responseData['message_id'] ?? null,
-                    'response' => $responseData
-                ]);
-
-                return back()->with('success', 'Yeay! Pesan berhasil dikirim ke ' . $phoneNumber);
-            }
-
-            Log::channel('whatsapp')->warning('Bot merespons error', [
-                'status_code' => $response->status(),
-                'response' => $responseData
-            ]);
-
-            return back()->with('error', 'Waduh, bot merespons error: ' . ($responseData['error'] ?? 'Unknown error'));
-
-        } catch (\Exception $e) {
-            Log::channel('whatsapp')->error('Gagal mengirim pesan', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            return back()->with('error', 'Aduh, gagal mengirim pesan. Coba lagi ya!');
+        $phoneInput = trim($request->phone_number ?? '');
+        if ($phoneInput === '') {
+            $numbers = User::whereNotNull('phone_number')->pluck('phone_number')->toArray();
+        } else {
+            $numbers = array_filter(array_map('trim', explode(',', $phoneInput)));
         }
+
+        $success = [];
+        $failed = [];
+        foreach ($numbers as $idx => $phoneNumber) {
+            $phoneNumber = $this->normalizePhoneNumber($phoneNumber); // Normalize here
+            $originalMessage = $request->message;
+            $signature = env('WA_SIGNATURE', "\n\n-- Yukikoi Bot");
+            $finalMessage = $originalMessage . $signature;
+            $botUrl = config('app.whatsapp_bot_url') . '/send-message';
+            Log::channel('whatsapp')->info('Mengirim pesan WhatsApp', [
+                'action' => 'send_message',
+                'phone' => $phoneNumber,
+                'message' => $finalMessage,
+                'bot_url' => $botUrl
+            ]);
+            try {
+                $response = Http::timeout(15)
+                    ->retry(3, 500)
+                    ->withHeaders([
+                        'Accept' => 'application/json',
+                        'Content-Type' => 'application/json',
+                        'X-Request-From' => 'laravel-app'
+                    ])
+                    ->post($botUrl, [
+                        'phone_number' => $phoneNumber,
+                        'message' => $finalMessage
+                    ]);
+                $responseData = $response->json();
+                if ($response->successful()) {
+                    Log::channel('whatsapp')->info('Pesan terkirim', [
+                        'status' => 'success',
+                        'message_id' => $responseData['message_id'] ?? null,
+                        'response' => $responseData
+                    ]);
+                    $success[] = $phoneNumber;
+                } else {
+                    Log::channel('whatsapp')->warning('Bot merespons error', [
+                        'status_code' => $response->status(),
+                        'response' => $responseData
+                    ]);
+                    $failed[] = $phoneNumber;
+                }
+            } catch (\Exception $e) {
+                Log::channel('whatsapp')->error('Gagal mengirim pesan', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+                $failed[] = $phoneNumber;
+            }
+            if ($idx < count($numbers) - 1) {
+                sleep(2); // Delay 2 detik antar nomor
+            }
+        }
+        $msg = '';
+        if ($success) {
+            $msg .= 'Berhasil dikirim ke: ' . implode(', ', $success) . '. ';
+        }
+        if ($failed) {
+            $msg .= 'Gagal dikirim ke: ' . implode(', ', $failed) . '.';
+        }
+        return back()->with('success', $msg);
     }
     // app/Http/Controllers/WhatsAppController.php
     public function sendOtp(Request $request)
