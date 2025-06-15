@@ -1,9 +1,9 @@
 <section>
     <header>
-        <h2 class="text-lg font-medium text-zinc-900 dark:text-zinc-100">
+        <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
             Informasi Profil
         </h2>
-        <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
             Perbarui informasi akun Anda dan alamat email.
         </p>
     </header>
@@ -87,7 +87,7 @@
             <x-input-label for="bio" :value="'Bio'" />
             <x-textarea id="bio" name="bio" rows="3" maxlength="160" class="mt-1 block w-full"
                 oninput="updateCharacterCount()">{{ old('bio', $user->bio) }}</x-textarea>
-            <div class="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+            <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">
                 <span id="charCount">160</span> karakter tersisa.
             </div>
             <x-input-error class="mt-2" :messages="$errors->get('bio')" />

@@ -1,4 +1,4 @@
-<div class="block bg-white dark:bg-zinc-800 rounded-lg shadow-md overflow-visible relative card-clickable"
+<div class="block bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-visible relative card-clickable"
     onclick="redirectToKoiPage(event, '{{ route('koi.show', ['id' => $koi->id]) }}')">
     <!-- Bagian Carousel atau Gambar Utama Koi -->
     <div class="relative">
@@ -13,7 +13,7 @@
             <!-- Tombol Play untuk Video -->
             @if ($koi->media->where('media_type', 'video')->isNotEmpty())
                 <button
-                    class="absolute group bottom-2 right-4 w-12 h-12 z-20 bg-white dark:bg-zinc-700 text-sky-500 border-2 border-sky-500 rounded-full flex items-center justify-center transition-transform hover:scale-105 hover:bg-sky-500 hover:text-white no-route"
+                    class="absolute group bottom-2 right-4 w-12 h-12 z-20 bg-white dark:bg-gray-700 text-sky-500 border-2 border-sky-500 rounded-full flex items-center justify-center transition-transform hover:scale-105 hover:bg-sky-500 hover:text-white no-route"
                     onclick="event.stopPropagation(); openVideoModal('{{ asset('storage/' . $koi->media->where('media_type', 'video')->first()->url_media) }}')">
                     <i class="fa-solid fa-play text-xl"></i>
                     <span
@@ -23,7 +23,7 @@
                 </button>
             @endif
 
-            <div class="absolute group top-60 right-0 bg-white dark:bg-zinc-700 p-1 px-2 rounded-l-lg shadow-md w-20">
+            <div class="absolute group top-60 right-0 bg-white dark:bg-gray-700 p-1 px-2 rounded-l-lg shadow-md w-20">
                 <!-- Status Lelang dan Jumlah Bids -->
                 <div class="text-sm text-gray-700 dark:text-gray-200 mb-1">
                     <!-- Status Lelang dengan Warna dan Tooltip -->
@@ -138,7 +138,7 @@
 <!-- Modal untuk video -->
 <div id="videoModal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50"
     onclick="closeVideoModal()">
-    <div class="bg-white dark:bg-zinc-800 p-0 rounded-lg max-w-7xl w-auto max-h-screen overflow-auto">
+    <div class="bg-white dark:bg-gray-800 p-0 rounded-lg max-w-7xl w-auto max-h-screen overflow-auto">
         <video id="modalVideo" class="w-full h-auto mt-0 rounded-lg" controls style="max-height: 90vh;">
             <source id="videoSource" src="" type="video/mp4">
             Your browser does not support the video tag.
@@ -150,7 +150,7 @@
 <!-- Modal untuk Sertifikat -->
 <div id="certModal" class="fixed inset-0 z-50 items-center flex justify-center hidden bg-black bg-opacity-50"
     onclick="closeModal()">
-    <div class="bg-white dark:bg-zinc-800 p-0 rounded-lg max-w-7x1 w-full">
+    <div class="bg-white dark:bg-gray-800 p-0 rounded-lg max-w-7x1 w-full">
         <img id="certImage" src="" alt="Certificate Image" class="w-full mt-0 rounded-lg">
     </div>
 </div>

@@ -65,10 +65,10 @@
         <div class="flex justify-between items-center">
             <!-- Tombol Kembali ke Daftar Lelang -->
             <a href="{{ route('auctions.show', ['auction_code' => $koi->auction->auction_code]) }}"
-                class="inline-flex items-center px-4 py-2 bg-gray-600 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-gray-300 focus:bg-gray-700 dark:focus:bg-gray-300 active:bg-gray-800 dark:active:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-800 transition ease-in-out duration-150">
+                class="inline-flex items-center px-4 py-2 bg-gray-600 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-gray-300 focus:bg-gray-700 dark:focus:bg-gray-300 active:bg-gray-800 dark:active:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
                 <i class="fa-solid fa-arrow-left"></i> &nbsp; Lelang {{ $koi->auction->auction_code }}
             </a>
-            <h2 class="font-semibold text-xl text-center text-zinc-800 dark:text-zinc-200 leading-tight">
+            <h2 class="font-semibold text-xl text-center text-gray-800 dark:text-gray-200 leading-tight">
                 {{ __('Detail Koi') }}
             </h2>
         </div>
@@ -82,7 +82,7 @@
 
                 <!-- Bagian Detail Koi -->
                 <div
-                    class="bg-white dark:bg-zinc-800 p-4 sm:rounded-lg w-full rounded-lg shadow-lg relative overflow-visible ">
+                    class="bg-white dark:bg-gray-800 p-4 sm:rounded-lg w-full rounded-lg shadow-lg relative overflow-visible ">
                     {{-- Info Koi --}}
                     @include('koi.partials.koi-details', ['koi' => $koi])
 
@@ -119,7 +119,7 @@
 
             <!-- Drawer-like user list -->
             <div x-show="showUserList" x-transition
-                class="fixed bottom-16 right-4 w-64 bg-white shadow-lg rounded-lg max-h-80 overflow-y-auto p-4 dark:bg-zinc-800 dark:text-white">
+                class="fixed bottom-16 right-4 w-64 bg-white shadow-lg rounded-lg max-h-80 overflow-y-auto p-4 dark:bg-gray-800 dark:text-white">
                 <div class="flex justify-between items-center">
                     <h2 class="text-lg font-semibold">Users Online</h2>
                     <button @click="showUserList = false"
@@ -166,7 +166,7 @@
         {{-- modal video koi --}}
         <div id="videoModal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50"
             onclick="closeVideoModal()">
-            <div class="bg-white dark:bg-zinc-800 p-0 rounded-lg max-w-7xl w-auto max-h-screen overflow-auto">
+            <div class="bg-white dark:bg-gray-800 p-0 rounded-lg max-w-7xl w-auto max-h-screen overflow-auto">
                 <video id="modalVideo" class="w-full h-auto mt-0 rounded-lg" controls style="max-height: 90vh;">
                     <source id="videoSource" src="" type="video/mp4">
                     Your browser does not support the video tag.

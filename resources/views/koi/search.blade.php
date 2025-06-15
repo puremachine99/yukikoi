@@ -7,7 +7,7 @@
 
     <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-zinc-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
                 <!-- Form Pencarian -->
                 <form method="GET" action="{{ route('koi.search') }}" class="mb-4 flex flex-wrap gap-2">
                     <input type="text" name="q" placeholder="Cari Koi..." value="{{ request('q') }}" 

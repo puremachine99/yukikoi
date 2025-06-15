@@ -3,9 +3,9 @@
         <div class="flex justify-between items-center">
             <div class="relative flex-1 max-w-lg">
                 <input type="text" id="search" placeholder="Cari di Lelang Koi..."
-                    class="w-full py-2 px-4 rounded-lg border border-zinc-300 dark:bg-zinc-800 dark:text-zinc-200 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500">
+                    class="w-full py-2 px-4 rounded-lg border border-gray-300 dark:bg-gray-800 dark:text-gray-200 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500">
             </div>
-            <div class="ml-4 text-sm text-zinc-600 dark:text-zinc-400">
+            <div class="ml-4 text-sm text-gray-600 dark:text-gray-400">
                 Waktu Server: {{ \Carbon\Carbon::now()->toDateTimeString() }}
             </div>
         </div>
@@ -13,7 +13,7 @@
 
     <div class="py-6 max-w-7xl mx-auto space-y-6">
         <!-- Carousel Banner -->
-        <section class="container mx-auto px-4 mb-6 bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-lg">
+        <section class="container mx-auto px-4 mb-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
             <div x-data="{ activeSlide: 0, slides: {{ $carouselAds->toJson() }} }" class="relative w-full overflow-hidden rounded-lg shadow-lg">
                 <!-- Carousel wrapper -->
                 <div class="relative h-64">
@@ -55,7 +55,7 @@
 
         <div class="flex">
             <!-- Sidebar untuk Filter -->
-            <aside class="w-1/4 p-4 bg-white dark:bg-zinc-800 shadow sm:rounded-lg space-y-4">
+            <aside class="w-1/4 p-4 bg-white dark:bg-gray-800 shadow sm:rounded-lg space-y-4">
                 <h3 class="text-lg font-semibold">Filter Kategori</h3>
                 <form id="filterForm" class="space-y-4">
                     <!-- Filter Jenis Lelang -->
@@ -94,7 +94,7 @@
             </aside>
 
             <!-- Main Content -->
-            <main class="w-3/4 p-4 bg-white dark:bg-zinc-800 shadow sm:rounded-lg space-y-4">
+            <main class="w-3/4 p-4 bg-white dark:bg-gray-800 shadow sm:rounded-lg space-y-4">
                 <!-- Sort Dropdown -->
                 <div class="flex justify-end">
                     <select id="sort" class="py-2 px-3 border border-gray-300 dark:border-gray-600 rounded-lg">
@@ -130,7 +130,7 @@
                     `Berakhir pada: ${new Date(auction.end_time).toLocaleTimeString()}`;
 
                 const auctionCard = `
-            <a href="/auctions/${auction.auction_code}" class="block border rounded-lg p-4 dark:bg-zinc-700 hover:shadow-lg transition">
+            <a href="/auctions/${auction.auction_code}" class="block border rounded-lg p-4 dark:bg-gray-700 hover:shadow-lg transition">
                 <img src="${auction.banner ? '/storage/' + auction.banner : ''}" alt="${auction.title}" class="w-full h-32 object-cover mb-4">
                 <h3 class="text-sm font-bold">${auction.auction_code} - ${auction.title}</h3>
                 <p class="text-xs text-gray-500">Farm: ${farmName}</p>

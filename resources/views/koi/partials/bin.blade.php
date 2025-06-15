@@ -1,4 +1,4 @@
-<div class="bg-zinc-100 dark:bg-gray-900 p-2 rounded-lg shadow-md w-full flex-shrink-0">
+<div class="bg-gray-100 dark:bg-gray-900 p-2 rounded-lg shadow-md w-full flex-shrink-0">
     <div class="flex items-center space-x-2 mb-2">
         <input type="text" id="chat-input" x-model="newMessage"
             placeholder="Ketik pesan..."

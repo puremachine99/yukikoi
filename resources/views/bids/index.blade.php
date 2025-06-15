@@ -16,14 +16,14 @@
         }
     </style>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-zinc-800 dark:text-zinc-200 leading-tight">
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
             {{ __('List Bid Koi') }}
         </h2>
     </x-slot>
 
     <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-zinc-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
                 <div class="flex space-x-4 mb-4">
                     <!-- Filter by Win Status -->
                     <div>
@@ -65,7 +65,7 @@
 
                         <div id="koi-row-{{ $bid->koi->id }}" data-koi-row data-win-status="{{ $winStatus }}"
                             data-auction-status="{{ $auctionStatus }}"
-                            class="bg-white dark:bg-zinc-700 rounded-lg shadow border {{ $winner && $winner->user_id === Auth::id() ? 'bg-green-100' : ($winner && $winner->user_id !== Auth::id() ? 'bg-red-100' : '') }}"
+                            class="bg-white dark:bg-gray-700 rounded-lg shadow border {{ $winner && $winner->user_id === Auth::id() ? 'bg-green-100' : ($winner && $winner->user_id !== Auth::id() ? 'bg-red-100' : '') }}"
                             data-koi-id="{{ $bid->koi->id }}" x-data="{ bidAmount: {{ $bid->amount + $bid->koi->kelipatan_bid }} }" x-init="Echo.channel('koi.{{ $bid->koi->id }}')
                                 .listen('PlaceBid', (event) => {
                                     let koiId = event.bid.koi_id;

@@ -13,7 +13,7 @@
                         // Ambil banner dari part pertama
                         $banner = $parts->first()->banner;
                     @endphp
-                    <div class="event-card shadow-lg p-4 bg-white dark:bg-zinc-800 rounded-lg">
+                    <div class="event-card shadow-lg p-4 bg-white dark:bg-gray-800 rounded-lg">
                         <!-- Banner Event -->
                         <div class="relative mb-4">
                             <img src="{{ asset('storage/' . $banner) }}" alt="{{ $eventName }}"
@@ -28,7 +28,7 @@
                         <!-- Tampilkan setiap part -->
                         <div class="mt-2">
                             <button type="button"
-                                class="w-full text-left px-4 py-2 bg-gray-100 dark:bg-zinc-700 rounded-md focus:outline-none"
+                                class="w-full text-left px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-md focus:outline-none"
                                 onclick="toggleAccordion('accordion-{{ Str::slug($eventName) }}')">
                                 Lihat Jadwal Part
                             </button>

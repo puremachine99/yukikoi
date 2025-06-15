@@ -1,9 +1,9 @@
 <section>
     <header>
-        <h2 class="text-lg font-medium text-zinc-900 dark:text-zinc-100">
+        <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
             {{ __('Kelola Alamat Penerima') }}
         </h2>
-        <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
             {{ __('Tambahkan, ubah, atau hapus alamat penerima untuk mempermudah pengiriman.') }}
         </p>
     </header>
@@ -66,15 +66,15 @@
         @if ($addresses->isNotEmpty())
             <div class="space-y-4">
                 @foreach ($addresses as $address)
-                    <div class="bg-white dark:bg-zinc-900 p-4 rounded-lg shadow flex justify-between items-start">
+                    <div class="bg-white dark:bg-gray-900 p-4 rounded-lg shadow flex justify-between items-start">
                         <div>
-                            <h3 class="font-semibold text-zinc-800 dark:text-zinc-100">{{ $address->recipient_name }}
+                            <h3 class="font-semibold text-gray-800 dark:text-gray-100">{{ $address->recipient_name }}
                             </h3>
-                            <p class="text-sm text-zinc-600 dark:text-zinc-400">{{ $address->phone_number }}</p>
-                            <p class="text-sm text-zinc-600 dark:text-zinc-400">{{ $address->full_address }}</p>
-                            <p class="text-sm text-zinc-600 dark:text-zinc-400">{{ $address->city }},
+                            <p class="text-sm text-gray-600 dark:text-gray-400">{{ $address->phone_number }}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">{{ $address->full_address }}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">{{ $address->city }},
                                 {{ $address->district }}</p>
-                            <p class="text-sm text-zinc-600 dark:text-zinc-400">{{ ucfirst($address->type) }}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">{{ ucfirst($address->type) }}</p>
 
                             @if ($address->is_default)
                                 <span

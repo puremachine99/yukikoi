@@ -32,7 +32,7 @@
 </head>
 
 
-<body class="bg-zinc-100">
+<body class="bg-gray-100">
     <x-admin.nav />
     <div class="flex pt-28">
         <x-admin.sidebar />

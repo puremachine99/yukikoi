@@ -1,14 +1,14 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-zinc-800 dark:text-zinc-200 leading-tight">
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
             {{ __('Edit Auction') }}
         </h2>
     </x-slot>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-zinc-800 overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-zinc-900 dark:text-zinc-100">
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 text-gray-900 dark:text-gray-100">
                     <form action="{{ route('auctions.update', ['auction_code' => $auction->auction_code]) }}"
                         method="POST" enctype="multipart/form-data">
                         @csrf
@@ -28,14 +28,14 @@
                                 src="{{ asset('storage/' . $auction->banner) }}">
                             <input type="file" id="banner" name="banner" accept="image/*"
                                 onchange="previewImage(event)"
-                                class="block mt-1 w-full border-zinc-300 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-300 rounded-md shadow-sm focus:ring focus:ring-opacity-50 focus:border-indigo-300 focus:ring-indigo-200 dark:focus:ring-indigo-700">
+                                class="block mt-1 w-full border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 rounded-md shadow-sm focus:ring focus:ring-opacity-50 focus:border-indigo-300 focus:ring-indigo-200 dark:focus:ring-indigo-700">
                         </div>
 
                         <!-- Deskripsi -->
                         <div class="mb-4">
                             <x-input-label for="description" :value="__('Description')" />
                             <textarea id="description" name="description" rows="5"
-                                class="block mt-1 w-full border-zinc-300 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-300 rounded-md shadow-sm focus:ring focus:ring-opacity-50 focus:border-indigo-300 focus:ring-indigo-200 dark:focus:ring-indigo-700"
+                                class="block mt-1 w-full border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 rounded-md shadow-sm focus:ring focus:ring-opacity-50 focus:border-indigo-300 focus:ring-indigo-200 dark:focus:ring-indigo-700"
                                 required>{{ old('description', $auction->description) }}</textarea>
                         </div>
 
@@ -65,7 +65,7 @@
                                     'end_time',
                                     \Carbon\Carbon::parse($auction->end_time)->format('Y-m-d\TH:i'),
                                 )" />
-                            <p class="text-sm text-zinc-500 dark:text-zinc-400">
+                            <p class="text-sm text-gray-500 dark:text-gray-400">
                                 {{ __('Kosongkan jika default (1x24 jam).') }}</p>
                         </div>
 

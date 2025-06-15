@@ -2,11 +2,11 @@
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <a href="{{ route('koi.index', ['auction_code' => $auction_code]) }}"
-                class="inline-flex items-center px-4 py-2 bg-zinc-800 dark:bg-zinc-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-zinc-800 uppercase tracking-widest hover:bg-zinc-700 dark:hover:bg-white focus:bg-zinc-700 dark:focus:bg-white active:bg-zinc-900 dark:active:bg-zinc-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-800 transition ease-in-out duration-150">
+                class="inline-flex items-center px-4 py-2 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
                 <i class="fas fa-arrow-left mr-2"></i> List Koi
             </a>
 
-            <h2 class="font-semibold text-xl text-zinc-800 dark:text-zinc-200 leading-tight">
+            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
                 {{ __('Tambah Koi Lelang #') . $auction_code }}
             </h2>
         </div>
@@ -14,7 +14,7 @@
 
     <div class="py-8">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <div class="p-4 sm:p-8 bg-white dark:bg-zinc-800 shadow sm:rounded-lg">
+            <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
                 <div class="container mx-auto px-4">
                     <form action="{{ route('koi.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
@@ -23,7 +23,7 @@
                         <!-- Wrapper untuk form koi dinamis -->
                         <div id="koiFormWrapper" class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <!-- Form Koi pertama -->
-                            <div class="koi-form p-4 bg-white dark:bg-zinc-800 rounded-lg shadow-md">
+                            <div class="koi-form p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md">
                                 <h3 class="text-lg font-semibold mb-4">Koi A</h3>
                                 <!-- Input Judul Koi -->
                                 <div class="mb-4">
@@ -53,17 +53,17 @@
                                         <label class="inline-flex items-center">
                                             <input type="radio" name="gender[0]" value="Male"
                                                 class="form-radio h-4 w-4 text-indigo-600 transition duration-150 ease-in-out">
-                                            <span class="ml-2 text-zinc-700 dark:text-zinc-200">Male</span>
+                                            <span class="ml-2 text-gray-700 dark:text-gray-200">Male</span>
                                         </label>
                                         <label class="inline-flex items-center ml-2">
                                             <input type="radio" name="gender[0]" value="Female"
                                                 class="form-radio h-4 w-4 text-indigo-600 transition duration-150 ease-in-out">
-                                            <span class="ml-2 text-zinc-700 dark:text-zinc-200">Female</span>
+                                            <span class="ml-2 text-gray-700 dark:text-gray-200">Female</span>
                                         </label>
                                         <label class="inline-flex items-center ml-2">
                                             <input type="radio" name="gender[0]" value="Unchecked" checked
                                                 class="form-radio h-4 w-4 text-indigo-600 transition duration-150 ease-in-out">
-                                            <span class="ml-2 text-zinc-700 dark:text-zinc-200">Unchecked</span>
+                                            <span class="ml-2 text-gray-700 dark:text-gray-200">Unchecked</span>
                                         </label>
                                     </div>
                                 </div>
@@ -94,7 +94,7 @@
                                 <div class="mb-4">
                                     <x-input-label for="keterangan" :value="__('Keterangan')" />
                                     <textarea name="keterangan[]" rows="2" placeholder="Deskripsi tentang koi"
-                                        class="block w-full border-zinc-300 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-300 rounded-md shadow-sm focus:ring focus:ring-opacity-50 focus:border-indigo-300 focus:ring-indigo-200 dark:focus:ring-indigo-700"></textarea>
+                                        class="block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 rounded-md shadow-sm focus:ring focus:ring-opacity-50 focus:border-indigo-300 focus:ring-indigo-200 dark:focus:ring-indigo-700"></textarea>
                                 </div>
 
                                 <!-- Input Breeder -->

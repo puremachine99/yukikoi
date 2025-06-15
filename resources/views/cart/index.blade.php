@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-zinc-800 dark:text-zinc-200 leading-tight">
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
             {{ __('Keranjang') }}
         </h2>
         <style>
@@ -60,14 +60,14 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             @forelse ($cartsBySeller as $farmName => $carts)
-                <div class="mb-8 bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-md">
-                    <h3 class="font-semibold text-lg text-zinc-700 dark:text-zinc-200 mb-4">
+                <div class="mb-8 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                    <h3 class="font-semibold text-lg text-gray-700 dark:text-gray-200 mb-4">
                         Toko: {{ $farmName ?? 'Tanpa Nama' }}
                     </h3>
 
                     <div class="space-y-6">
                         @foreach ($carts as $cart)
-                            <div class="itemcart flex items-start bg-white hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors duration-200 dark:bg-zinc-800 p-4 rounded-lg shadow-md cursor-pointer">
+                            <div class="itemcart flex items-start bg-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 dark:bg-gray-800 p-4 rounded-lg shadow-md cursor-pointer">
                                 <div class="flex-shrink-0">
                                     <input type="checkbox" class="select-koi" data-id="{{ $cart->id }}"
                                         data-price="{{ $cart->price }}" style="transform: scale(1.2);">
@@ -83,22 +83,22 @@
 
                                 <!-- Detail Koi -->
                                 <div class="ml-6 flex-1">
-                                    <h4 class="text-lg font-semibold text-zinc-800 dark:text-zinc-200">
+                                    <h4 class="text-lg font-semibold text-gray-800 dark:text-gray-200">
                                         {{ $cart->koi->judul }}
                                     </h4>
-                                    <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">
                                         Kode Lelang: {{ $cart->koi->auction_code }}
                                     </p>
-                                    <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">
                                         Kode Ikan: {{ $cart->koi->kode_koi }}
                                     </p>
-                                    <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">
                                         Jumlah Bid: {{ $cart->koi->bids->count() }}x
                                     </p>
-                                    <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">
                                         Waktu Menang: {{ optional($cart->koi->win_time)->format('d M Y, H:i') ?? '-' }}
                                     </p>
-                                    <p class="text-sm text-zinc-600 dark:text-zinc-400 font-semibold mt-2">Harga Menang:
+                                    <p class="text-sm text-gray-600 dark:text-gray-400 font-semibold mt-2">Harga Menang:
                                     </p>
                                     <p class="text-lg font-bold text-green-600 dark:text-green-400">
                                         Rp {{ number_format($cart->price, 0, ',', '.') }}
@@ -110,14 +110,14 @@
                     </div>
                 </div>
             @empty
-                <p class="text-center text-zinc-600 dark:text-zinc-400">Keranjang kosong. Mulai tambahkan koi dari
+                <p class="text-center text-gray-600 dark:text-gray-400">Keranjang kosong. Mulai tambahkan koi dari
                     lelang yang Anda menangkan.</p>
             @endforelse
 
             @if ($cartsBySeller->isNotEmpty())
-                <div class="fixed bottom-0 left-0 w-full bg-white dark:bg-zinc-900 shadow-md px-6 py-4 z-50">
+                <div class="fixed bottom-0 left-0 w-full bg-white dark:bg-gray-900 shadow-md px-6 py-4 z-50">
                     <div class="max-w-7xl mx-auto flex justify-between items-center">
-                        <h3 class="text-xl font-bold text-zinc-800 dark:text-zinc-200">
+                        <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200">
                             Total Harga: Rp <span id="total-price">0</span>
                         </h3>
                         <form action="{{ route('cart.checkout') }}" method="POST" id="checkout-form">

@@ -62,9 +62,7 @@
                     1px 1px 0 #000;
             }
         </style>
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Live Lelang') }}
-        </h2>
+        
 
 
     </x-slot>
@@ -73,13 +71,13 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 gap-4">
                 <form method="GET" action="{{ route('live.index') }}"
-                    class="bg-white dark:bg-zinc-800 p-4 rounded-lg shadow-md mb-6">
+                    class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md mb-6">
                     <div class="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
                         <!-- 🔍 Input Pencarian -->
                         <div class="relative md:col-span-2">
 
                             <input type="text" name="q" placeholder="Cari koi..." value="{{ request('q') }}"
-                                class="w-full p-2 pl-10 border rounded-lg focus:ring focus:ring-blue-300 dark:bg-zinc-700 dark:text-white">
+                                class="w-full p-2 pl-10 border rounded-lg focus:ring focus:ring-blue-300 dark:bg-gray-700 dark:text-white">
                             <i
                                 class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                         </div>
@@ -100,7 +98,7 @@
                         <div class="md:col-span-1">
                             <label class="text-gray-600 text-sm dark:text-gray-300">Harga Min</label>
                             <input type="number" name="min_price" placeholder="Rp 0" value="{{ request('min_price') }}"
-                                class="w-full p-2 border rounded-lg dark:bg-zinc-700 dark:text-white">
+                                class="w-full p-2 border rounded-lg dark:bg-gray-700 dark:text-white">
                         </div>
 
                         <!-- 💰 Harga Maksimum -->
@@ -108,7 +106,7 @@
                             <label class="text-gray-600 text-sm dark:text-gray-300">Harga Max</label>
                             <input type="number" name="max_price" placeholder="Rp 10.000.000"
                                 value="{{ request('max_price') }}"
-                                class="w-full p-2 border rounded-lg dark:bg-zinc-700 dark:text-white">
+                                class="w-full p-2 border rounded-lg dark:bg-gray-700 dark:text-white">
                         </div>
 
                         <!-- 🔄 Tombol Reset -->

@@ -1,6 +1,6 @@
 <x-admin-layout>
     <div>
-        <h1 class="text-2xl font-bold mb-6 text-zinc-800 dark:text-zinc-100">Dashboard Admin</h1>
+        <h1 class="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100">Dashboard Admin</h1>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
             <div class="p-4 bg-indigo-200 dark:bg-indigo-700 text-gray-700 dark:text-gray-200 rounded-lg shadow">
                 <h3 class="font-semibold">Total Users</h3>

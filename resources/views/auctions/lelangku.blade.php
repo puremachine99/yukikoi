@@ -1,16 +1,16 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-zinc-800 dark:text-zinc-200 leading-tight">
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
             {{ __('Lelangku') }}
         </h2>
     </x-slot>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-zinc-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
                 @foreach ($auctions as $auction)
                     <div class="accordion mb-4" id="accordionAuction{{ $auction->id }}">
-                        <div class="accordion-header bg-gray-200 dark:bg-zinc-700 p-4 flex justify-between items-center cursor-pointer" data-toggle="collapse" data-target="#collapse{{ $auction->id }}">
+                        <div class="accordion-header bg-gray-200 dark:bg-gray-700 p-4 flex justify-between items-center cursor-pointer" data-toggle="collapse" data-target="#collapse{{ $auction->id }}">
                             <div>
                                 <h3 class="text-lg font-semibold">{{ $auction->title }}</h3>
                                 <p>Nomor Lelang: {{ $auction->auction_code }}</p>
@@ -27,12 +27,12 @@
                         </div>
 
                         <div id="collapse{{ $auction->id }}" class="accordion-collapse collapse">
-                            <div class="accordion-body bg-white dark:bg-zinc-800 p-4">
+                            <div class="accordion-body bg-white dark:bg-gray-800 p-4">
                                 <div class="mb-4">
                                     <a href="{{ route('koi.create', $auction->id) }}" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Tambah Koi</a>
                                 </div>
 
-                                <table class="min-w-full bg-white dark:bg-zinc-800">
+                                <table class="min-w-full bg-white dark:bg-gray-800">
                                     <thead>
                                         <tr>
                                             <th class="px-4 py-2">Jenis Koi</th>

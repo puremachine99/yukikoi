@@ -65,7 +65,7 @@
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
             Detail Lelang: {{ $auction->auction_code }}
         </h2>
-        <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
             Seller: <strong>{{ $auction->user->farm_name }}</strong> ({{ $auction->user->city }})
         </p>
     </x-slot>
@@ -73,10 +73,10 @@
     <div class="py-6">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {{-- INFO AUCTION (HEADER) --}}
-            <div class="bg-white dark:bg-zinc-800 rounded-lg shadow p-6 mb-6">
-                <h3 class="text-lg font-bold text-zinc-800 dark:text-white">Informasi Lelang</h3>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
+                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Informasi Lelang</h3>
                 <div
-                    class="mt-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-sm text-zinc-600 dark:text-zinc-300">
+                    class="mt-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600 dark:text-gray-300">
                     <div><strong>Kode:</strong> {{ $auction->auction_code }}</div>
                     <div><strong>Jenis:</strong> {{ ucfirst($auction->jenis) }}</div>
                     <div><strong>Status:</strong>
@@ -103,7 +103,7 @@
             </div>
 
             {{-- FOOTER / CTA --}}
-            <div class="mt-10 text-center text-sm text-zinc-500 dark:text-zinc-400">
+            <div class="mt-10 text-center text-sm text-gray-500 dark:text-gray-400">
                 Tampilkan {{ count($kois) }} koi dari lelang <strong>{{ $auction->auction_code }}</strong>.
             </div>
         </div>

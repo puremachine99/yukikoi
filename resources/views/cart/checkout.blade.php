@@ -1,13 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-zinc-800 dark:text-zinc-200 leading-tight">
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
             {{ __('Checkout') }}
         </h2>
     </x-slot>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-md">
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
                 <form action="{{ route('cart.confirmCheckout') }}" method="POST">
                     @csrf
                     <!-- Hidden Input for Cart IDs -->
@@ -27,7 +27,7 @@
                             <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 mt-4">
                                 @foreach ($carts as $cart)
                                     <div
-                                        class="flex items-start bg-white hover:bg-blue-50 dark:bg-zinc-800 p-4 rounded-lg shadow-md">
+                                        class="flex items-start bg-white hover:bg-blue-50 dark:bg-gray-800 p-4 rounded-lg shadow-md">
                                         <!-- Foto Koi -->
                                         <div class="w-1/3 mr-4">
                                             @if ($cart->koi->media->isNotEmpty())
@@ -91,7 +91,7 @@
                                 {{-- Dropdown daftar alamat --}}
                                 <x-select id="address-select-{{ $loop->index }}"
                                     name="addresses[{{ $sellerName }}][address_id]"
-                                    class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:bg-zinc-900 dark:border-zinc-700"
+                                    class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:bg-gray-900 dark:border-gray-700"
                                     onchange="toggleCustomAddress(this, 'custom-address-{{ $loop->index }}')">
 
                                     {{-- Add Buyer Addresses --}}
@@ -137,14 +137,14 @@
                                 <div id="custom-address-{{ $loop->index }}" class="mt-2 hidden">
                                     <x-textarea id="address-{{ $loop->index }}"
                                         name="addresses[{{ $sellerName }}][custom_address]" rows="3"
-                                        class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:bg-zinc-900 dark:border-zinc-700"></x-textarea>
+                                        class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:bg-gray-900 dark:border-gray-700"></x-textarea>
                                     <x-text-input id="phone-{{ $loop->index }}"`
                                         name="addresses[{{ $sellerName }}][custom_phone]" placeholder="Nomor Telepon"
-                                        class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:bg-zinc-900 dark:border-zinc-700" />
+                                        class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:bg-gray-900 dark:border-gray-700" />
                                     <x-text-input id="recipient-{{ $loop->index }}"
                                         name="addresses[{{ $sellerName }}][custom_recipient]"
                                         placeholder="Nama Penerima"
-                                        class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:bg-zinc-900 dark:border-zinc-700" />
+                                        class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:bg-gray-900 dark:border-gray-700" />
                                 </div>
 
 
@@ -159,7 +159,7 @@
                                         </label>
                                         <x-text-input id="custom-recipient-{{ $loop->index }}"
                                             name="addresses[{{ $sellerName }}][custom_name]" type="text"
-                                            class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:bg-zinc-900 dark:border-zinc-700" />
+                                            class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:bg-gray-900 dark:border-gray-700" />
                                     </div>
 
                                     <div class="mb-2">
@@ -169,7 +169,7 @@
                                         </label>
                                         <x-text-input id="custom-phone-{{ $loop->index }}"
                                             name="addresses[{{ $sellerName }}][custom_phone]" type="text"
-                                            class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:bg-zinc-900 dark:border-zinc-700" />
+                                            class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:bg-gray-900 dark:border-gray-700" />
                                     </div>
 
                                     <div class="mb-2">
@@ -179,7 +179,7 @@
                                         </label>
                                         <x-textarea id="custom-address-{{ $loop->index }}"
                                             name="addresses[{{ $sellerName }}][custom_address]" rows="3"
-                                            class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:bg-zinc-900 dark:border-zinc-700"></x-textarea>
+                                            class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:bg-gray-900 dark:border-gray-700"></x-textarea>
                                     </div>
                                 </div>
                             </div>
@@ -196,14 +196,14 @@
                                     <x-number-input id="shipping_fee-{{ $loop->index }}"
                                         name="shipping_fees[{{ $sellerName }}]" min="0" step="500"
                                         value="0"
-                                        class="block w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-gray-800 dark:text-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                        class="block w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                         onchange="validateShippingFee(this)"></x-number-input>
                                 </div>
                             </div>
                         </div>
                     @endforeach
                     <!-- Biaya dan Total -->
-                    <div class="mb-4 p-4 rounded-lg shadow-inner bg-blue-50 dark:bg-zinc-800 dark:text-gray-300">
+                    <div class="mb-4 p-4 rounded-lg shadow-inner bg-blue-50 dark:bg-gray-800 dark:text-gray-300">
 
                         <h4 class="text-lg font-semibold text-blue-600 dark:text-blue-400 mb-4">Rincian Pembayaran</h4>
 
@@ -239,8 +239,8 @@
                                             class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600 dark:text-gray-400">Rp</span>
                                         <x-number-input id="rekber_fee" name="rekber_fee" min="0"
                                             step="500" value="0"
-                                            class="block w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-zinc-700 rounded-lg 
-                                            bg-white dark:bg-zinc-900 text-gray-800 dark:text-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                            class="block w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg 
+                                            bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                             onchange="validateRekberFee(this)">
                                         </x-number-input>
                                     </div>

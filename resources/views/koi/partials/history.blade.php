@@ -1,4 +1,4 @@
-<div class="bg-white dark:bg-zinc-800 p-4 rounded-lg relative sm:h-[540px] flex flex-col justify-between">
+<div class="bg-white dark:bg-gray-800 p-4 rounded-lg relative sm:h-[540px] flex flex-col justify-between">
     <div id="history"
         class="overflow-scroll overflow-x-hidden max-h-[450px] p-2 mb-4 flex-1 rounded-lg shadow bg-gray-100 dark:bg-gray-900">
         @foreach ($history as $item)

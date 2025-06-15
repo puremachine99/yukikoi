@@ -1,4 +1,4 @@
-<div class="bg-zinc-100 dark:bg-gray-900 p-4 rounded-lg shadow-md w-full flex-shrink-0 text-center">
+<div class="bg-gray-100 dark:bg-gray-900 p-4 rounded-lg shadow-md w-full flex-shrink-0 text-center">
     @if ($winner)
         <h2 class="text-lg font-bold text-green-600" x-init="scrollToBottom()">
             {{ __('Pemenang:') }}

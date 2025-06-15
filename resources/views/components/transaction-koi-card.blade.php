@@ -1,5 +1,5 @@
 @props(['item', 'isSeller' => false])
-<div class="bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-md">
+<div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
     <!-- Grid 3 Kolom -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <!-- Kolom 1: Foto Koi -->
@@ -11,24 +11,24 @@
         <!-- Kolom 2: Detail Koi -->
         <div>
             <h4 class="text-lg font-semibold">{{ $item->koi->judul }} <small>{{ $item->koi->kode_ikan }}</small></h4>
-            <p class="text-sm text-zinc-600 dark:text-zinc-400">
+            <p class="text-sm text-gray-600 dark:text-gray-400">
                 Kode Lelang: <span class="font-bold">{{ $item->koi->auction_code }}</span>
             </p>
-            <p class="text-sm text-zinc-600 dark:text-zinc-400">
+            <p class="text-sm text-gray-600 dark:text-gray-400">
                 jenis Lelang: <span class="font-bold">{{ ucfirst($item->koi->auction->jenis) }}</span>
             </p>
-            <p class="text-sm text-zinc-600 dark:text-zinc-400">
+            <p class="text-sm text-gray-600 dark:text-gray-400">
                 Jenis: {{ $item->koi->jenis_koi }} - {{ $item->koi->ukuran }} cm
             </p>
-            <p class="text-sm text-zinc-600 dark:text-zinc-400">
+            <p class="text-sm text-gray-600 dark:text-gray-400">
                 Total Bid: <span class="font-bold">{{ count($item->koi->bids) }} x</span>
             </p>
-            <p class="text-sm text-zinc-600 dark:text-zinc-400">
+            <p class="text-sm text-gray-600 dark:text-gray-400">
                 Menang Pada: <span
                     class="font-bold">{{ \Carbon\Carbon::parse($item->transaction->created_at)->format('d M Y H:i') }}</span>
             </p>
             <p class="text-sm font-bold text-green-600">Rp {{ number_format($item->price, 0, ',', '.') }}</p>
-            <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
                 Status:
                 <span
                     class="px-3 py-1 rounded-full text-white text-xs font-semibold
@@ -50,7 +50,7 @@
                     $item->status == 'komplain disetujui' ||
                     $item->status == 'komplain ditolak' ||
                     $item->status == 'karantina')
-                <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
+                <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
                     Alasan :
                     <span class="font-bold">
                         {{ $item->karantina_reason }}
@@ -79,7 +79,7 @@
         </div>
 
         <!-- Kolom 3: Detail Buyer -->
-        <div class="p-3 bg-zinc-100 dark:bg-zinc-700 rounded-lg">
+        <div class="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
             <h4 class="text-sm font-semibold">Informasi Buyer</h4>
             <p class="text-sm">Nama: <span class="font-bold">{{ $item->transaction->user->name }}</span></p>
             <p class="text-sm">Alamat: <span class="font-bold">{{ $item->shipping_address ?? '-' }}</span></p>
@@ -104,9 +104,9 @@
             data-target="history-{{ $item->id }}">
             Lihat Riwayat Status
         </button>
-        <div id="history-{{ $item->id }}" class="hidden bg-zinc-100 dark:bg-zinc-700 p-3 mt-2 rounded-md">
+        <div id="history-{{ $item->id }}" class="hidden bg-gray-100 dark:bg-gray-700 p-3 mt-2 rounded-md">
             <h4 class="text-sm font-semibold">Riwayat Perubahan Status</h4>
-            <ul class="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
+            <ul class="text-xs text-gray-600 dark:text-gray-400 mt-1">
                 @foreach ($item->statusHistories as $history)
                     <li>
                         <span class="font-bold">{{ ucfirst($history->status) }}</span>

@@ -1,11 +1,11 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-zinc-800 dark:text-zinc-200 leading-tight">
+            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
                 {{ __('List Lelangku') }}
             </h2>
             <a href="{{ route('auctions.create') }}"
-                class="inline-flex items-center px-4 py-2 bg-zinc-800 dark:bg-zinc-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-zinc-800 uppercase tracking-widest hover:bg-zinc-700 dark:hover:bg-white focus:bg-zinc-700 dark:focus:bg-white active:bg-zinc-900 dark:active:bg-zinc-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-800 transition ease-in-out duration-150">
+                class="inline-flex items-center px-4 py-2 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
                 {{ __('+ Lelang') }}
             </a>
         </div>
@@ -13,7 +13,7 @@
 
     <div class="py-6" x-data="{ open: false }">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <div class="p-4 sm:p-8 bg-white dark:bg-zinc-800 shadow sm:rounded-lg">
+            <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
 
 
                 <!-- Search bar, filter options, and new auction button -->
@@ -24,11 +24,11 @@
                         <!-- Input Search -->
                         <input type="text" name="search" placeholder="Cari lelang..."
                             value="{{ request('search') }}"
-                            class="flex-grow px-4 py-2 border rounded-lg bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-200 border-gray-300 dark:border-zinc-600 focus:ring-indigo-500 focus:border-indigo-500">
+                            class="flex-grow px-4 py-2 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200 border-gray-300 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500">
 
                         <!-- Dropdown Jenis -->
                         <select name="jenis"
-                            class="w-1/5 px-2 py-2 border rounded-lg bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-200 border-gray-300 dark:border-zinc-600 focus:ring-indigo-500 focus:border-indigo-500"
+                            class="w-1/5 px-2 py-2 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200 border-gray-300 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500"
                             id="jenis-filter">
                             <option value="all">Semua Jenis</option>
                             <option value="reguler" {{ request('jenis') == 'reguler' ? 'selected' : '' }}>Reguler
@@ -43,7 +43,7 @@
 
                         <!-- Dropdown Status -->
                         <select name="status"
-                            class="w-1/5 px-2 py-2 border rounded-lg bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-200 border-gray-300 dark:border-zinc-600 focus:ring-indigo-500 focus:border-indigo-500"
+                            class="w-1/5 px-2 py-2 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200 border-gray-300 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500"
                             id="status-filter">
                             <option value="all">Semua Status</option>
                             <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Draft
@@ -58,7 +58,7 @@
 
                         <!-- Dropdown Sorting -->
                         <select name="sort"
-                            class="w-1/5 px-2 py-2 border rounded-lg bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-200 border-gray-300 dark:border-zinc-600 focus:ring-indigo-500 focus:border-indigo-500"
+                            class="w-1/5 px-2 py-2 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200 border-gray-300 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500"
                             id="sort-filter">
                             <option value="desc" {{ request('sort') == 'desc' ? 'selected' : '' }}>Terbaru
                             </option>
@@ -74,7 +74,7 @@
                 <!-- Bagian Daftar Lelang -->
                 <div id="auction-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     @if ($auctions->isEmpty())
-                        <p class="text-center col-span-4 text-zinc-600 dark:text-zinc-400">Tidak ada data.</p>
+                        <p class="text-center col-span-4 text-gray-600 dark:text-gray-400">Tidak ada data.</p>
                     @else
                         @include('auctions.partials.auction_list', ['auctions' => $auctions])
                     @endif

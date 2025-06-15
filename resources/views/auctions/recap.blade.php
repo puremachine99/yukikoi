@@ -7,7 +7,7 @@
 
     <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <div class="bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-lg">
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
                 <!-- Informasi Lelang -->
                 <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-200">Informasi Lelang</h3>
                 <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mt-3 text-sm">
@@ -23,7 +23,7 @@
             </div>
 
             <!-- Daftar Koi -->
-            <div class="bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-lg">
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
                 <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-4">Rekap Koi dalam Lelang</h3>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
@@ -65,7 +65,7 @@
             </div>
 
             <!-- Statistik Lelang -->
-            <div class="bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-lg">
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
                 <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-200">Statistik Performa Lelang</h3>
                 <ul class="mt-3 text-sm text-gray-600 dark:text-gray-300 space-y-2">
                     <li>🏆 <strong>Total Pemenang:</strong> {{ $kois->whereNotNull('winner')->count() }} User</li>

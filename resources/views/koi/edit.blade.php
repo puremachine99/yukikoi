@@ -2,14 +2,14 @@
 
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-zinc-800 dark:text-zinc-200 leading-tight">
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
             {{ __('Edit Koi') }}
         </h2>
     </x-slot>
 
     <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <div class="p-4 sm:p-8 bg-white dark:bg-zinc-800 shadow sm:rounded-lg">
+            <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
                 <form action="{{ route('koi.update', $koi->id) }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
@@ -26,7 +26,7 @@
 
                     <!-- Informasi Dasar -->
                     <div class="mb-6">
-                        <h3 class="text-lg font-bold text-zinc-800 dark:text-zinc-200 mb-4 border-b-2">Informasi Koi
+                        <h3 class="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4 border-b-2">Informasi Koi
                         </h3>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -67,7 +67,7 @@
 
                     <!-- Bid dan Buy It Now -->
                     <div class="mb-6">
-                        <h3 class="text-lg font-bold text-zinc-800 dark:text-zinc-200 mb-4 border-b-2">Bid dan Harga
+                        <h3 class="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4 border-b-2">Bid dan Harga
                         </h3>
 
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -96,7 +96,7 @@
 
                     <!-- Media (Foto & Video) -->
                     <div class="mb-6">
-                        <h3 class="text-lg font-bold text-zinc-800 dark:text-zinc-200 mb-4">Media</h3>
+                        <h3 class="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4">Media</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             @foreach ($media as $item)
                                 <div class="relative" id="media-{{ $item->id }}">
@@ -131,7 +131,7 @@
 
                     <!-- Sertifikat -->
                     <div class="mb-6">
-                        <h3 class="text-lg font-bold text-zinc-800 dark:text-zinc-200 mb-4">Sertifikat</h3>
+                        <h3 class="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4">Sertifikat</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             @foreach ($certificates as $certificate)
                                 <div class="relative" id="certificate-{{ $certificate->id }}">

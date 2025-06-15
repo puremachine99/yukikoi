@@ -65,10 +65,10 @@
         <div class="flex justify-between items-center">
             <!-- Tombol Kembali ke Daftar Lelang -->
             <a href="{{ route('auctions.index') }}"
-                class="inline-flex items-center px-4 py-2 bg-gray-600 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-gray-300 focus:bg-gray-700 dark:focus:bg-gray-300 active:bg-gray-800 dark:active:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-800 transition ease-in-out duration-150">
+                class="inline-flex items-center px-4 py-2 bg-gray-600 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-gray-300 focus:bg-gray-700 dark:focus:bg-gray-300 active:bg-gray-800 dark:active:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
                 <i class="fa-solid fa-arrow-left"></i> &nbsp;LELANGKU
             </a>
-            <h2 class="font-semibold text-xl text-center text-zinc-800 dark:text-zinc-200 leading-tight">
+            <h2 class="font-semibold text-xl text-center text-gray-800 dark:text-gray-200 leading-tight">
                 {{ __('Daftar Koi Lelang ') . $auction_code }}
             </h2>
 
@@ -76,7 +76,7 @@
                 @if ($auction->status === 'draft')
                     <!-- Tombol tambah Koi jika status lelang adalah 'draft' -->
                     <a href="{{ route('koi.create', ['auction_code' => $auction->auction_code]) }}"
-                        class="inline-flex items-center px-4 py-2 bg-zinc-800 dark:bg-zinc-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-zinc-800 uppercase tracking-widest hover:bg-zinc-700 dark:hover:bg-white focus:bg-zinc-700 dark:focus:bg-white active:bg-zinc-900 dark:active:bg-zinc-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-800 transition ease-in-out duration-150">
+                        class="inline-flex items-center px-4 py-2 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
                         {{ __('+ Ikan') }}
                     </a>
                 @else
@@ -90,16 +90,16 @@
 
     <div class="py-6" x-data="{ open: false }">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <div class="p-4 sm:p-8 bg-white dark:bg-zinc-800 shadow sm:rounded-lg">
+            <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
                 <div class="flex items-center space-x-4 mb-6">
                     <!-- Pencarian Koi -->
                     <input type="text" id="searchKoi" placeholder="Cari Koi..."
-                        class="border border-gray-300 dark:border-zinc-600 rounded-md p-2 w-1/3 dark:bg-zinc-800 dark:text-zinc-100"
+                        class="border border-gray-300 dark:border-gray-600 rounded-md p-2 w-1/3 dark:bg-gray-800 dark:text-gray-100"
                         oninput="filterKois()" />
 
                     <!-- Filter Jenis Koi -->
                     <select id="filterJenisKoi"
-                        class="border border-gray-300 dark:border-zinc-600 rounded-md p-2 w-1/3 dark:bg-zinc-800 dark:text-zinc-100"
+                        class="border border-gray-300 dark:border-gray-600 rounded-md p-2 w-1/3 dark:bg-gray-800 dark:text-gray-100"
                         onchange="filterKois()">
                         <option value="">{{ __('Semua Jenis') }}</option>
                         <option value="Kohaku">Kohaku</option>
@@ -111,7 +111,7 @@
 
                     <!-- Filter Gender Koi -->
                     <select id="filterGenderKoi"
-                        class="border border-gray-300 dark:border-zinc-600 rounded-md p-2 w-1/3 dark:bg-zinc-800 dark:text-zinc-100"
+                        class="border border-gray-300 dark:border-gray-600 rounded-md p-2 w-1/3 dark:bg-gray-800 dark:text-gray-100"
                         onchange="filterKois()">
                         <option value="">{{ __('Semua Gender') }}</option>
                         <option value="Male">Male</option>
@@ -123,7 +123,7 @@
 
                 <div class="container mx-auto px-4">
                     @if ($kois->isEmpty())
-                        <p class="text-zinc-600 dark:text-zinc-400">{{ $message ?? __('Belum ada koi di lelang ini.') }}
+                        <p class="text-gray-600 dark:text-gray-400">{{ $message ?? __('Belum ada koi di lelang ini.') }}
                         </p>
                     @else
                         <div id="koiContainer" class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -132,12 +132,12 @@
                                     @auth
                                         <!-- Tombol Edit -->
                                         <button
-                                            class="absolute group top-8 -right-4 py-2 px-3 bg-zinc-500 text-white rounded-full hover:bg-zinc-100 hover:text-zinc-950 dark:hover:bg-zinc-200 dark:hover:text-zinc-800 transition-transform transform hover:scale-110 focus:outline-none"
+                                            class="absolute group top-8 -right-4 py-2 px-3 bg-gray-500 text-white rounded-full hover:bg-gray-100 hover:text-gray-950 dark:hover:bg-gray-200 dark:hover:text-gray-800 transition-transform transform hover:scale-110 focus:outline-none"
                                             style="z-index: 10"
                                             onclick="window.location.href='{{ route('koi.edit', ['auction_code' => $koi->auction_code, 'id' => $koi->id]) }}'">
                                             <i class="fa-solid fa-pen"></i>
                                             <span
-                                                class="absolute right-full mr-2 w-max px-2 py-1 text-xs text-white bg-black dark:bg-zinc-800 rounded hidden group-hover:block transform top-1/2 -translate-y-1/2">
+                                                class="absolute right-full mr-2 w-max px-2 py-1 text-xs text-white bg-black dark:bg-gray-800 rounded hidden group-hover:block transform top-1/2 -translate-y-1/2">
                                                 Edit Koi
                                             </span>
                                         </button>
@@ -145,12 +145,12 @@
 
                                         <!-- Tombol Hapus -->
                                         <button
-                                            class="absolute group -top-4 -right-4 py-2 px-3 bg-zinc-500 text-white rounded-full hover:bg-zinc-100 hover:text-zinc-950 dark:hover:bg-zinc-200 dark:hover:text-zinc-800 transition-transform transform hover:scale-110 focus:outline-none"
+                                            class="absolute group -top-4 -right-4 py-2 px-3 bg-gray-500 text-white rounded-full hover:bg-gray-100 hover:text-gray-950 dark:hover:bg-gray-200 dark:hover:text-gray-800 transition-transform transform hover:scale-110 focus:outline-none"
                                             style="z-index: 11" data-koi-id="{{ $koi->id }}"
                                             data-koi-name="{{ $koi->judul }}" onclick="confirmDeleteKoi(this)">
                                             <i class="fas fa-trash-alt"></i>
                                             <span
-                                                class="absolute right-full mr-2 w-max px-2 py-1 text-xs text-white bg-black dark:bg-zinc-800 rounded hidden group-hover:block transform top-1/2 -translate-y-1/2">
+                                                class="absolute right-full mr-2 w-max px-2 py-1 text-xs text-white bg-black dark:bg-gray-800 rounded hidden group-hover:block transform top-1/2 -translate-y-1/2">
                                                 Hapus Koi
                                             </span>
                                         </button>

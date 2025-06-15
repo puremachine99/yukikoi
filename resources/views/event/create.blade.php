@@ -1,14 +1,14 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-zinc-800 dark:text-zinc-200 leading-tight">
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
             {{ __('Pengajuan Event') }}
         </h2>
     </x-slot>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-zinc-800 overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-zinc-900 dark:text-zinc-100">
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 text-gray-900 dark:text-gray-100">
                     @if ($errors->any())
                         <div class="alert alert-danger">
                             <ul>
@@ -19,7 +19,7 @@
                         </div>
                     @endif
                     <button id="help-button"
-                        class="float-right text-zinc-600 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200">
+                        class="float-right text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200">
                         <i class="fa fa-question-circle text-lg" aria-hidden="true"
                             data-tooltip-target="tooltip-help"></i>
                     </button>
@@ -101,7 +101,7 @@
 
                         <!-- Step 1: Informasi Umum -->
                         <div class="step-content" id="step-1">
-                            <h3 class="text-lg font-bold text-zinc-800 dark:text-zinc-200 mb-4">
+                            <h3 class="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4">
                                 Informasi Umum
                             </h3>
                             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -114,7 +114,7 @@
                                     <div class="mb-4">
                                         <x-input-label for="description" :value="__('Deskripsi')" />
                                         <textarea id="description" name="description" rows="5"
-                                            class="block mt-1 w-full border-zinc-300 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-300 rounded-md"></textarea>
+                                            class="block mt-1 w-full border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 rounded-md"></textarea>
                                     </div>
                                     <div class="mb-4">
                                         <x-select-option :options="[
@@ -130,13 +130,13 @@
                                     <x-input-label for="banner" :value="__('Upload Banner Event')" />
                                     <input id="banner" name="banner" type="file" accept="image/png, image/jpeg"
                                         required
-                                        class="block mt-1 w-full border border-zinc-300 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-300 rounded-md"
+                                        class="block mt-1 w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 rounded-md"
                                         onchange="previewImage(event)" />
-                                    <p class="text-sm text-zinc-500 mt-1">
+                                    <p class="text-sm text-gray-500 mt-1">
                                         Format yang diizinkan: JPG, PNG. Maks: 2MB.
                                     </p>
                                     <div
-                                        class="mt-4 flex items-center justify-center border border-dashed border-zinc-400 rounded-md bg-zinc-100 dark:bg-zinc-700">
+                                        class="mt-4 flex items-center justify-center border border-dashed border-gray-400 rounded-md bg-gray-100 dark:bg-gray-700">
                                         <img id="bannerPreview" class="object-contain h-full max-h-[300px] p-2"
                                             style="display: none" />
                                     </div>
@@ -146,7 +146,7 @@
 
                         <!-- Step 2: Jadwal -->
                         <div class="step-content hidden" id="step-2">
-                            <h3 class="text-lg font-bold text-zinc-800 dark:text-zinc-200 mb-4">
+                            <h3 class="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4">
                                 Jadwal
                             </h3>
 
@@ -156,7 +156,7 @@
                                     <x-input-label for="submission_time" :value="__('Waktu Pengumpulan Hasil (Submission Time)')" />
                                     <x-text-input id="submission_time" class="block mt-1 w-full" type="datetime-local"
                                         name="submission_time" onchange="validateSubmissionAndJudgingTime()" required />
-                                    <p class="text-sm text-zinc-700 dark:text-zinc-300 mt-1">
+                                    <p class="text-sm text-gray-700 dark:text-gray-300 mt-1">
                                         Minimal waktu pengumpulan hasil adalah <strong>3 hari</strong> sebelum akhir
                                         submisi.
                                     </p>
@@ -165,7 +165,7 @@
                                     <x-input-label for="judging_time" :value="__('Waktu Penjurian')" />
                                     <x-text-input id="judging_time" class="block mt-1 w-full" type="datetime-local"
                                         name="judging_time" onchange="validateSubmissionAndJudgingTime()" required />
-                                    <p class="text-sm text-zinc-700 dark:text-zinc-300 mt-1">
+                                    <p class="text-sm text-gray-700 dark:text-gray-300 mt-1">
                                         Penjurian akan dilaksanakan setelah akhir submisi. Hasil pengumuman minimal
                                         <strong>3 hari</strong> setelah penjurian.
                                     </p>
@@ -195,21 +195,21 @@
 
                         <!-- Step 3: Omset Lelang -->
                         <div class="step-content hidden" id="step-3">
-                            <h3 class="text-lg font-bold text-zinc-800 dark:text-zinc-200 mb-4">Pengaturan Jumlah Koi
+                            <h3 class="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4">Pengaturan Jumlah Koi
                                 dan Bid</h3>
 
                             <!-- Penjelasan -->
-                            <p class="mb-4 text-sm text-zinc-700 dark:text-zinc-300">
+                            <p class="mb-4 text-sm text-gray-700 dark:text-gray-300">
                                 Tentukan jumlah koi, harga Open Bid, kelipatan bid, dan harga BIN. Sistem akan otomatis
                                 menghitung estimasi omset
                                 terkecil dan terbesar berdasarkan data yang Anda masukkan.
                             </p>
 
                             <!-- Estimasi Omset -->
-                            <div class="mb-6 p-4 border border-zinc-300 dark:border-zinc-600 rounded-md">
-                                <h4 class="text-md font-semibold text-zinc-800 dark:text-zinc-200 mb-2">Estimasi Omset
+                            <div class="mb-6 p-4 border border-gray-300 dark:border-gray-600 rounded-md">
+                                <h4 class="text-md font-semibold text-gray-800 dark:text-gray-200 mb-2">Estimasi Omset
                                 </h4>
-                                <p class="text-sm text-zinc-700 dark:text-zinc-300">
+                                <p class="text-sm text-gray-700 dark:text-gray-300">
                                     Omset Terkecil: <span id="min_revenue" class="font-semibold">Rp0</span><br />
                                     Omset Terbesar: <span id="max_revenue" class="font-semibold">Rp0</span>
                                 </p>
@@ -252,13 +252,13 @@
 
                         <!-- Step 4: Hadiah -->
                         <div class="step-content hidden" id="step-4">
-                            <h3 class="text-lg font-bold text-zinc-800 dark:text-zinc-200 mb-4">Hadiah</h3>
+                            <h3 class="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4">Hadiah</h3>
 
                             <!-- Mode Hadiah -->
                             <div class="mb-4">
                                 <x-input-label for="reward_mode" :value="__('Mode Hadiah')" />
                                 <x-select id="reward_mode" name="reward_mode"
-                                    class="block mt-1 w-full border-zinc-300 dark:border-zinc-600 rounded-md"
+                                    class="block mt-1 w-full border-gray-300 dark:border-gray-600 rounded-md"
                                     onchange="toggleRewardMode()">
                                     <option value="percent" selected>Persentase dari Omset</option>
                                     <option value="fixed">Jumlah Tetap</option>
@@ -269,7 +269,7 @@
                             <div class="mb-4">
                                 <x-input-label for="reward_type" :value="__('Jenis Setting')" />
                                 <x-select id="reward_type" name="reward_type"
-                                    class="block mt-1 w-full border-zinc-300 dark:border-zinc-600 rounded-md"
+                                    class="block mt-1 w-full border-gray-300 dark:border-gray-600 rounded-md"
                                     onchange="toggleRewardType()">
                                     <option value="basic" selected>Basic</option>
                                     <option value="advanced">Advanced</option>
@@ -281,7 +281,7 @@
                                 <x-input-label for="threshold_amount" :value="__('Ambang Batas (Threshold)')" />
                                 <x-text-input id="threshold_amount" class="block mt-1 w-full" type="number"
                                     name="threshold_amount" placeholder="Contoh: 50000000" />
-                                <p class="text-sm text-zinc-700 dark:text-zinc-300 mt-1">
+                                <p class="text-sm text-gray-700 dark:text-gray-300 mt-1">
                                     Masukkan ambang batas (threshold) omset untuk menentukan hadiah kedua.
                                 </p>
                             </div>
@@ -289,9 +289,9 @@
                             <!-- Reward List -->
                             <div id="reward-wrapper">
                                 <!-- Flexible Reward Section -->
-                                <h3 class="text-lg font-bold text-zinc-800 dark:text-zinc-200 mb-4">Flexible Reward
+                                <h3 class="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4">Flexible Reward
                                 </h3>
-                                <p class="mb-4 text-sm text-zinc-700 dark:text-zinc-300">
+                                <p class="mb-4 text-sm text-gray-700 dark:text-gray-300">
                                     Anda dapat menambahkan hadiah berupa uang, barang, atau kombinasi keduanya untuk
                                     setiap kategori juara. Sesuaikan dengan mode hadiah yang dipilih.
                                 </p>
@@ -311,13 +311,13 @@
 
 
                         <div class="step-content hidden" id="step-5">
-                            <h3 class="text-lg font-bold text-zinc-800 dark:text-zinc-200 mb-4">
+                            <h3 class="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4">
                                 Hadiah
                             </h3>
                             <div id="doorprize-wrapper">
                                 <!-- Judul -->
-                                <h3 class="text-lg font-bold text-zinc-800 dark:text-zinc-200 mb-4">Doorprize</h3>
-                                <p class="mb-4 text-sm text-zinc-700 dark:text-zinc-300">
+                                <h3 class="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4">Doorprize</h3>
+                                <p class="mb-4 text-sm text-gray-700 dark:text-gray-300">
                                     Doorprize adalah hadiah yang diberikan berdasarkan kategori tertentu. Anda dapat
                                     memilih untuk memberikan hadiah berupa uang atau barang.
                                 </p>
@@ -336,12 +336,12 @@
                                     @endphp
                                     @foreach ($doorprizeCategories as $index => $category)
                                         <div
-                                            class="doorprize-item mb-6 p-4 border border-zinc-300 dark:border-zinc-600 rounded-md">
+                                            class="doorprize-item mb-6 p-4 border border-gray-300 dark:border-gray-600 rounded-md">
                                             <!-- Kategori -->
-                                            <h4 class="text-md font-semibold text-zinc-800 dark:text-zinc-200">
+                                            <h4 class="text-md font-semibold text-gray-800 dark:text-gray-200">
                                                 {{ $index + 1 }}. {{ $category }}
                                             </h4>
-                                            <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">
                                                 Tambahkan hadiah untuk kategori ini (uang atau barang).
                                             </p>
 
@@ -394,20 +394,20 @@
 
     <!-- Modal Bantuan -->
     <div id="help-modal" class="hidden fixed z-50 inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-        <div class="bg-white dark:bg-zinc-800 rounded-lg shadow-lg w-11/12 lg:w-2/3 max-h-[90%] overflow-y-auto">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-11/12 lg:w-2/3 max-h-[90%] overflow-y-auto">
             <!-- Header Modal -->
             <div class="flex justify-between items-center border-b p-4">
-                <h3 class="text-lg font-semibold text-zinc-800 dark:text-zinc-200">
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">
                     Tata Cara Pembuatan Event
                 </h3>
-                <button class="text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+                <button class="text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
                     onclick="closeModal()">
                     <i class="fa fa-times" aria-hidden="true"></i>
                 </button>
             </div>
 
             <!-- Konten Modal -->
-            <div class="p-4 text-zinc-900 dark:text-zinc-100">
+            <div class="p-4 text-gray-900 dark:text-gray-100">
                 <h4 class="text-lg font-bold">Alur Pembuatan Event</h4>
                 <ol class="list-decimal pl-6 mt-2">
                     <li>
@@ -473,7 +473,7 @@
                         </p>
 
                         <!-- Contoh -->
-                        <div class="mt-4 p-4 bg-zinc-100 dark:bg-zinc-700 rounded-md">
+                        <div class="mt-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-md">
                             <h5 class="font-semibold">Contoh:</h5>
                             <p class="mt-2">
                                 <strong>Nama Event:</strong> "Grow Out Summer Championship"
@@ -533,7 +533,7 @@
                         </p>
 
                         <!-- Contoh -->
-                        <div class="mt-4 p-4 bg-zinc-100 dark:bg-zinc-700 rounded-md">
+                        <div class="mt-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-md">
                             <h5 class="font-semibold">Contoh:</h5>
                             <p class="mt-2">
                                 <strong>Nama Event:</strong> "Grow Out Summer Championship"
@@ -568,7 +568,7 @@
                         </ul>
 
                         <!-- Contoh -->
-                        <div class="mt-4 p-4 bg-zinc-100 dark:bg-zinc-700 rounded-md">
+                        <div class="mt-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-md">
                             <h5 class="font-semibold">Contoh:</h5>
                             <p class="mt-2"><strong>Status:</strong> On Going</p>
                             <p>
@@ -791,28 +791,28 @@
             const isAdvanced = document.getElementById("reward_type").value === "advanced";
 
             const newRewardItem = document.createElement("div");
-            newRewardItem.className = "reward-item mb-6 p-4 border border-zinc-300 dark:border-zinc-600 rounded-md";
+            newRewardItem.className = "reward-item mb-6 p-4 border border-gray-300 dark:border-gray-600 rounded-md";
 
             newRewardItem.innerHTML = `
-                <h4 class="text-md font-semibold text-zinc-800 dark:text-zinc-200 mb-2">Nominasi Juara</h4>
+                <h4 class="text-md font-semibold text-gray-800 dark:text-gray-200 mb-2">Nominasi Juara</h4>
 
                 <!-- Basic Fields -->
                 <div class="grid grid-cols-3 gap-4 mb-4">
                     <div>
-                        <label for="nomination[]" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Nominasi</label>
-                        <input id="nomination[]" class="block mt-1 w-full border border-zinc-300 dark:border-zinc-600 rounded-md"
+                        <label for="nomination[]" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nominasi</label>
+                        <input id="nomination[]" class="block mt-1 w-full border border-gray-300 dark:border-gray-600 rounded-md"
                             type="text" name="nomination[]" placeholder="Contoh: Juara Pertama" />
                     </div>
                     <div>
-                        <label for="reward_nominal[]" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                        <label for="reward_nominal[]" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                             ${mode === "percent" ? "Persentase (%)" : "Nominal Uang"}
                         </label>
-                        <input id="reward_nominal[]" class="block mt-1 w-full border border-zinc-300 dark:border-zinc-600 rounded-md"
+                        <input id="reward_nominal[]" class="block mt-1 w-full border border-gray-300 dark:border-gray-600 rounded-md"
                             type="number" name="reward_nominal[]" placeholder="Contoh: ${mode === "percent" ? "5 (Persen)" : "1000000"}" />
                     </div>
                     <div>
-                        <label for="reward_item[]" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Nama Barang</label>
-                        <input id="reward_item[]" class="block mt-1 w-full border border-zinc-300 dark:border-zinc-600 rounded-md"
+                        <label for="reward_item[]" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nama Barang</label>
+                        <input id="reward_item[]" class="block mt-1 w-full border border-gray-300 dark:border-gray-600 rounded-md"
                             type="text" name="reward_item[]" placeholder="Contoh: 1 Ekor Ikan Koi" />
                     </div>
 
@@ -820,19 +820,19 @@
 
                 <!-- Advanced Fields -->
                 <div class="advanced-fields ${isAdvanced ? "" : "hidden"}">
-                    <h5 class="text-md font-semibold text-zinc-800 dark:text-zinc-200 mb-2">Hadiah Kedua (Jika Threshold Tercapai)</h5>
+                    <h5 class="text-md font-semibold text-gray-800 dark:text-gray-200 mb-2">Hadiah Kedua (Jika Threshold Tercapai)</h5>
                     <div class="grid grid-cols-3 gap-4 mb-4">
                         <div></div>
                         <div>
-                            <label for="advanced_reward_nominal[]" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                            <label for="advanced_reward_nominal[]" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 ${mode === "percent" ? "Persentase (%)" : "Nominal Uang"}
                             </label>
-                            <input id="advanced_reward_nominal[]" class="block mt-1 w-full border border-zinc-300 dark:border-zinc-600 rounded-md"
+                            <input id="advanced_reward_nominal[]" class="block mt-1 w-full border border-gray-300 dark:border-gray-600 rounded-md"
                                 type="number" name="advanced_reward_nominal[]" placeholder="Contoh: ${mode === "percent" ? "10 (Persen)" : "2000000"}" />
                         </div>
                         <div>
-                            <label for="advanced_reward_item[]" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Nama Barang</label>
-                            <input id="advanced_reward_item[]" class="block mt-1 w-full border border-zinc-300 dark:border-zinc-600 rounded-md"
+                            <label for="advanced_reward_item[]" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nama Barang</label>
+                            <input id="advanced_reward_item[]" class="block mt-1 w-full border border-gray-300 dark:border-gray-600 rounded-md"
                                 type="text" name="advanced_reward_item[]" placeholder="Contoh: 2 Ekor Ikan Koi" />
                         </div>
 

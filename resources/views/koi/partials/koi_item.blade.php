@@ -1,4 +1,4 @@
-<div class="koi-item relative border rounded-lg p-4 dark:bg-zinc-700 dark:border-zinc-600"
+<div class="koi-item relative border rounded-lg p-4 dark:bg-gray-700 dark:border-gray-600"
     data-jenis="{{ strtolower($koi->jenis_koi) }}" data-gender="{{ strtolower($koi->gender) }}"
     data-search="{{ strtolower($koi->judul) }} {{ strtolower($koi->jenis_koi) }} {{ strtolower($koi->gender) }} {{ strtolower($koi->ukuran) }} {{ strtolower($koi->breeder) }}">
     <!-- Carousel untuk gambar -->
@@ -18,7 +18,7 @@
             </template>
             <!-- Tombol delete di kanan atas -->
             <button
-                class="absolute group -top-2 -right-4 bg-zinc-500 text-white rounded-full px-2 py-1 delete-koi-btn transition-transform transform hover:scale-110 active:scale-100"
+                class="absolute group -top-2 -right-4 bg-gray-500 text-white rounded-full px-2 py-1 delete-koi-btn transition-transform transform hover:scale-110 active:scale-100"
                 style="z-index: 10" data-koi-id="{{ $koi->id }}" data-koi-name="{{ $koi->judul }}">
                 <i class="fa-solid fa-trash-can"></i>
                 <!-- Tooltip -->
@@ -28,7 +28,7 @@
                 </span>
             </button>
             <button
-                class="absolute group top-8 -right-4 bg-zinc-500 text-white rounded-full px-2 py-1 transition-transform transform hover:scale-110 active:scale-100"
+                class="absolute group top-8 -right-4 bg-gray-500 text-white rounded-full px-2 py-1 transition-transform transform hover:scale-110 active:scale-100"
                 style="z-index: 10" onclick="window.location.href='{{ route('koi.edit', $koi->id) }}'">
                 <i class="fa-solid fa-pen"></i>
                 <!-- Tooltip -->
@@ -81,13 +81,13 @@
             {{ $koi->ukuran }} cm - [{{ $koi->gender }}]</h3>
     </a>
     <p class="text-sm">{{ __('Jenis: ') . $koi->jenis_koi }}</p> <!-- Jenis Koi ditambahkan sebagai detail -->
-    <hr class="mb-2 mt-2 text-zinc-600 dark:text-zinc-300">
+    <hr class="mb-2 mt-2 text-gray-600 dark:text-gray-300">
     <!-- Kolom 2 baris untuk Open Bid dan Kelipatan Bid -->
     <div class="flex justify-between">
         <span class="text-md font-bold">OB : {{ number_format($koi->open_bid, 0, ',', '.') }} ribu</span>
         <span class="text-md font-bold">KB : {{ number_format($koi->kelipatan_bid, 0, ',', '.') }} ribu</span>
     </div>
-    <hr class="mb-2 mt-2 text-zinc-600 dark:text-zinc-300">
+    <hr class="mb-2 mt-2 text-gray-600 dark:text-gray-300">
 
     <!-- Buy It Now (BIN) tetap menggunakan format rupiah dan dikali 1000 -->
     @if ($koi->buy_it_now)
@@ -126,7 +126,7 @@
 <!-- Modal untuk video -->
 <div id="videoModal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50"
     onclick="closeVideoModal()">
-    <div class="bg-white dark:bg-zinc-800 p-0 rounded-lg max-w-7xl w-auto max-h-screen overflow-auto">
+    <div class="bg-white dark:bg-gray-800 p-0 rounded-lg max-w-7xl w-auto max-h-screen overflow-auto">
         <video id="modalVideo" class="w-full h-auto mt-0 rounded-lg" controls style="max-height: 90vh;">
             <source id="videoSource" src="" type="video/mp4">
             Your browser does not support the video tag.
@@ -138,7 +138,7 @@
 <!-- Modal untuk Sertifikat -->
 <div id="certModal" class="fixed inset-0 z-50 items-center flex justify-center hidden bg-black bg-opacity-50"
     onclick="closeModal()">
-    <div class="bg-white dark:bg-zinc-800 p-0 rounded-lg max-w-7x1 w-full">
+    <div class="bg-white dark:bg-gray-800 p-0 rounded-lg max-w-7x1 w-full">
         <img id="certImage" src="" alt="Certificate Image" class="w-full mt-0 rounded-lg">
     </div>
 </div>

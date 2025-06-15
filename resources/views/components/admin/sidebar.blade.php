@@ -1,4 +1,4 @@
-<aside class="w-64 h-screen bg-gray-100 text-zinc-800 flex flex-col border-r border-zinc-200 shadow-sm fixed">
+<aside class="w-64 h-screen bg-gray-100 text-gray-800 flex flex-col border-r border-gray-200 shadow-sm fixed">
 
     <nav class="flex-1 py-4">
         <ul class="space-y-2 p-5">
@@ -8,7 +8,7 @@
                     class="flex items-center gap-3 px-4 py-2 rounded-lg transition duration-150
                    {{ request()->routeIs('admin.dashboard')
                        ? 'bg-white text-gray-700 font-semibold shadow-lg'
-                       : 'hover:shadow-md hover:bg-zinc-100' }}">
+                       : 'hover:shadow-md hover:bg-gray-100' }}">
                     <i class="fa-solid fa-gauge w-5 h-5"></i> Dashboard
                 </a>
             </li>
