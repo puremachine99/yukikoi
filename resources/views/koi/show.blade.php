@@ -5,6 +5,15 @@
             src: url('/fonts/OnsenJapanDemoRegular.ttf') format('truetype');
         }
 
+        #timer-display {
+            letter-spacing: 0.03em;
+        }
+
+        #timer-display:hover {
+            color: #2563eb;
+            transition: all 0.2s ease-in-out;
+        }
+
         .vertical-text {
             writing-mode: vertical-rl;
             text-orientation: upright;

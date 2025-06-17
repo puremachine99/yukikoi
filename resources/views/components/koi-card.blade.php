@@ -1,20 +1,21 @@
-<div class="block bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-visible relative card-navigate"
+<div class="koi-card bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden relative card-navigate transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
     data-url="{{ route('koi.show', ['id' => $koi->id]) }}">
 
     <!-- Header -->
-    <div class="flex items-center p-4 border-b dark:border-gray-700">
+    <div class="card-header flex items-center p-4 border-b dark:border-gray-700">
         <img src="{{ asset('storage/' . $koi->seller_avatar) }}" alt="Farm Profile"
-            class="w-12 h-12 rounded-full object-cover">
-        <div class="ml-3">
-            <h5 class="text-sm font-semibold text-gray-700 dark:text-gray-200">
-                {{ Str::ucfirst($koi->farm_name) }} [{{ $koi->seller_city }}]</h5>
-
-            <div class="text-sm text-yellow-500">
-                ⭐ {{ number_format($koi->auction->user->overall_rating, 1) }} / 5
+            class="seller-avatar w-12 h-12 rounded-full object-cover border-2 border-blue-500 shadow-md">
+        <div class="seller-info ml-3">
+            <h5 class="seller-name text-sm font-semibold text-gray-800 dark:text-gray-100 flex items-center">
+                {{ Str::ucfirst($koi->farm_name) }}
+                <span
+                    class="seller-location text-xs text-gray-500 dark:text-gray-400 ml-1">[{{ $koi->seller_city }}]</span>
+            </h5>
+            <div class="seller-rating flex items-center mt-1 text-yellow-500 text-sm">
+                <i class="fas fa-star mr-1"></i>
+                <span>{{ number_format($koi->auction->user->overall_rating, 1) }} / 5</span>
             </div>
-
         </div>
-
     </div>
 
     <!-- Body -->
@@ -144,82 +145,120 @@
     </div>
 
     <!-- Footer -->
-    <div class="p-5 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-b-lg space-y-4">
+    <div class="card-body px-4 pb-4 pt-2">
+        <h3 class="koi-title flex items-start mb-3">
+            <span class="flex-1 min-w-0 font-bold text-gray-800 dark:text-white text-base leading-tight">
+                <span class="block truncate" title="{{ $koi->judul }}">{{ $koi->judul }}</span>
+                <span class="text-gray-600 dark:text-gray-300 text-sm font-medium">
+                    {{ $koi->ukuran }}cm
+                </span>
+            </span>
 
-        {{-- Judul Koi --}}
-        <h3 class="text-base lg:text-lg font-bold text-gray-800 dark:text-white truncate"
-            title="{{ $koi->judul }} - {{ $koi->ukuran }}cm {{ $koi->gender !== 'unchecked' ? '[' . strtoupper(substr($koi->gender, 0, 1)) . ']' : '' }}">
-            {{ $koi->judul }} - {{ $koi->ukuran }}cm
-            {{ $koi->gender !== 'unchecked' ? '[' . strtoupper(substr($koi->gender, 0, 1)) . ']' : '' }}
+            @if ($koi->gender !== 'unchecked')
+                <span
+                    class="koi-gender text-xs font-bold px-2 py-1 rounded-full ml-2 
+                    {{ $koi->gender === 'male'
+                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300'
+                        : 'bg-pink-100 text-pink-800 dark:bg-pink-900/50 dark:text-pink-300' }}">
+                    {{ strtoupper(substr($koi->gender, 0, 1)) }}
+                </span>
+            @endif
         </h3>
 
-        {{-- Stats: Views / Wishlist / Likes --}}
-        <div class="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-            {{-- Views --}}
-            <button class="group flex items-center gap-1 hover:text-blue-600" onclick="event.stopPropagation();">
-                <i class="fa-solid fa-eye"></i>
-                <span>{{ $koi->views_count }}</span>
-                <span
-                    class="group-hover:block hidden absolute -top-7 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-black text-white text-xs rounded">
-                    Dilihat {{ $koi->views_count }} kali
-                </span>
-            </button>
+        <!-- Stats -->
+        <div class="koi-stats flex justify-between mb-1 pb-2">
+            <div class="stat-item text-center">
+                <div
+                    class="stat-icon w-7 h-7 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-500 flex items-center justify-center mx-auto mb-1">
+                    <i class="fa-solid fa-eye text-xs"></i>
+                </div>
+                <div class="stat-value text-xs font-medium text-gray-700 dark:text-gray-300">
+                    {{ $koi->views_count }}
+                </div>
 
-            {{-- Wishlist --}}
-            <button class="group flex items-center gap-1 hover:text-yellow-500"
-                onclick="event.stopPropagation(); toggleWishlist('{{ $koi->id }}')">
-                <i id="wishlist-icon-{{ $koi->id }}"
-                    class="fa-solid fa-star {{ in_array((string) $koi->id, (array) $wishlist) ? 'text-yellow-500' : '' }}"></i>
-                <span>Wishlist</span>
-                <span
-                    class="group-hover:block hidden absolute -top-7 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-black text-white text-xs rounded">
-                    Tambah ke Wishlist
-                </span>
-            </button>
+            </div>
 
-            {{-- Likes --}}
-            <button class="group flex items-center gap-1 hover:text-red-500"
-                onclick="event.stopPropagation(); toggleLike('{{ $koi->id }}')">
-                <i id="like-icon-{{ $koi->id }}"
-                    class="fa-solid fa-heart {{ $koi->user_liked ? 'text-red-600' : '' }}"></i>
-                <span id="likes-count-{{ $koi->id }}">{{ $koi->likes_count }}</span>
-                <span
-                    class="group-hover:block hidden absolute -top-7 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-black text-white text-xs rounded">
-                    Disukai {{ $koi->likes_count }} kali
-                </span>
-            </button>
+            <div class="stat-item text-center">
+                <button class="group relative"
+                    onclick="event.stopPropagation(); toggleWishlist('{{ $koi->id }}')">
+                    <div
+                        class="stat-icon w-7 h-7 rounded-full bg-yellow-50 dark:bg-yellow-900/20 text-yellow-500 flex items-center justify-center mx-auto mb-1">
+                        <i id="wishlist-icon-{{ $koi->id }}"
+                            class="fa-solid fa-star text-xs {{ in_array((string) $koi->id, (array) $wishlist) ? 'text-yellow-500' : '' }}"></i>
+                    </div>
+                    <div class="stat-value text-xs font-medium text-gray-700 dark:text-gray-300">
+                        Wishlist
+                    </div>
+                </button>
+            </div>
+
+            <div class="stat-item text-center">
+                <button class="group relative" onclick="event.stopPropagation(); toggleLike('{{ $koi->id }}')">
+                    <div
+                        class="stat-icon w-7 h-7 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 flex items-center justify-center mx-auto mb-1">
+                        <i id="like-icon-{{ $koi->id }}"
+                            class="fa-solid fa-heart text-xs {{ $koi->user_liked ? 'text-red-500' : '' }}"></i>
+                    </div>
+                    <div class="stat-value text-xs font-medium text-gray-700 dark:text-gray-300"
+                        id="likes-count-{{ $koi->id }}">
+                        {{ $koi->likes_count }}
+                    </div>
+                </button>
+            </div>
         </div>
 
-        <hr class="border-t border-dashed border-gray-300 dark:border-gray-600">
-
-        {{-- Bid Info --}}
-        <div class="grid grid-cols-2 gap-y-3 gap-x-4 text-sm text-gray-600 dark:text-gray-300">
-            <div class="flex justify-between">
-                <span>Open Bid:</span>
-                <span class="font-bold text-gray-800 dark:text-white">
+        <!-- Bid Info -->
+        <div class="bid-info grid grid-cols-2 gap-3">
+            <div class="bid-item bg-gray-50 dark:bg-gray-700/50 p-3 rounded-xl">
+                <div class="bid-label text-gray-500 dark:text-gray-400 text-sm">Open Bid</div>
+                <div class="bid-value font-bold text-gray-800 dark:text-white">
                     Rp{{ number_format($koi->open_bid, 0, ',', '.') }}
-                </span>
+                </div>
             </div>
-            <div class="flex justify-between">
-                <span>Kelipatan:</span>
-                <span class="font-bold text-gray-800 dark:text-white">
+
+            <div class="bid-item bg-gray-50 dark:bg-gray-700/50 p-3 rounded-xl">
+                <div class="bid-label text-gray-500 dark:text-gray-400 text-sm">Kelipatan</div>
+                <div class="bid-value font-bold text-gray-800 dark:text-white">
                     Rp{{ number_format($koi->kelipatan_bid, 0, ',', '.') }}
-                </span>
+                </div>
             </div>
-            <div class="flex justify-between col-span-2">
-                <span>Last Bid:</span>
-                <span class="font-bold text-blue-600">
-                    Rp{{ number_format($koi->last_bid ?? 0, 0, ',', '.') }}
-                </span>
-            </div>
+
             @if ($koi->has_winner)
-                <div class="flex justify-between col-span-2 text-yellow-600 font-semibold">
-                    <span>Winner:</span>
-                    <span>{{ $koi->winner_name }}</span>
+                <!-- Jika ada pemenang, Last Bid dan Winner sejajar -->
+                <div class="bid-item bg-green-50 dark:bg-green-900/20 p-3 rounded-xl">
+                    <div class="bid-label text-green-500 dark:text-green-400 text-sm">Last Bid</div>
+                    <div class="bid-value font-bold text-green-600 dark:text-green-400">
+                        Rp{{ number_format($koi->last_bid ?? 0, 0, ',', '.') }}
+                    </div>
+                </div>
+
+                <div class="bid-item bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-xl">
+                    <div class="bid-label text-yellow-500 dark:text-yellow-400 text-sm">Winner</div>
+                    <div class="bid-value font-bold text-yellow-600 dark:text-yellow-400">
+                        {{ $koi->winner_name }}
+                    </div>
+                </div>
+            @else
+                <!-- Jika tidak ada pemenang, Last Bid full width -->
+                <div class="bid-item bg-blue-50 dark:bg-blue-900/20 p-3 rounded-xl col-span-2">
+                    <div class="bid-label text-blue-500 dark:text-blue-400 text-sm">Last Bid</div>
+                    <div class="bid-value font-bold text-blue-600 dark:text-blue-400">
+                        Rp{{ number_format($koi->last_bid ?? 0, 0, ',', '.') }}
+                    </div>
                 </div>
             @endif
         </div>
-
     </div>
 
+    <!-- Modal Video (Tetap sama) -->
+    <div id="videoModal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50"
+        onclick="closeVideoModal()">
+        <div class="bg-white dark:bg-gray-800 p-0 rounded-lg max-w-7xl w-auto max-h-screen overflow-auto">
+            <video id="modalVideo" class="w-full h-auto mt-0 rounded-lg" controls style="max-height: 90vh;">
+                <source id="videoSource" src="" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+    </div>
 </div>
+

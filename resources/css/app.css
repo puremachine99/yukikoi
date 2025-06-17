@@ -8,3 +8,55 @@
     font-weight: normal;
     font-style: normal;
 }
+.koi-title {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: nowrap;
+    overflow: hidden;
+}
+
+.koi-title > span:first-child {
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+    .koi-card {
+        transition: all 0.3s ease;
+        border: 1px solid #e2e8f0;
+    }
+
+    .dark .koi-card {
+        border-color: #334155;
+    }
+
+    .seller-avatar {
+        border: 2px solid #3b82f6;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .koi-image {
+        transition: transform 0.5s ease;
+    }
+
+    .koi-card:hover .koi-image {
+        transform: scale(1.03);
+    }
+
+    .bid-item {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .bid-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .text-outline {
+        text-shadow:
+            -1px -1px 0 #000,
+            1px -1px 0 #000,
+            -1px 1px 0 #000,
+            1px 1px 0 #000;
+    }
+
