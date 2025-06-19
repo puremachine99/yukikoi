@@ -155,7 +155,6 @@
                         <i class="fa-solid fa-store mr-2"></i>Market
                     </a>
                 </div>
-
             </div>
 
             <!-- Right Section (Authenticated) -->
@@ -176,192 +175,163 @@
                         class="theme-toggle-dark-icon fa-solid fa-moon text-indigo-400 absolute right-2 top-2 h-4 w-4 transition-opacity duration-300"></i>
                 </button>
 
-
-
-
-
-                <!-- Notifications -->
-                <div class="relative">
-                    <button @click="notificationsOpen = !notificationsOpen"
-                        class="relative flex items-center justify-center w-10 h-10 aspect-square rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-transform duration-200 transform group-hover:scale-110 shadow-sm">
-                        <i class="fa-solid fa-bell text-base"></i>
-
-                        <!-- Badge -->
-                        <span
-                            class="absolute -top-0.5 -right-0.5 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full ring-2 ring-white dark:ring-gray-800 animate-pulse">
-                            4
-                        </span>
-                    </button>
-
-                    <!-- Notifications Dropdown -->
-                    <div x-cloak x-show="notificationsOpen" @click.away="notificationsOpen = false"
-                        x-transition:enter="transition ease-out duration-200"
-                        x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-                        x-transition:leave="transition ease-in duration-150"
-                        x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-                        class="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg card-shadow z-50 border border-gray-200 dark:border-gray-700 overflow-hidden">
-                        <div class="p-3 border-b border-gray-200 dark:border-gray-700">
-                            <h3 class="font-semibold text-gray-800 dark:text-white">Notifikasi (4)</h3>
-                        </div>
-                        <div class="divide-y divide-gray-200 dark:divide-gray-700 max-h-80 overflow-y-auto">
-                            <!-- Notification Items -->
-                            <a href="#"
-                                class="flex p-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                                <div class="flex-shrink-0">
-                                    <div
-                                        class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500">
-                                        <i class="fa-solid fa-gavel"></i>
-                                    </div>
-                                </div>
-                                <div class="ml-3">
-                                    <p class="text-sm font-medium text-gray-900 dark:text-white">Bid Anda telah
-                                        dikalahkan</p>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">Produk Jam Tissot</p>
-                                    <p class="text-xs text-gray-400 mt-1">2 menit yang lalu</p>
-                                </div>
-                            </a>
-                            <a href="#"
-                                class="flex p-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                                <div class="flex-shrink-0">
-                                    <div
-                                        class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-500">
-                                        <i class="fa-solid fa-truck"></i>
-                                    </div>
-                                </div>
-                                <div class="ml-3">
-                                    <p class="text-sm font-medium text-gray-900 dark:text-white">Pesanan telah dikirim
-                                    </p>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">No. Pesanan #ORD-12345</p>
-                                    <p class="text-xs text-gray-400 mt-1">1 jam yang lalu</p>
-                                </div>
-                            </a>
-                            <a href="#"
-                                class="flex p-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                                <div class="flex-shrink-0">
-                                    <div
-                                        class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-500">
-                                        <i class="fa-solid fa-star"></i>
-                                    </div>
-                                </div>
-                                <div class="ml-3">
-                                    <p class="text-sm font-medium text-gray-900 dark:text-white">Promo Spesial Akhir
-                                        Bulan</p>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">Diskon hingga 30%</p>
-                                    <p class="text-xs text-gray-400 mt-1">3 jam yang lalu</p>
-                                </div>
-                            </a>
-                        </div>
-                        <div class="p-3 bg-gray-50 dark:bg-gray-700 text-center">
-                            <a href="#"
-                                class="text-sm font-medium text-primary-600 dark:text-primary-400 hover:underline">Lihat
-                                Semua Notifikasi</a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Cart -->
-                <a href="{{ route('cart.index') }}"
-                    class="relative flex items-center justify-center w-10 h-10 aspect-square rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-transform duration-200 transform hover:scale-110 shadow-sm">
-                    <i class="fa-solid fa-shopping-cart text-base"></i>
-                    <span
-                        class="absolute -top-0.5 -right-0.5 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full ring-2 ring-white dark:ring-gray-800">
-                        3
-                    </span>
-                </a>
-
                 <!-- User Profile -->
-                <div class="relative ml-2">
-                    <button @click="profileOpen = !profileOpen" class="flex items-center space-x-2 focus:outline-none">
-                        @if (Auth::user()->profile_photo)
-                            <img src="{{ asset('storage/' . Auth::user()->profile_photo) }}" alt="Profile Photo"
-                                class="h-9 w-9 rounded-full object-cover smooth-transition transform hover:scale-105">
-                        @else
-                            <div
-                                class="h-9 w-9 rounded-full bg-gradient-to-br from-primary-500 to-blue-600 flex items-center justify-center text-white font-semibold smooth-transition transform hover:scale-105">
-                                {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
+                <div class="relative ml-2 flex items-center space-x-3">
+                    @auth
+                        <!-- Notifications -->
+                        <div class="relative">
+                            <button @click="notificationsOpen = !notificationsOpen"
+                                class="relative flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-transform duration-200 transform hover:scale-110 shadow-sm">
+                                <i class="fa-solid fa-bell text-base"></i>
+                                <!-- Badge -->
+                                <span
+                                    class="absolute -top-0.5 -right-0.5 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full ring-2 ring-white dark:ring-gray-800 animate-pulse">
+                                    4
+                                </span>
+                            </button>
+
+                            <!-- Notifications Dropdown -->
+                            <div x-cloak x-show="notificationsOpen" @click.away="notificationsOpen = false"
+                                x-transition:enter="transition ease-out duration-200"
+                                x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                                x-transition:leave="transition ease-in duration-150"
+                                x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                                class="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg card-shadow z-50 border border-gray-200 dark:border-gray-700 overflow-hidden">
+                                <div class="p-3 border-b border-gray-200 dark:border-gray-700">
+                                    <h3 class="font-semibold text-gray-800 dark:text-white">Notifikasi (4)</h3>
+                                </div>
+                                <div class="divide-y divide-gray-200 dark:divide-gray-700 max-h-80 overflow-y-auto">
+                                    <!-- Item -->
+                                    <a href="#" class="flex p-3 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                        <div
+                                            class="flex-shrink-0 w-10 h-10 rounded-full bg-blue-100 text-blue-500 flex items-center justify-center">
+                                            <i class="fa-solid fa-gavel"></i>
+                                        </div>
+                                        <div class="ml-3 text-sm">
+                                            <p class="font-medium text-gray-900 dark:text-white">Bid Anda telah dikalahkan
+                                            </p>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400">Produk Jam Tissot</p>
+                                            <p class="text-xs text-gray-400 mt-1">2 menit yang lalu</p>
+                                        </div>
+                                    </a>
+                                    <!-- Tambahkan notifikasi lainnya di sini -->
+                                </div>
+                                <div class="p-3 bg-gray-50 dark:bg-gray-700 text-center">
+                                    <a href="#"
+                                        class="text-sm font-medium text-primary-600 dark:text-primary-400 hover:underline">
+                                        Lihat Semua Notifikasi
+                                    </a>
+                                </div>
                             </div>
-                        @endif
+                        </div>
 
-                    </button>
+                        <!-- Cart -->
+                        <a href="{{ route('cart.index') }}"
+                            class="relative flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-transform duration-200 transform hover:scale-110 shadow-sm">
+                            <i class="fa-solid fa-shopping-cart text-base"></i>
+                            <span
+                                class="absolute -top-0.5 -right-0.5 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full ring-2 ring-white dark:ring-gray-800">
+                                3
+                            </span>
+                        </a>
 
-                    <!-- Profile Dropdown -->
-                    <div x-cloak x-show="profileOpen" @click.away="profileOpen = false"
-                        x-transition:enter="transition ease-out duration-200"
-                        x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-                        x-transition:leave="transition ease-in duration-150"
-                        x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-                        class="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg card-shadow z-50 border border-gray-200 dark:border-gray-700 overflow-hidden">
-                        <div class="p-4 border-b border-gray-200 dark:border-gray-700">
-                            <div class="flex items-center">
-                                @if (Auth::user()->profile_photo)
-                                    <img src="{{ asset('storage/' . Auth::user()->profile_photo) }}" alt="Profile Photo"
-                                        class="h-9 w-9 rounded-full object-cover smooth-transition transform hover:scale-105">
-                                @else
-                                    <div
-                                        class="h-9 w-9 rounded-full bg-gradient-to-br from-primary-500 to-blue-600 flex items-center justify-center text-white font-semibold smooth-transition transform hover:scale-105">
-                                        {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
+                        <!-- Profile Button -->
+                        <button @click="profileOpen = !profileOpen" class="flex items-center space-x-2 focus:outline-none">
+                            @php $user = Auth::user(); @endphp
+                            @if ($user->profile_photo)
+                                <img src="{{ asset('storage/' . $user->profile_photo) }}" alt="Profile Photo"
+                                    class="h-9 w-9 rounded-full object-cover smooth-transition transform hover:scale-105">
+                            @else
+                                <div
+                                    class="h-9 w-9 rounded-full bg-gradient-to-br from-primary-500 to-blue-600 flex items-center justify-center text-white font-semibold smooth-transition transform hover:scale-105">
+                                    {{ strtoupper(substr($user->name, 0, 2)) }}
+                                </div>
+                            @endif
+                        </button>
+
+                        <!-- Profile Dropdown -->
+                        <div x-cloak x-show="profileOpen" @click.away="profileOpen = false"
+                            x-transition:enter="transition ease-out duration-200"
+                            x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                            x-transition:leave="transition ease-in duration-150"
+                            x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                            class="absolute top-full right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg card-shadow z-50 border border-gray-200 dark:border-gray-700 overflow-hidden">
+
+                            <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+                                <div class="flex items-center">
+                                    @if ($user->profile_photo)
+                                        <img src="{{ asset('storage/' . $user->profile_photo) }}" alt="Profile Photo"
+                                            class="h-9 w-9 rounded-full object-cover smooth-transition transform hover:scale-105">
+                                    @else
+                                        <div
+                                            class="h-9 w-9 rounded-full bg-gradient-to-br from-primary-500 to-blue-600 flex items-center justify-center text-white font-semibold smooth-transition transform hover:scale-105">
+                                            {{ strtoupper(substr($user->name, 0, 2)) }}
+                                        </div>
+                                    @endif
+                                    <div class="ml-3">
+                                        <h4 class="font-semibold text-gray-900 dark:text-white">{{ $user->name }}</h4>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">{{ $user->email }}</p>
                                     </div>
+                                </div>
+                            </div>
+                            <div class="py-1">
+                                <a href="{{ route('profile.index') }}"
+                                    class="block px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                    <i class="fa-solid fa-user mr-3 w-5 text-gray-400"></i> Profil Saya
+                                </a>
+                                @if ($user->role === 'admin')
+                                    <a href="{{ route('admin.dashboard') }}"
+                                        class="block px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                        <i class="fa-solid fa-user-secret mr-3 w-5 text-gray-400"></i> Admin Dashboard
+                                    </a>
                                 @endif
 
-                                <div class="ml-3">
-                                    <h4 class="font-semibold text-gray-900 dark:text-white">{{ Auth::user()->name }}
-                                    </h4>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ Auth::user()->email }}</p>
+                                <div class="px-4 py-2.5 text-xs uppercase text-gray-500 dark:text-gray-400 mt-1">Pembeli
                                 </div>
-                            </div>
-                        </div>
-                        <div class="py-1">
-                            <a href="{{ route('profile.index') }}"
-                                class="block px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                                <i class="fa-solid fa-user mr-3 w-5 text-gray-400"></i> Profil Saya
-                            </a>
-                            @if (Auth::check() && Auth::user()->role === 'admin')
-                                <a href="{{ route('admin.dashboard') }}"
-                                    class="block px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                                    <i class="fa-solid fa-user-secret mr-3 w-5 text-gray-400"></i> Admin Dashboard
-
+                                <a href="{{ route('transactions.index') }}"
+                                    class="block px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                    <i class="fa-solid fa-box mr-3 w-5 text-gray-400"></i> Pesanan Saya
                                 </a>
-                            @endif
+                                <a href="{{ route('bids.user') }}"
+                                    class="block px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                    <i class="fa-solid fa-chart-line mr-3 w-5 text-gray-400"></i> Monitoring Bid
+                                </a>
 
+                                <div class="px-4 py-2.5 text-xs uppercase text-gray-500 dark:text-gray-400 mt-1">Penjual
+                                </div>
+                                <a href="{{ route('orders.index') }}"
+                                    class="block px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                    <i class="fa-solid fa-inbox mr-3 w-5 text-gray-400"></i> Pesanan Masuk
+                                </a>
+                                <a href="{{ route('auctions.index') }}"
+                                    class="block px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                    <i class="fa-solid fa-gavel mr-3 w-5 text-gray-400"></i> Lelang Saya
+                                </a>
+                                <a href="{{ route('events.list') }}"
+                                    class="block px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                    <i class="fa-solid fa-calendar mr-3 w-5 text-gray-400"></i> Event Saya
+                                </a>
 
-                            <div class="px-4 py-2.5 text-xs uppercase text-gray-500 dark:text-gray-400 mt-1">Pembeli
+                                <div class="border-t border-gray-200 dark:border-gray-700 mt-1"></div>
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <button type="submit"
+                                        class="w-full text-left block px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
+                                        <i class="fa-solid fa-arrow-right-from-bracket mr-3 w-5"></i> Keluar
+                                    </button>
+                                </form>
                             </div>
-                            <a href="{{ route('transactions.index') }}"
-                                class="block px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                                <i class="fa-solid fa-box mr-3 w-5 text-gray-400"></i> Pesanan Saya
-                            </a>
-                            <a href="{{ route('bids.user') }}"
-                                class="block px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                                <i class="fa-solid fa-chart-line mr-3 w-5 text-gray-400"></i> Monitoring Bid
-                            </a>
-
-                            <div class="px-4 py-2.5 text-xs uppercase text-gray-500 dark:text-gray-400 mt-1">Penjual
-                            </div>
-                            <a href="{{ route('orders.index') }}"
-                                class="block px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                                <i class="fa-solid fa-inbox mr-3 w-5 text-gray-400"></i> Pesanan Masuk <span
-                                    class="ml-2 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">12</span>
-                            </a>
-                            <a href="{{ route('auctions.index') }}"
-                                class="block px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                                <i class="fa-solid fa-gavel mr-3 w-5 text-gray-400"></i> Lelang Saya
-                            </a>
-                            <a href="{{ route('events.list') }}"
-                                class="block px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                                <i class="fa-solid fa-calendar mr-3 w-5 text-gray-400"></i> Event Saya
-                            </a>
-
-                            <div class="border-t border-gray-200 dark:border-gray-700 mt-1"></div>
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
-                                <button type="submit"
-                                    class="w-full text-left block px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
-                                    <i class="fa-solid fa-arrow-right-from-bracket mr-3 w-5"></i> Keluar
-                                </button>
-                            </form>
                         </div>
-                    </div>
+                    @else
+                        <!-- Guest -->
+                        <a href="{{ route('login') }}"
+                            class="px-4 py-2 text-sm text-blue-600 dark:text-blue-300 font-semibold hover:underline">Login</a>
+                        <a href="{{ route('register') }}"
+                            class="px-4 py-2 text-sm text-green-600 dark:text-green-300 font-semibold hover:underline">Daftar</a>
+                    @endauth
                 </div>
+
+
 
             </div>
 
@@ -436,8 +406,7 @@
                     <div class="px-3 pt-2 text-xs uppercase text-gray-500 dark:text-gray-400">Penjual</div>
                     <a href="{{ route('orders.index') }}"
                         class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
-                        <i class="fa-solid fa-inbox mr-2"></i>Pesanan Masuk <span
-                            class="ml-2 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">12</span>
+                        <i class="fa-solid fa-inbox mr-2"></i>Pesanan Masuk
                     </a>
                     <a href="{{ route('auctions.index') }}"
                         class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
@@ -449,13 +418,8 @@
                     </a>
                     <a href="{{ route('cart.index') }}"
                         class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
-                        <i class="fa-solid fa-shopping-cart mr-2"></i>Keranjang <span
-                            class="ml-2 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">3</span>
+                        <i class="fa-solid fa-shopping-cart mr-2"></i>Keranjang
                     </a>
-
-
-
-
 
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
@@ -477,6 +441,7 @@
                     </a>
                 </div>
             @endauth
+
         </div>
 
     </div>

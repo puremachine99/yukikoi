@@ -2,7 +2,7 @@
     data-url="{{ route('koi.show', ['id' => $koi->id]) }}">
 
     <!-- Header -->
-    <div class="card-header flex items-center p-4 border-b dark:border-gray-700">
+    <div class="card-header flex items-center p-4">
         <img src="{{ asset('storage/' . $koi->seller_avatar) }}" alt="Farm Profile"
             class="seller-avatar w-12 h-12 rounded-full object-cover border-2 border-blue-500 shadow-md">
         <div class="seller-info ml-3">
@@ -117,6 +117,15 @@
                     </div>
                 </div>
             @endif
+            <div class="absolute opacity-60 hover:opacity-100 bottom-2 left-2 bg-red-500 text-white p-1 rounded-full shadow-md text-center text-xs w-36"
+                id="countdown-wrapper-{{ $koi->id }}" data-koi-id="{{ $koi->id }}"
+                data-end-time="{{ $koi->end_time }}">
+                @if ($totalBids[(string) $koi->id]['has_winner'] ?? false)
+                    <span class="font-semibold">Sold by BIN</span>
+                @else
+                    <span id="countdown-{{ $koi->id }}" class="font-semibold">00:00</span>
+                @endif
+            </div>
             <!-- Tombol Play untuk Video -->
             @if ($koi->media->where('media_type', 'video')->isNotEmpty())
                 <button
@@ -261,4 +270,3 @@
         </div>
     </div>
 </div>
-
