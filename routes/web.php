@@ -21,9 +21,9 @@ use App\Http\Controllers\{
     WishlistController,
     ComplaintController,
 };
-use App\Http\Controllers\Admin\{
-    DashboardController
-};
+// use App\Http\Controllers\Admin\{
+//     DashboardController
+// };
 //test whatsapp
 use App\Http\Controllers\WhatsAppController;
 
@@ -68,9 +68,9 @@ Route::get('/events', [EventController::class, 'index'])->name('events.index'); 
 Route::get('/events/{id}', [EventController::class, 'show'])->name('events.show'); // Show event details
 Route::get('/events/live', [EventController::class, 'live'])->name('events.live'); // Show live events
 
-Route::get('/admin', function () {
-    return view('yukiadmin.index');
-})->name('yukiadmin');
+// Route::get('/admin', function () {
+//     return view('yukiadmin.index');
+// })->name('yukiadmin');
 
 // Home Route - Terbuka untuk semua
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -231,30 +231,30 @@ Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index
 Route::get('/profile/{id}', [ProfileController::class, 'show'])->name('profile.show');
 
 
-Route::middleware(['auth', '\App\Http\Middleware\AdminMiddleware::class'])->prefix('admin')->name('admin.')->group(function () {
-    // Dashboard
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+// Route::middleware(['auth', '\App\Http\Middleware\AdminMiddleware::class'])->prefix('admin')->name('admin.')->group(function () {
+//     // Dashboard
+//     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Users
-    Route::get('/users', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('users.index');
-    Route::get('/users/bnr', [\App\Http\Controllers\Admin\UserController::class, 'create'])->name('users.bnr');
-    Route::post('/users/bnr', [\App\Http\Controllers\Admin\UserController::class, 'store'])->name('users.store');
-    Route::delete('/users/{user}', [\App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('users.destroy');
+//     // Users
+//     Route::get('/users', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('users.index');
+//     Route::get('/users/bnr', [\App\Http\Controllers\Admin\UserController::class, 'create'])->name('users.bnr');
+//     Route::post('/users/bnr', [\App\Http\Controllers\Admin\UserController::class, 'store'])->name('users.store');
+//     Route::delete('/users/{user}', [\App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('users.destroy');
 
-    // Tambahkan route lain sesuai kebutuhan, misal edit, update, destroy
+//     // Tambahkan route lain sesuai kebutuhan, misal edit, update, destroy
 
-    // Auctions (contoh, sesuaikan dengan controller dan kebutuhan)
-    Route::get('/auctions', [\App\Http\Controllers\Admin\AuctionController::class, 'index'])->name('auctions.index');
-    // Tambahkan route lain sesuai kebutuhan
+//     // Auctions (contoh, sesuaikan dengan controller dan kebutuhan)
+//     Route::get('/auctions', [\App\Http\Controllers\Admin\AuctionController::class, 'index'])->name('auctions.index');
+//     // Tambahkan route lain sesuai kebutuhan
 
-    // Event (contoh, sesuaikan dengan controller dan kebutuhan)
-    Route::get('/events', [\App\Http\Controllers\Admin\EventController::class, 'index'])->name('events.index');
-    // Tambahkan route lain sesuai kebutuhan
+//     // Event (contoh, sesuaikan dengan controller dan kebutuhan)
+//     Route::get('/events', [\App\Http\Controllers\Admin\EventController::class, 'index'])->name('events.index');
+//     // Tambahkan route lain sesuai kebutuhan
 
-    // Ads (contoh, sesuaikan dengan controller dan kebutuhan)
-    Route::get('/ads', [\App\Http\Controllers\Admin\AdsController::class, 'index'])->name('ads.index');
-    // Tambahkan route lain sesuai kebutuhan
-});
+//     // Ads (contoh, sesuaikan dengan controller dan kebutuhan)
+//     Route::get('/ads', [\App\Http\Controllers\Admin\AdsController::class, 'index'])->name('ads.index');
+//     // Tambahkan route lain sesuai kebutuhan
+// });
 
 
 // Xendit Webhook

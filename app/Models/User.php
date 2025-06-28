@@ -7,23 +7,24 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    // Role constant biar ceknya enak
-    const ROLE_GUEST = 'guest';
-    const ROLE_BIDDER = 'bidder';
-    const ROLE_SELLER = 'seller';
-    const ROLE_PRIORITY_SELLER = 'priority_seller';
-    const ROLE_ADMIN = 'admin';
+    // // Role constant biar ceknya enak
+    // const ROLE_GUEST = 'guest';
+    // const ROLE_BIDDER = 'bidder';
+    // const ROLE_SELLER = 'seller';
+    // const ROLE_PRIORITY_SELLER = 'priority_seller';
+    // const ROLE_ADMIN = 'admin';
 
-    // Verifikasi role pengguna
-    public function isRole($role)
-    {
-        return $this->role === $role;
-    }
+    // // Verifikasi role pengguna
+    // public function isRole($role)
+    // {
+    //     return $this->role === $role;
+    // }
 
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable,HasRoles;
 
     /**
      * The attributes that are mass assignable.

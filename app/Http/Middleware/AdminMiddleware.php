@@ -16,11 +16,11 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (Auth::check() && Auth::user()->role === 'admin') { // Ensure 'role' is the correct column name
-            return $next($request);
-        }
+        // if (Auth::check() && Auth::user()->role === 'admin') { // Ensure 'role' is the correct column name
+        //     return $next($request);
+        // }
 
-        // Tampilkan 404 jika bukan admin
-        abort(404);
+        // // Tampilkan 404 jika bukan admin
+        // abort(404);
     }
 }

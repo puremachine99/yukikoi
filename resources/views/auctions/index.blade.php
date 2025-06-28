@@ -117,7 +117,7 @@
     </style>
     <div class="flex flex-col min-h-screen">
         <!-- Header -->
-   
+   </x-
 
         <!-- Main Content -->
         <main class="flex-grow py-8">

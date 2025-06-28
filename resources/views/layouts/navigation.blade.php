@@ -279,12 +279,12 @@
                                     class="block px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
                                     <i class="fa-solid fa-user mr-3 w-5 text-gray-400"></i> Profil Saya
                                 </a>
-                                @if ($user->role === 'admin')
+                                {{-- @if ($user->role === 'admin')
                                     <a href="{{ route('admin.dashboard') }}"
                                         class="block px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
                                         <i class="fa-solid fa-user-secret mr-3 w-5 text-gray-400"></i> Admin Dashboard
                                     </a>
-                                @endif
+                                @endif --}}
 
                                 <div class="px-4 py-2.5 text-xs uppercase text-gray-500 dark:text-gray-400 mt-1">Pembeli
                                 </div>
@@ -386,12 +386,12 @@
                         <i class="fa-solid fa-user mr-2"></i>Profil Saya
                     </a>
 
-                    @if (Auth::user()->role === 'admin')
+                    {{-- @if (Auth::user()->role === 'admin')
                         <a href="{{ route('admin.dashboard') }}"
                             class="block px-3 py-2 rounded-md text-base font-medium text-purple-600 dark:text-purple-400 hover:bg-gray-50 dark:hover:bg-gray-700">
                             <i class="fa-solid fa-toolbox mr-2"></i>Admin Panel
                         </a>
-                    @endif
+                    @endif --}}
 
                     <div class="px-3 pt-2 text-xs uppercase text-gray-500 dark:text-gray-400">Pembeli</div>
                     <a href="{{ route('transactions.index') }}"
