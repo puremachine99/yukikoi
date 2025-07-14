@@ -9,7 +9,7 @@ const BOT_CONFIG = {
         start: "08:00", // format 24 jam, kosongkan jika tidak ingin membatasi
         end: "22:00", // format 24 jam, kosongkan jika tidak ingin membatasi
     },
-    adminNumbers: ["6281234567890"], // contoh: daftar admin
+    // adminNumbers: ["6281234567890"], // contoh: daftar admin
     signature: process.env.WA_SIGNATURE || "\n\n-- Yukikoi Bot",
     // Tambahkan config lain di sini sesuai kebutuhan
 };

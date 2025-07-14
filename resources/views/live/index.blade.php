@@ -62,9 +62,6 @@
                     1px 1px 0 #000;
             }
         </style>
-        
-
-
     </x-slot>
 
     <div class="p-2">

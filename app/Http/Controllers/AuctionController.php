@@ -131,30 +131,30 @@ class AuctionController extends Controller
     public function index(Request $request)
     {
         // Ambil hanya lelang milik user yang sedang login
-        $query = Auction::where('user_id', Auth::id());
+        $query = Auction::withCount('koi') // <--- hitung total koi per lelang
+            ->with('user') // <--- load user kalau diperlukan di blade
+            ->where('user_id', Auth::id());
 
         // Filter search berdasarkan title atau description
-        if ($request->has('search') && $request->search != '') {
-            $query->where('title', 'like', '%' . $request->search . '%')
-                ->orWhere('description', 'like', '%' . $request->search . '%');
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('title', 'like', '%' . $request->search . '%')
+                    ->orWhere('description', 'like', '%' . $request->search . '%');
+            });
         }
 
         // Filter berdasarkan jenis
-        if ($request->has('jenis') && $request->jenis != 'all') {
+        if ($request->filled('jenis') && $request->jenis !== 'all') {
             $query->where('jenis', $request->jenis);
         }
 
         // Filter berdasarkan status
-        if ($request->has('status') && $request->status != 'all') {
+        if ($request->filled('status') && $request->status !== 'all') {
             $query->where('status', $request->status);
         }
 
         // Sorting
-        if ($request->has('sort')) {
-            $query->orderBy('created_at', $request->sort);
-        } else {
-            $query->orderBy('created_at', 'desc');
-        }
+        $query->orderBy('created_at', $request->get('sort', 'desc'));
 
         // Pagination
         $auctions = $query->paginate(8);
