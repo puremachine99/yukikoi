@@ -35,31 +35,25 @@ class TransactionController extends Controller
         ];
 
         $transactionsQuery = Transaction::with([
-            'transactionItems' => function ($query) {
-                $query->with([
-                    'koi' => function ($koiQuery) {
-                        $koiQuery->with([
-                            'media' => function ($mediaQuery) {
-                                $mediaQuery->where('media_type', 'photo');
-                            },
-                            'auction.user'
-                        ]);
-                    }
-                ]);
-            }
+            'transactionItems.koi.media' => fn($q) => $q->where('media_type', 'photo'),
+            'transactionItems.koi.auction.user',
+            'transactionItems.statusHistories' // ✨ Load status history
         ])->where('user_id', $userId);
 
         if ($status !== 'semua') {
-            $transactionsQuery->whereHas('transactionItems', function ($query) use ($status) {
-                $query->where('status', $status);
-            });
+            $transactionsQuery->whereHas('transactionItems', fn($q) => $q->where('status', $status));
         }
 
         $transactions = $transactionsQuery->get();
-        $groupedTransactions = $transactions->groupBy(fn($transaction) => $transaction->transactionItems->first()->farm ?? 'Unknown');
+
+        $groupedTransactions = $transactions->groupBy(
+            fn($transaction) =>
+            $transaction->transactionItems->first()?->koi?->auction?->user?->farm_name ?? 'Unknown'
+        );
 
         return view('transactions.index', compact('tabs', 'status', 'groupedTransactions'));
     }
+
 
     public function sellerOrders(Request $request)
     {

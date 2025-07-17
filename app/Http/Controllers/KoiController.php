@@ -7,65 +7,38 @@ use App\Models\Koi;
 use App\Models\Event;
 use App\Models\Media;
 use App\Models\Auction;
+use App\Models\Wishlist;
 use App\Models\MarkedKoi;
 use App\Models\Certificate;
 use Illuminate\Http\Request;
+use App\Services\KoiEnricher;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class KoiController extends Controller
 {
-        /**
+    /**
      * Display a listing of the resource.
      */
-    public function index(Request $request, $auction_code)
+
+    public function index(Request $request, $auction_code, KoiEnricher $enricher)
     {
-        $userId = Auth::id(); // ID pengguna yang sedang login
+        $userId = Auth::id();
 
-        // Ambil data lelang berdasarkan kode lelang
-        $auction = Auction::where('auction_code', $auction_code)->firstOrFail();
+        $auction = Auction::with('user')->where('auction_code', $auction_code)->firstOrFail();
 
-        // Ambil semua koi dalam lelang tersebut dengan relasi terkait
-        $kois = Koi::where('auction_code', $auction_code)
-            ->with([
-                'media' => function ($query) {
-                    $query->where('media_type', 'photo'); // Hanya ambil media yang berupa foto
-                },
-                'bids' => function ($query) {
-                    $query->latest(); // Ambil bid dengan urutan terbaru
-                },
-                'activities' => function ($query) {
-                    $query->whereIn('activity_type', ['view', 'like']); // Ambil aktivitas view dan like
-                },
-                'auction', // Relasi ke data auction
-            ])
-            ->get();
+        // Ambil semua koi yang ada di lelang ini, dengan struktur sama seperti di LiveController
+        $kois = $enricher->getLiveAuctionKois($request, $userId)
+            ->filter(fn($koi) => $koi->auction_code === $auction_code)
+            ->values(); // reset index karena filter
 
-        // Tandai apakah koi sudah memiliki aktivitas "like" oleh user yang login
-        $kois->each(function ($koi) use ($userId) {
-            $koi->user_liked = $koi->activities->contains(function ($activity) use ($userId) {
-                return $activity->user_id === $userId && $activity->activity_type === 'like';
-            });
-        });
+        // Ambil data wishlist user
+        $wishlist = Wishlist::where('user_id', $userId)->pluck('koi_id')->toArray();
 
-        // Buat data summary untuk total bid per koi
-        $totalBids = $kois->mapWithKeys(function ($koi) {
-            $winnerBid = $koi->bids->firstWhere('is_win', true); // Ambil bid yang menang (jika ada)
-
-            return [
-                $koi->id => [
-                    'total_bids' => $koi->bids->count(),
-                    'latest_bid' => $koi->bids->isNotEmpty() ? $koi->bids->first()->amount : $koi->open_bid,
-                    'has_winner' => $winnerBid ? true : false,
-                    'winner_name' => optional(optional($winnerBid)->user)->name, // Hindari error jika user null
-                ],
-            ];
-        });
-
-        // Kembalikan view dengan data koi dan informasi tambahan
-        return view('koi.index', compact('kois', 'auction', 'auction_code', 'totalBids'));
+        return view('koi.index', compact('kois', 'auction', 'auction_code', 'wishlist'));
     }
+
     public function list(Request $request, $id)
     {
         // Cek apakah ini event atau lelang reguler

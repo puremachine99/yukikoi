@@ -84,18 +84,18 @@
                 1px 1px 0 #000;
         }
     </style>
-    <x-slot name="header">
+    {{-- <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
             {{ __('Profile') }}
         </h2>
-    </x-slot>
+    </x-slot> --}}
 
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-12xl mx-auto sm:px-6 lg:px-8">
             <div class="flex flex-col lg:flex-row space-x-4 lg:space-x-4 space-y-4 lg:space-y-0 lg:grid-cols-4 gap-4">
                 <!-- Panel Profil (2xl) -->
                 <div
-                    class="w-full lg:w-2/6 bg-white dark:bg-gray-800 overflow-visible shadow-sm sm:rounded-lg p-6 relative">
+                    class="w-full lg:w-1/5 bg-white dark:bg-gray-800 overflow-visible shadow-sm sm:rounded-lg p-6 relative">
                     <div class="text-center">
                         <!-- Foto Profil -->
                         <div class="mb-4">
@@ -351,7 +351,7 @@
                         <div x-show="activeTab === 'koi'">
                             <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200 leading-tight mb-4">
                                 {{ __('Ikan Koi yang Dimiliki Seller') }}</h2>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                 @foreach ($kois as $koi)
                                     <x-koi-card :koi="$koi" :total-bids="$totalBids[$koi->id] ?? []" :wishlist="in_array($koi->id, $wishlist)" />
                                 @endforeach

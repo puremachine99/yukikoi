@@ -1,4 +1,3 @@
-<!-- resources/views/koi/index.blade.php -->
 <x-app-layout>
     <style>
         @font-face {
@@ -11,7 +10,6 @@
             text-orientation: upright;
             letter-spacing: -0.2rem;
             z-index: 99;
-            /* Adjust spacing between letters if needed */
         }
 
         .vertical-text-jp {
@@ -26,11 +24,22 @@
             position: relative;
             display: inline-block;
             overflow: hidden;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+        }
+
+        .watermarked-image:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
 
         .koi-image {
             width: 100%;
             height: auto;
+            border-radius: 0.75rem;
+            object-fit: cover;
+            aspect-ratio: 1/1;
         }
 
         .watermark-overlay {
@@ -39,18 +48,14 @@
             left: 50%;
             transform: translate(-50%, -50%);
             opacity: 0.1;
-            /* Adjust opacity to make it look like a watermark */
             pointer-events: none;
-            /* Make watermark unclickable */
         }
 
         .watermark-logo {
             width: 80%;
-            /* Adjust size as needed */
             max-width: 500px;
             height: auto;
             filter: grayscale(100%);
-            /* Optional: make the watermark grayscale */
         }
 
         .text-outline {
@@ -60,266 +65,216 @@
                 -1px 1px 0 #000,
                 1px 1px 0 #000;
         }
-    </style>
-    <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <!-- Tombol Kembali ke Daftar Lelang -->
-            <a href="{{ route('auctions.index') }}"
-                class="inline-flex items-center px-4 py-2 bg-gray-600 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-gray-300 focus:bg-gray-700 dark:focus:bg-gray-300 active:bg-gray-800 dark:active:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
-                <i class="fa-solid fa-arrow-left"></i> &nbsp;LELANGKU
-            </a>
-            <h2 class="font-semibold text-xl text-center text-gray-800 dark:text-gray-200 leading-tight">
-                {{ __('Daftar Koi Lelang ') . $auction_code }}
-            </h2>
 
-            <div class="flex space-x-4">
+        /* Modal styles */
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            max-height: 90vh;
+            max-width: 90vw;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* Animation for koi cards */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .koi-card {
+            animation: fadeIn 0.5s ease forwards;
+            opacity: 0;
+        }
+
+        .koi-card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .koi-card:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .koi-card:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .koi-card:nth-child(4) {
+            animation-delay: 0.4s;
+        }
+
+        .koi-card:nth-child(5) {
+            animation-delay: 0.5s;
+        }
+
+        .koi-card:nth-child(6) {
+            animation-delay: 0.6s;
+        }
+
+        .koi-card:nth-child(7) {
+            animation-delay: 0.7s;
+        }
+
+        .koi-card:nth-child(8) {
+            animation-delay: 0.8s;
+        }
+    </style>
+
+    <x-slot name="header">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
+            <div class="flex items-center gap-2">
+                <!-- Back button -->
+                <a href="{{ route('auctions.index') }}"
+                    class="inline-flex items-center px-3 py-1.5 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
+                    <i class="fa-solid fa-arrow-left mr-1"></i>
+                    <span class="hidden sm:inline">LELANGKU</span>
+                </a>
+
+                <h2 class="font-semibold text-lg text-gray-800 dark:text-gray-200 leading-tight">
+                    {{ __('Daftar Koi Lelang ') . $auction_code }}
+                </h2>
+            </div>
+
+            <div class="flex flex-wrap gap-1 w-full md:w-auto">
                 @if ($auction->status === 'draft')
-                    <!-- Tombol tambah Koi jika status lelang adalah 'draft' -->
+                    <!-- Add Koi button -->
                     <a href="{{ route('koi.create', ['auction_code' => $auction->auction_code]) }}"
-                        class="inline-flex items-center px-4 py-2 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
-                        {{ __('+ Ikan') }}
+                        class="inline-flex items-center px-3 py-1.5 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
+                        <i class="fas fa-plus mr-1"></i>
+                        <span>{{ __('Tambah Ikan') }}</span>
                     </a>
                 @else
-                    <span class="text-red-500 text-sm">
-                        {{ __('Lelang sudah berjalan atau selesai, tidak bisa menambah Koi.') }}
+                    <span
+                        class="inline-flex items-center px-2 py-1 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 text-xs rounded-md">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        {{ __('Lelang sudah berjalan atau selesai') }}
                     </span>
                 @endif
             </div>
         </div>
     </x-slot>
 
-    <div class="py-6" x-data="{ open: false }">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
-                <div class="flex items-center space-x-4 mb-6">
-                    <!-- Pencarian Koi -->
-                    <input type="text" id="searchKoi" placeholder="Cari Koi..."
-                        class="border border-gray-300 dark:border-gray-600 rounded-md p-2 w-1/3 dark:bg-gray-800 dark:text-gray-100"
-                        oninput="filterKois()" />
+    <div class="py-4">
+        <div class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 space-y-4">
+            <div class="p-3 sm:p-4 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
+                <!-- Filter section -->
+                <div class="flex flex-col md:flex-row items-center gap-2 mb-4">
+                    <!-- Search input -->
+                    <div class="relative w-full md:w-1/3">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none">
+                            <i class="fas fa-search text-gray-400 text-sm"></i>
+                        </div>
+                        <input type="text" id="searchKoi" placeholder="Cari Koi..."
+                            class="block w-full pl-8 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            oninput="filterKois()" />
+                    </div>
 
-                    <!-- Filter Jenis Koi -->
-                    <select id="filterJenisKoi"
-                        class="border border-gray-300 dark:border-gray-600 rounded-md p-2 w-1/3 dark:bg-gray-800 dark:text-gray-100"
-                        onchange="filterKois()">
-                        <option value="">{{ __('Semua Jenis') }}</option>
-                        <option value="Kohaku">Kohaku</option>
-                        <option value="Asagi">Asagi</option>
-                        <option value="Showa">Showa</option>
-                        <option value="Shiro Utsuri">Shiro Utsuri</option>
-                        <!-- Tambahkan opsi lainnya -->
-                    </select>
+                    <!-- Koi type filter -->
+                    <div class="relative w-full md:w-1/3">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none">
+                            <i class="fas fa-fish text-gray-400 text-sm"></i>
+                        </div>
+                        <select id="filterJenisKoi"
+                            class="block w-full pl-8 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <option value="">{{ __('Semua Jenis') }}</option>
+                            <option value="Kohaku">Kohaku</option>
+                            <option value="Asagi">Asagi</option>
+                            <option value="Showa">Showa</option>
+                            <option value="Shiro Utsuri">Shiro Utsuri</option>
+                        </select>
+                    </div>
 
-                    <!-- Filter Gender Koi -->
-                    <select id="filterGenderKoi"
-                        class="border border-gray-300 dark:border-gray-600 rounded-md p-2 w-1/3 dark:bg-gray-800 dark:text-gray-100"
-                        onchange="filterKois()">
-                        <option value="">{{ __('Semua Gender') }}</option>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Unchecked">Unchecked</option>
-                    </select>
+                    <!-- Gender filter -->
+                    <div class="relative w-full md:w-1/3">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none">
+                            <i class="fas fa-venus-mars text-gray-400 text-sm"></i>
+                        </div>
+                        <select id="filterGenderKoi"
+                            class="block w-full pl-8 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            onchange="filterKois()">
+                            <option value="">{{ __('Semua Gender') }}</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Unchecked">Unchecked</option>
+                        </select>
+                    </div>
                 </div>
 
-
-                <div class="container mx-auto px-4">
+                <div class="container mx-auto px-1">
                     @if ($kois->isEmpty())
-                        <p class="text-gray-600 dark:text-gray-400">{{ $message ?? __('Belum ada koi di lelang ini.') }}
-                        </p>
+                        <div class="text-center py-4 text-gray-500 dark:text-gray-400">
+                            <i class="fas fa-fish text-2xl mb-2"></i>
+                            <p>{{ $message ?? __('Belum ada koi di lelang ini.') }}</p>
+                        </div>
                     @else
-                        <div id="koiContainer" class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <!-- Koi grid with minimal padding -->
+                        <div id="koiContainer" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                             @foreach ($kois as $koi)
-                                <x-koi-card :koi="$koi" :url="route('koi.show', ['id' => $koi->id])" :totalBids="$totalBids[$koi->id] ?? []">
-                                    @auth
-                                        <!-- Tombol Edit -->
-                                        <button
-                                            class="absolute group top-8 -right-4 py-2 px-3 bg-gray-500 text-white rounded-full hover:bg-gray-100 hover:text-gray-950 dark:hover:bg-gray-200 dark:hover:text-gray-800 transition-transform transform hover:scale-110 focus:outline-none"
-                                            style="z-index: 10"
-                                            onclick="window.location.href='{{ route('koi.edit', ['auction_code' => $koi->auction_code, 'id' => $koi->id]) }}'">
-                                            <i class="fa-solid fa-pen"></i>
-                                            <span
-                                                class="absolute right-full mr-2 w-max px-2 py-1 text-xs text-white bg-black dark:bg-gray-800 rounded hidden group-hover:block transform top-1/2 -translate-y-1/2">
-                                                Edit Koi
-                                            </span>
-                                        </button>
-
-
-                                        <!-- Tombol Hapus -->
-                                        <button
-                                            class="absolute group -top-4 -right-4 py-2 px-3 bg-gray-500 text-white rounded-full hover:bg-gray-100 hover:text-gray-950 dark:hover:bg-gray-200 dark:hover:text-gray-800 transition-transform transform hover:scale-110 focus:outline-none"
-                                            style="z-index: 11" data-koi-id="{{ $koi->id }}"
-                                            data-koi-name="{{ $koi->judul }}" onclick="confirmDeleteKoi(this)">
-                                            <i class="fas fa-trash-alt"></i>
-                                            <span
-                                                class="absolute right-full mr-2 w-max px-2 py-1 text-xs text-white bg-black dark:bg-gray-800 rounded hidden group-hover:block transform top-1/2 -translate-y-1/2">
-                                                Hapus Koi
-                                            </span>
-                                        </button>
-
-                                    @endauth
-                                </x-koi-card>
+                                <x-koi-card :koi="$koi" :total-bids="$totalBids[$koi->id] ?? []" :wishlist="$wishlist" />
                             @endforeach
                         </div>
                     @endif
                 </div>
-
-
             </div>
         </div>
     </div>
-    <script>
-        function filterKois() {
-            // Ambil nilai input filter
-            const searchKoi = document.getElementById('searchKoi').value.toLowerCase();
-            const filterJenisKoi = document.getElementById('filterJenisKoi').value;
-            const filterGenderKoi = document.getElementById('filterGenderKoi').value;
 
-            // Ambil semua item Koi yang ada di halaman
-            const koiItems = document.querySelectorAll('.koi-item');
-            let isAnyVisible = false;
+    <!-- Modal for image preview -->
+    <div id="certModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-2">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg relative max-w-4xl w-full m-2">
+            <button onclick="closeModal()"
+                class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            <div class="p-2 max-h-[90vh] overflow-auto">
+                <img id="certImage" src="" alt="Certificate" class="w-full h-auto rounded">
+            </div>
+        </div>
+    </div>
 
-            koiItems.forEach(item => {
-                const jenis = item.getAttribute('data-jenis').toLowerCase();
-                const gender = item.getAttribute('data-gender').toLowerCase();
-                const searchData = item.getAttribute('data-search').toLowerCase();
-
-                let isVisible = true;
-
-                // Cek berdasarkan pencarian teks
-                if (searchKoi && !searchData.includes(searchKoi)) {
-                    isVisible = false;
-                }
-
-                // Cek berdasarkan filter jenis koi
-                if (filterJenisKoi && jenis !== filterJenisKoi.toLowerCase()) {
-                    isVisible = false;
-                }
-
-                // Cek berdasarkan filter gender koi
-                if (filterGenderKoi && gender !== filterGenderKoi.toLowerCase()) {
-                    isVisible = false;
-                }
-
-                // Tampilkan atau sembunyikan elemen berdasarkan hasil filter
-                item.style.display = isVisible ? 'block' : 'none';
-
-                if (isVisible) {
-                    isAnyVisible = true;
-                }
-            });
-
-            // Tampilkan pesan "Data tidak ditemukan" jika tidak ada elemen yang terlihat
-            document.getElementById('noDataMessage').style.display = isAnyVisible ? 'none' : 'block';
-        }
-
-        // Fungsi delete untuk Koi
-        // Add event listener to all delete buttons
-        document.querySelectorAll('.delete-koi-btn').forEach(button => {
-            button.addEventListener('click', function() {
-                const koiId = this.getAttribute('data-koi-id');
-                const koiName = this.getAttribute('data-koi-name');
-
-                // Show confirmation dialog
-                Swal.fire({
-                    title: 'Yakin mau hapus ikan?',
-                    text: `Nama Koi: ${koiName}`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Yes, Hapus',
-                    cancelButtonText: 'Batal'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        deleteKoi(koiId, koiName); // Call the delete function
-                    }
-                });
-            });
-        });
-
-        // Delete function with fetch API
-        function deleteKoi(koiId, koiName) {
-            fetch(`/koi/${koiId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                        'Content-Type': 'application/json',
-                    },
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Gagal menghapus Koi');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success) {
-                        Swal.fire({
-                            title: 'Berhasil!',
-                            text: `Koi "${koiName}" berhasil dihapus.`,
-                            icon: 'success',
-                            confirmButtonText: 'OK',
-                        }).then(() => {
-                            location.reload(); // Reload the page after deletion
-                        });
-                    } else {
-                        throw new Error(data.message || 'Gagal menghapus Koi');
-                    }
-                })
-                .catch(error => {
-                    console.error(error);
-                    Swal.fire('Error', error.message, 'error');
-                });
-        }
-
-
-        let scrollPosition = 0;
-        // Script to handle tooltip display on hover
-        document.querySelectorAll('button').forEach(button => {
-            button.addEventListener('mouseenter', () => {
-                const tooltip = button.querySelector('.tooltip-text');
-                if (tooltip) { // Pastikan elemen tooltip ada
-                    tooltip.classList.remove('hidden');
-                }
-            });
-            button.addEventListener('mouseleave', () => {
-                const tooltip = button.querySelector('.tooltip-text');
-                if (tooltip) { // Pastikan elemen tooltip ada
-                    tooltip.classList.add('hidden');
-                }
-            });
-        });
-
-        function openModal(imageUrl) {
-            scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
-            document.getElementById('certImage').src = imageUrl;
-            document.getElementById('certModal').classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeModal() {
-            document.getElementById('certModal').classList.add('hidden');
-            document.body.style.overflow = '';
-            window.scrollTo(0, scrollPosition);
-        }
-
-        function openVideoModal(videoUrl) {
-            scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
-            var video = document.getElementById('modalVideo');
-            document.getElementById('videoSource').src = videoUrl;
-            video.load();
-            video.play();
-            document.getElementById('videoModal').classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeVideoModal() {
-            var video = document.getElementById('modalVideo');
-            video.pause();
-            video.currentTime = 0;
-            document.getElementById('videoModal').classList.add('hidden');
-            document.body.style.overflow = '';
-            window.scrollTo(0, scrollPosition);
-        }
-    </script>
+    <!-- Modal for video preview -->
+    <div id="videoModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-2">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg relative max-w-4xl w-full m-2">
+            <button onclick="closeVideoModal()"
+                class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            <div class="p-2">
+                <video id="modalVideo" controls class="w-full rounded">
+                    <source id="videoSource" src="" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+        </div>
+    </div>
+    @vite(['resources/js/app.js', 'resources/js/koi-card.js'])
 
 </x-app-layout>
