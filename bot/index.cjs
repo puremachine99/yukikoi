@@ -5,6 +5,8 @@ const { LocalAuth, Client } = require("whatsapp-web.js");
 const { getDb } = require("./database.cjs");
 const meCommand = require("./commands/users/me.cjs");
 const pInfoCommand = require("./commands/p-info.cjs");
+
+
 const BOT_CONFIG = {
     operationalHours: {
         start: "08:00", // format 24 jam, kosongkan jika tidak ingin membatasi
@@ -96,9 +98,9 @@ client.on("message", async (chat) => {
         log("CMD", "Perintah 'me' selesai dijalankan");
     }
     if (chatBody === "p info") {
-        log("CMD", "Menjalankan perintah: me");
+        log("CMD", "Menjalankan perintah: p-info");
         await pInfoCommand(chat, chatFrom);
-        log("CMD", "Perintah 'me' selesai dijalankan");
+        log("CMD", "Perintah 'p-info' selesai dijalankan");
     }
     if (chatBody === "ping") {
         await chat.reply("pong");

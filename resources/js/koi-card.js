@@ -1,14 +1,15 @@
 // ============================== CONFIGURATIONS ===============================
 const CONFIG = {
-    csrfToken: document.querySelector('meta[name="csrf-token"]').content,
+    csrfToken: document.querySelector('meta[name="csrf-token"]')?.content || '',
     routes: {
         toggleLike: "/koi/{id}/like",
         toggleWishlist: "/wishlist/toggle",
     },
 };
 
-// ============================== TIMER FUNCTIONALITY ===============================
+// ============================== MAIN ========================================
 $(document).ready(function () {
+    // =============== TIMER FUNCTIONALITY ===============
     function updateCountdown() {
         $("[data-end-time]").each(function () {
             const $wrapper = $(this);
@@ -56,15 +57,14 @@ $(document).ready(function () {
         setTimeout(updateCountdown, 1000);
     }
 
-    // Jalankan pertama kali saat halaman dimuat
     updateCountdown();
-});
 
-// ============================== NAVIGATION FUNCTIONALITY ===============================
-$(".card-navigate").click(function (event) {
-    if (!$(event.target).closest(".koi-action").length) {
-        window.location.href = $(this).data("url");
-    }
+    // =============== CARD NAVIGATION ===============
+    $(".card-navigate").click(function (event) {
+        if (!$(event.target).closest(".koi-action").length) {
+            window.location.href = $(this).data("url");
+        }
+    });
 });
 
 // ============================== LIKE FUNCTIONALITY ===============================
@@ -72,7 +72,7 @@ function toggleLike(koiId) {
     const likeIcon = $(`#like-icon-${koiId}`);
     const likesCountElement = $(`#likes-count-${koiId}`);
     const isLiked = likeIcon.hasClass("text-red-600");
-    let currentLikes = parseInt(likesCountElement.text(), 10) || 0; // Default ke 0 jika NaN
+    let currentLikes = parseInt(likesCountElement.text(), 10) || 0;
 
     likeIcon.toggleClass("text-red-600");
     likesCountElement.text(isLiked ? currentLikes - 1 : currentLikes + 1);
@@ -80,10 +80,14 @@ function toggleLike(koiId) {
     $.post(CONFIG.routes.toggleLike.replace("{id}", koiId), {
         _token: CONFIG.csrfToken,
     }).fail(() => {
+        // Revert like jika gagal
         likeIcon.toggleClass("text-red-600");
-        likesCountElement.text(currentLikes); // Kembalikan ke nilai sebelumnya jika gagal
+        likesCountElement.text(currentLikes);
     });
 }
+
+// Jadikan global
+window.toggleLike = toggleLike;
 
 // ============================== WISHLIST FUNCTIONALITY ===============================
 function toggleWishlist(koiId) {
@@ -96,15 +100,21 @@ function toggleWishlist(koiId) {
         _token: CONFIG.csrfToken,
         koi_id: koiId,
     }).fail(() => {
+        // Revert jika gagal
         wishlistIcon.toggleClass("text-yellow-500");
     });
 }
+
+// Jadikan global
+window.toggleWishlist = toggleWishlist;
 
 // ============================== VIDEO MODAL FUNCTIONALITY ===============================
 window.openVideoModal = function (videoUrl) {
     const modal = document.getElementById("videoModal");
     const video = document.getElementById("modalVideo");
     const source = document.getElementById("videoSource");
+
+    if (!modal || !video || !source) return;
 
     source.src = videoUrl;
     video.load();
@@ -115,9 +125,8 @@ window.closeVideoModal = function () {
     const modal = document.getElementById("videoModal");
     const video = document.getElementById("modalVideo");
 
+    if (!modal || !video) return;
+
     video.pause();
     modal.classList.add("hidden");
 };
-
-// Jadikan fungsi tersedia secara global
-window.toggleWishlist = toggleWishlist;

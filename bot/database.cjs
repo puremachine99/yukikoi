@@ -1,5 +1,7 @@
 const mysql = require('mysql2/promise');
-require('dotenv').config();
+const dotenv = require('dotenv');
+
+dotenv.config();
 
 let connection;
 
@@ -10,10 +12,10 @@ async function getDb() {
       user: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
-      port: process.env.DB_PORT || 3306
+      port: process.env.DB_PORT || 3306,
     });
   }
   return connection;
 }
 
-module.exports = { getDb };
+export { getDb };

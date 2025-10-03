@@ -1,78 +1,85 @@
+@props(['koi', 'totalBids' => [], 'wishlist' => []])
+
 <x-app-layout>
-    <x-slot name="header">
-        <style>
-            @font-face {
-                font-family: 'OnsenJapanDemoRegular';
-                src: url('/fonts/OnsenJapanDemoRegular.ttf') format('truetype');
-            }
+    <style>
+        @font-face {
+            font-family: 'OnsenJapanDemoRegular';
+            src: url('/fonts/OnsenJapanDemoRegular.ttf') format('truetype');
+        }
 
-            .vertical-text {
-                writing-mode: vertical-rl;
-                text-orientation: upright;
-                letter-spacing: -0.2rem;
-                z-index: 99;
-                /* Adjust spacing between letters if needed */
-            }
+        .vertical-text {
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+            letter-spacing: -0.2rem;
+            z-index: 99;
+            /* Adjust spacing between letters if needed */
+        }
 
-            .vertical-text-jp {
-                font-family: 'OnsenJapanDemoRegular', sans-serif;
-                writing-mode: vertical-rl;
-                text-orientation: upright;
-                letter-spacing: -0.2rem;
-                z-index: 99;
-            }
+        .vertical-text-jp {
+            font-family: 'OnsenJapanDemoRegular', sans-serif;
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+            letter-spacing: -0.2rem;
+            z-index: 99;
+        }
 
-            .watermarked-image {
-                position: relative;
-                display: inline-block;
-                overflow: hidden;
-            }
+        .watermarked-image {
+            position: relative;
+            display: inline-block;
+            overflow: hidden;
+        }
 
-            .koi-image {
-                width: 100%;
-                height: auto;
-            }
+        .koi-image {
+            width: 100%;
+            height: auto;
+        }
 
-            .watermark-overlay {
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                opacity: 0.1;
-                /* Adjust opacity to make it look like a watermark */
-                pointer-events: none;
-                /* Make watermark unclickable */
-            }
+        .watermark-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.1;
+            /* Adjust opacity to make it look like a watermark */
+            pointer-events: none;
+            /* Make watermark unclickable */
+        }
 
-            .watermark-logo {
-                width: 80%;
-                /* Adjust size as needed */
-                max-width: 500px;
-                height: auto;
-                filter: grayscale(100%);
-                /* Optional: make the watermark grayscale */
-            }
+        .watermark-logo {
+            width: 80%;
+            /* Adjust size as needed */
+            max-width: 500px;
+            height: auto;
+            filter: grayscale(100%);
+            /* Optional: make the watermark grayscale */
+        }
 
 
-            .text-outline {
-                text-shadow:
-                    -1px -1px 0 #000,
-                    1px -1px 0 #000,
-                    -1px 1px 0 #000,
-                    1px 1px 0 #000;
-            }
-        </style>
-    </x-slot>
-
+        .text-outline {
+            text-shadow:
+                -1px -1px 0 #000,
+                1px -1px 0 #000,
+                -1px 1px 0 #000,
+                1px 1px 0 #000;
+        }
+    </style>
     <div class="p-2">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 gap-4">
-                <form method="GET" action="{{ route('live.index') }}"
+        <div class="max-w-7xl mx-auto">
+            <div x-data="{ open: true }" class="grid grid-cols-1 gap-4">
+
+                {{-- 🧭 Tombol Toggle Filter --}}
+                <button @click="open = !open"
+                    class="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-semibold mb-2">
+                    <i :class="open ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down'"></i>
+                    <span>Filter Pencarian</span>
+                </button>
+
+                {{-- 🎯 Form Filter --}}
+                <form method="GET" action="{{ route('live.index') }}" x-show="open" x-transition x-cloak
                     class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md mb-6">
                     <div class="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
                         <!-- 🔍 Input Pencarian -->
                         <div class="relative md:col-span-2">
-
                             <input type="text" name="q" placeholder="Cari koi..." value="{{ request('q') }}"
                                 class="w-full p-2 pl-10 border rounded-lg focus:ring focus:ring-blue-300 dark:bg-gray-700 dark:text-white">
                             <i
@@ -119,13 +126,30 @@
                         </div>
                     </div>
                 </form>
-
-
             </div>
-            <div class="grid grid-cols-1 xs:grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                @foreach ($kois as $koi)
-                    <x-koi-card :koi="$koi" :total-bids="$totalBids[$koi->id] ?? []" :wishlist="$wishlist" />
-                @endforeach
+            {{-- core : card renderer --}}
+            <div x-data="{ isMobile: window.innerWidth < 768 }" x-init="window.addEventListener('resize', () => isMobile = window.innerWidth < 768)">
+                <!-- Mobile: 2x2 Cards per Fullscreen Scroll -->
+                <template x-if="isMobile">
+                    <div class="h-screen overflow-y-scroll snap-y snap-mandatory bg-gray-100 dark:bg-gray-900">
+                        @foreach ($kois->chunk(4) as $group)
+                            <div class="snap-start h-screen grid grid-cols-2 grid-rows-2 gap-2 p-2">
+                                @foreach ($group as $koi)
+                                    <x-koi-card-mobile :koi="$koi" :total-bids="$totalBids[$koi->id] ?? []" :wishlist="$wishlist" />
+                                @endforeach
+                            </div>
+                        @endforeach
+                    </div>
+                </template>
+
+
+                <template x-if="!isMobile">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4">
+                        @foreach ($kois as $koi)
+                            <x-koi-card :koi="$koi" :total-bids="$totalBids[$koi->id] ?? []" :wishlist="$wishlist" />
+                        @endforeach
+                    </div>
+                </template>
             </div>
 
             <!-- Pagination -->
@@ -136,7 +160,7 @@
         </div>
     </div>
 
-    @vite(['resources/js/app.js', 'resources/js/koi-card.js'])
+    @vite('resources/js/koi-card.js')
 
 
 </x-app-layout>
