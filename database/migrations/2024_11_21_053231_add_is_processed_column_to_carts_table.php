@@ -12,7 +12,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('carts', function (Blueprint $table) {
-            $table->boolean('is_processed')->default(false)->after('price'); // Default belum diproses
+            $table->boolean('is_processed')->default(false); // Default belum diproses
         });
     }
 

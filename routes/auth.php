@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\ConfirmablePasswordController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\EmailVerificationPromptController;
+use App\Http\Controllers\Auth\GoogleSocialiteController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
@@ -21,6 +22,18 @@ Route::middleware('guest')->group(function () {
                 ->name('login');
 
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
+
+    Route::get('auth/google', [GoogleSocialiteController::class, 'redirect'])
+                ->name('oauth.google.redirect');
+
+    Route::get('auth/google/callback', [GoogleSocialiteController::class, 'callback'])
+                ->name('oauth.google.callback');
+
+    Route::get('auth/google/phone', [GoogleSocialiteController::class, 'showPhoneForm'])
+                ->name('oauth.google.phone');
+
+    Route::post('auth/google/phone', [GoogleSocialiteController::class, 'storePhone'])
+                ->name('oauth.google.phone.store');
 
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
                 ->name('password.request');

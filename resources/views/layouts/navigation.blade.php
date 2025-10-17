@@ -180,13 +180,11 @@
                     @auth
                         <!-- Notifications -->
                         <div class="relative">
-                            <button @click="notificationsOpen = !notificationsOpen"
+                            <button @click="notificationsOpen = !notificationsOpen" data-notification-toggle
                                 class="relative flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-transform duration-200 transform hover:scale-110 shadow-sm">
                                 <i class="fa-solid fa-bell text-base"></i>
-                                <!-- Badge -->
-                                <span
-                                    class="absolute -top-0.5 -right-0.5 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full ring-2 ring-white dark:ring-gray-800 animate-pulse">
-                                    4
+                                <span data-notification-count
+                                    class="hidden absolute -top-0.5 -right-0.5 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full ring-2 ring-white dark:ring-gray-800">
                                 </span>
                             </button>
 
@@ -196,25 +194,21 @@
                                 x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
                                 x-transition:leave="transition ease-in duration-150"
                                 x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-                                class="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg card-shadow z-50 border border-gray-200 dark:border-gray-700 overflow-hidden">
-                                <div class="p-3 border-b border-gray-200 dark:border-gray-700">
-                                    <h3 class="font-semibold text-gray-800 dark:text-white">Notifikasi (4)</h3>
+                                class="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg card-shadow z-50 border border-gray-200 dark:border-gray-700 overflow-hidden"
+                                data-notification-dropdown>
+                                <div class="p-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                                    <h3 class="font-semibold text-gray-800 dark:text-white">Notifikasi</h3>
+                                    <button type="button"
+                                        class="text-xs font-semibold text-primary-600 dark:text-primary-400 hover:underline"
+                                        data-notification-mark-read>
+                                        Tandai dibaca
+                                    </button>
                                 </div>
-                                <div class="divide-y divide-gray-200 dark:divide-gray-700 max-h-80 overflow-y-auto">
-                                    <!-- Item -->
-                                    <a href="#" class="flex p-3 hover:bg-gray-50 dark:hover:bg-gray-700">
-                                        <div
-                                            class="flex-shrink-0 w-10 h-10 rounded-full bg-blue-100 text-blue-500 flex items-center justify-center">
-                                            <i class="fa-solid fa-gavel"></i>
-                                        </div>
-                                        <div class="ml-3 text-sm">
-                                            <p class="font-medium text-gray-900 dark:text-white">Bid Anda telah dikalahkan
-                                            </p>
-                                            <p class="text-xs text-gray-500 dark:text-gray-400">Produk Jam Tissot</p>
-                                            <p class="text-xs text-gray-400 mt-1">2 menit yang lalu</p>
-                                        </div>
-                                    </a>
-                                    <!-- Tambahkan notifikasi lainnya di sini -->
+                                <div class="divide-y divide-gray-200 dark:divide-gray-700 max-h-80 overflow-y-auto"
+                                    data-notification-list>
+                                    <p class="p-3 text-sm text-gray-500 dark:text-gray-400" data-notification-empty>
+                                        Belum ada notifikasi.
+                                    </p>
                                 </div>
                                 <div class="p-3 bg-gray-50 dark:bg-gray-700 text-center">
                                     <a href="#"

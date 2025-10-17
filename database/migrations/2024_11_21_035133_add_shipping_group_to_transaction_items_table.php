@@ -12,7 +12,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('transaction_items', function (Blueprint $table) {
-            $table->string('shipping_group')->nullable()->after('shipping_fee');
+            $table->string('shipping_group')->nullable();
         });
     }
 

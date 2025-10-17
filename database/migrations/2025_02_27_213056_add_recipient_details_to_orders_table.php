@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->string('recipient_name', 255)->nullable()->after('shipping_address');
-            $table->string('recipient_phone', 20)->nullable()->after('recipient_name');
+            $table->string('recipient_name', 255)->nullable();
+            $table->string('recipient_phone', 20)->nullable();
         });
     }
 

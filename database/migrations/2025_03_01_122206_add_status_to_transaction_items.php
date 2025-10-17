@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('transaction_items', function (Blueprint $table) {
             $table->enum('status', ['menunggu konfirmasi', 'sedang dikemas', 'dikirim', 'selesai', 'dibatalkan'])
-                  ->default('menunggu konfirmasi')->after('shipping_fee');
+                  ->default('menunggu konfirmasi');
         });
     }
     

@@ -12,7 +12,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('bids', function (Blueprint $table) {
-            $table->boolean('is_bin')->default(false)->after('is_win'); // Menambahkan kolom is_bin setelah kolom is_win
+            $table->boolean('is_bin')->default(false); // Penanda apakah bid merupakan buy-it-now
         });
     }
 

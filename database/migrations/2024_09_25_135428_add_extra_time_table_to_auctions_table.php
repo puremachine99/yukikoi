@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('auctions', function (Blueprint $table) {
-            $table->integer('extra_time')->default(0)->after('end_time'); // Tambahkan setelah kolom end_time
+            $table->integer('extra_time')->default(0); // Kolom tambahan untuk durasi ekstra lelang
         });
     }
 

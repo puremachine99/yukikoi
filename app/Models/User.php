@@ -24,7 +24,7 @@ class User extends Authenticatable
     //     return $this->role === $role;
     // }
 
-    use HasFactory, Notifiable,HasRoles;
+    use HasFactory, Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -45,6 +45,10 @@ class User extends Authenticatable
         'profile_photo',
         'is_seller',
         'bio',
+        'google_id',
+        'google_avatar',
+        'google_token',
+        'google_refresh_token',
     ];
 
     /**
@@ -55,6 +59,8 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'google_token',
+        'google_refresh_token',
     ];
 
     /**

@@ -8,7 +8,7 @@ class Cart extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'koi_id', 'is_checked', 'seller_id'];
+    protected $guarded = [];
 
     // Relasi ke tabel Koi
     public function koi()
@@ -34,3 +34,4 @@ class Cart extends Model
         return $this->koi->auction->user();
     }
 }
+

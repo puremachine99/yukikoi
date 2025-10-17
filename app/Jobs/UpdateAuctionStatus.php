@@ -63,6 +63,8 @@ class UpdateAuctionStatus
 
     protected function determineWinner(Auction $auction)
     {
+        $auction->loadMissing('user');
+
         foreach ($auction->koi as $koi) {
             $latestBid = $koi->bids->last();
 
@@ -81,10 +83,7 @@ class UpdateAuctionStatus
                 $paymentGatewayFee = 2500;
                 $rekberFee = $auction->jenis === 'reguler' && count($auction->koi) > 1 ? 15000 : 10000;
 
-                // Total keseluruhan
-                $totalWithFees = ($latestBid->amount * 1000)  + $handlingFee + $paymentGatewayFee + $rekberFee;
-
-
+                $totalWithFees = ($latestBid->amount * 1000) + $handlingFee + $paymentGatewayFee + $rekberFee;
 
                 $externalId = (string) Str::uuid();
 
@@ -104,14 +103,13 @@ class UpdateAuctionStatus
                 try {
                     $result = $apiInstance->createInvoice($createInvoiceRequest);
 
-                    // Simpan transaksi di database
                     Transaction::create([
                         'auction_code' => $auction->auction_code,
                         'koi_id' => $koi->id,
                         'user_id' => $user->id,
                         'external_id' => $externalId,
                         'checkout_link' => $result['invoice_url'],
-                        'total_amount' => $latestBid->amount * 1000, // Pastikan ini sesuai dengan biaya yang ingin kamu simpan
+                        'total_amount' => $latestBid->amount * 1000,
                         'fee_amount' => $feeAmount,
                         'fee_percentage' => $feePercentage,
                         'payment_gateway_fee' => $paymentGatewayFee,
@@ -122,6 +120,13 @@ class UpdateAuctionStatus
                         'payment_deadline' => now()->addDays(2),
                     ]);
                 } catch (\Exception $e) {
+                }
+
+                $latestBid->loadMissing('user', 'koi.auction');
+                $latestBid->user?->notify(new AuctionWonNotification($latestBid));
+
+                if ($auction->user && $auction->user->id !== $latestBid->user_id) {
+                    $auction->user->notify(new AuctionWonNotification($latestBid, true));
                 }
             }
         }

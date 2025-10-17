@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->uuid('shipping_group')->nullable()->after('recipient_phone');
+            $table->uuid('shipping_group')->nullable();
         });
     }
 

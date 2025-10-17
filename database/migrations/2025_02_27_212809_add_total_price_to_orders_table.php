@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->decimal('total_price', 15, 2)->nullable()->after('transaction_id'); // Menambah kolom total_price
+            $table->decimal('total_price', 15, 2)->nullable(); // Menambah kolom total_price
         });
     }
 

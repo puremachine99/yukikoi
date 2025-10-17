@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('events', function (Blueprint $table) {
-            $table->string('banner')->after('description'); // Untuk menyimpan path file banner
+            $table->string('banner'); // Untuk menyimpan path file banner
         });
     }
 

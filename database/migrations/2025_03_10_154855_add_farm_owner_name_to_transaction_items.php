@@ -11,8 +11,8 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('transaction_items', function (Blueprint $table) {
-            $table->string('farm_owner_name', 255)->nullable()->after('farm'); // Menambahkan kolom farm_owner_name
-            $table->string('farm_phone_number', 20)->nullable()->after('farm_owner_name'); // Jika farm_phone_number juga hilang
+            $table->string('farm_owner_name', 255)->nullable(); // Menambahkan kolom farm_owner_name
+            $table->string('farm_phone_number', 20)->nullable(); // Jika farm_phone_number juga hilang
         });
     }
 

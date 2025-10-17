@@ -17,6 +17,7 @@ use App\Http\Controllers\{
     LiveAuctionController,
     UserActivityController,
     XenditWebhookController,
+    NotificationController,
     EventController,
     WishlistController,
     ComplaintController,
@@ -225,6 +226,11 @@ Route::middleware('auth')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::post('/wishlist/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
     Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/mark-as-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAll');
 });
 
 Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');

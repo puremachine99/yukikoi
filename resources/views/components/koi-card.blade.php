@@ -1,9 +1,15 @@
+@php
+    $sellerAvatar = $koi->seller_avatar ? asset('storage/' . $koi->seller_avatar) : asset('images/logo.png');
+    $mainPhoto = $koi->photo_url ? asset('storage/' . $koi->photo_url) : asset('images/logo.png');
+    $videoSource = $koi->koi_vid ? asset('storage/' . $koi->koi_vid) : null;
+@endphp
+
 <div class="koi-card bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden relative card-navigate transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
     data-url="{{ route('koi.show', ['id' => $koi->id]) }}">
 
     <!-- Header -->
     <div class="card-header flex items-center p-4">
-        <img src="{{ asset('storage/' . $koi->seller_avatar) }}" alt="Farm Profile"
+        <img src="{{ $sellerAvatar }}" alt="Farm Profile"
             class="seller-avatar w-12 h-12 rounded-full object-cover border-2 border-blue-500 shadow-md">
         <div class="seller-info ml-3">
             <h5 class="seller-name text-sm font-semibold text-gray-800 dark:text-gray-100 flex items-center">
@@ -21,7 +27,7 @@
     <!-- Body -->
     <div class="p-4 relative">
         <div class="relative">
-            <img src="{{ asset('storage/' . $koi->photo_url) }}" alt="Koi Image"
+            <img src="{{ $mainPhoto }}" alt="Koi Image"
                 class="object-cover w-full h-auto md:h-96 lg:h-[400px]">
             <div class="watermark-overlay">
                 <img src="{{ asset('images/logo.png') }}" alt="Watermark Logo" class="watermark-logo">
@@ -127,10 +133,10 @@
                 @endif
             </div>
             <!-- Tombol Play untuk Video -->
-            @if ($koi->media->where('media_type', 'video')->isNotEmpty())
-                <button
-                    class="absolute group bottom-2 right-4 w-12 h-12 z-20 bg-white dark:bg-gray-700 text-sky-500 border-2 border-sky-500 rounded-full flex items-center justify-center transition-transform hover:scale-105 hover:bg-sky-500 hover:text-white no-route"
-                    onclick="event.stopPropagation(); openVideoModal('{{ asset('storage/' . $koi->koi_vid) }}')">
+        @if ($videoSource)
+            <button
+                class="absolute group bottom-2 right-4 w-12 h-12 z-20 bg-white dark:bg-gray-700 text-sky-500 border-2 border-sky-500 rounded-full flex items-center justify-center transition-transform hover:scale-105 hover:bg-sky-500 hover:text-white no-route"
+                onclick="event.stopPropagation(); openVideoModal('{{ $videoSource }}')">
                     <i class="fa-solid fa-play text-xl"></i>
                     <span
                         class="absolute bottom-full mb-1 w-max px-1 py-0.5 text-xs text-white bg-black rounded hidden group-hover:block transform -translate-x-1/2 left-1/2">

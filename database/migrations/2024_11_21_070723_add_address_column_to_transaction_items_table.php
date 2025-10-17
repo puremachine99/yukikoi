@@ -12,9 +12,9 @@ return new class extends Migration
     public function up()
     {
         Schema::table('transaction_items', function (Blueprint $table) {
-            $table->text('shipping_address')->nullable()->after('price'); // Address of the shipping destination
-            $table->string('farm_owner_name')->nullable()->after('shipping_address'); // Name of the farm owner
-            $table->string('farm_phone_number')->nullable()->after('farm_owner_name'); // Phone number of the farm owner
+            $table->text('shipping_address')->nullable(); // Address of the shipping destination
+            $table->string('farm_owner_name')->nullable(); // Name of the farm owner
+            $table->string('farm_phone_number')->nullable(); // Phone number of the farm owner
         });
     }
 

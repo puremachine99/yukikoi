@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -12,16 +13,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('transaction_items', function (Blueprint $table) {
-            $table->unsignedBigInteger('farm')->nullable(); // Kolom untuk ID Toko
-            $table->foreign('farm')->references('id')->on('users')->onDelete('set null');
+            $table->foreignId('buyer_id')->nullable()->constrained('users')->cascadeOnDelete();
         });
+
+        DB::table('transaction_items')
+            ->update([
+                'buyer_id' => DB::raw('(SELECT user_id FROM transactions WHERE transactions.id = transaction_items.transaction_id LIMIT 1)'),
+            ]);
     }
 
-    public function down()
+    public function down(): void
     {
         Schema::table('transaction_items', function (Blueprint $table) {
-            $table->dropForeign(['farm']);
-            $table->dropColumn('farm');
+            $table->dropConstrainedForeignId('buyer_id');
         });
     }
 };

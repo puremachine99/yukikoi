@@ -12,9 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('transaction_items', function (Blueprint $table) {
-            Schema::table('transaction_items', function (Blueprint $table) {
-                $table->decimal('shipping_fee', 12, 2)->after('price')->nullable()->default(0)->comment('Biaya ongkir per item');
-            });
+            $table->decimal('shipping_fee', 12, 2)->nullable()->default(0)->comment('Biaya ongkir per item');
         });
     }
 
@@ -24,9 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('transaction_items', function (Blueprint $table) {
-            Schema::table('transaction_items', function (Blueprint $table) {
-                $table->dropColumn('shipping_fee');
-            });
+            $table->dropColumn('shipping_fee');
         });
     }
 };

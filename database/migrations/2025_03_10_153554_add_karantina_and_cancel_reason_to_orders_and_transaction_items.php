@@ -11,15 +11,15 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->text('karantina_reason')->nullable()->after('status'); // Alasan Karantina
-            $table->date('karantina_end_date')->nullable()->after('karantina_reason'); // Tanggal Selesai Karantina
-            $table->text('cancel_reason')->nullable()->after('karantina_end_date'); // Alasan Pembatalan
+            $table->text('karantina_reason')->nullable(); // Alasan Karantina
+            $table->date('karantina_end_date')->nullable(); // Tanggal Selesai Karantina
+            $table->text('cancel_reason')->nullable(); // Alasan Pembatalan
         });
 
         Schema::table('transaction_items', function (Blueprint $table) {
-            $table->text('karantina_reason')->nullable()->after('status'); // Alasan Karantina
-            $table->date('karantina_end_date')->nullable()->after('karantina_reason'); // Tanggal Selesai Karantina
-            $table->text('cancel_reason')->nullable()->after('karantina_end_date'); // Alasan Pembatalan
+            $table->text('karantina_reason')->nullable(); // Alasan Karantina
+            $table->date('karantina_end_date')->nullable(); // Tanggal Selesai Karantina
+            $table->text('cancel_reason')->nullable(); // Alasan Pembatalan
         });
     }
 

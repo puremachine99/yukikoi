@@ -57,17 +57,18 @@ class KoiEnricher
 
         foreach ($kois as $koi) {
             $auction = $koi->auction;
+            $seller = $auction?->user;
 
-            $koi->seller_name = $auction->user->name ?? '-';
-            $koi->farm_name = $auction->user->farm_name ?? '-';
-            $koi->seller_city = $auction->user->city ?? '-';
-            $koi->seller_avatar = $auction->user->profile_photo ?? null;
+            $koi->seller_name = $seller->name ?? '-';
+            $koi->farm_name = $seller->farm_name ?? '-';
+            $koi->seller_city = $seller->city ?? '-';
+            $koi->seller_avatar = $seller->profile_photo ?? null;
 
             $koi->photo_url = $koi->media->firstWhere('media_type', 'photo')?->url_media ?? null;
             $koi->koi_vid = $koi->media->firstWhere('media_type', 'video')?->url_media ?? null;
 
-            $koi->status_lelang = $auction->status;
-            $koi->end_time = $auction->end_time;
+            $koi->status_lelang = $auction->status ?? null;
+            $koi->end_time = $auction->end_time ?? null;
 
             $koiId = (string) $koi->id;
             $koi->total_bids = $bids[$koiId]->total_bids ?? 0;
@@ -175,15 +176,21 @@ class KoiEnricher
 
     private function getUserPreferences($userId)
     {
-        return DB::table('activities')
+        $query = DB::table('activities')
             ->selectRaw('
-            koi_id,
-            SUM(CASE WHEN activity_type = "view" THEN 1 ELSE 0 END) * 1 +
-            SUM(CASE WHEN activity_type = "like" THEN 3 ELSE 0 END) * 3 +
-            SUM(CASE WHEN activity_type = "bid" THEN 5 ELSE 0 END) * 5 AS weight
-        ')
-            ->where('user_id', $userId)
-            ->groupBy('koi_id');
+                koi_id,
+                SUM(CASE WHEN activity_type = ? THEN 1 ELSE 0 END) * 1 +
+                SUM(CASE WHEN activity_type = ? THEN 3 ELSE 0 END) * 3 +
+                SUM(CASE WHEN activity_type = ? THEN 5 ELSE 0 END) * 5 AS weight
+            ', ['view', 'like', 'bid']);
+
+        if ($userId) {
+            $query->where('user_id', $userId);
+        } else {
+            $query->whereRaw('1 = 0');
+        }
+
+        return $query->groupBy('koi_id');
     }
     public function getUserKois($user, $userId = null)
     {

@@ -5,12 +5,11 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="user-id" content="{{ auth()->id() }}">
 
     <title>{{ config('app.name', 'Laravel') }}</title>
     
     <!-- Preload important resources -->
-    <link rel="preload" href="https://code.jquery.com/jquery-3.7.1.js" as="script">
-    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/rateYo/2.3.2/jquery.rateyo.min.css" as="style">
     <link rel="preload" href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" as="style">
     <link rel="preload" href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" as="style">
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" as="style">
@@ -153,5 +152,6 @@
             });">
         </div>
     </div>
+    @stack('scripts')
 </body>
 </html>

@@ -11,7 +11,7 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('transaction_items', function (Blueprint $table) {
-            $table->unsignedBigInteger('seller_id')->after('koi_id')->nullable();
+            $table->unsignedBigInteger('seller_id')->nullable();
             $table->foreign('seller_id')->references('id')->on('users')->onDelete('cascade');
         });
     }

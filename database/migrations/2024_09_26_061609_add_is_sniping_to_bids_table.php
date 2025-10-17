@@ -12,7 +12,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('bids', function (Blueprint $table) {
-            $table->boolean('is_sniping')->default(0)->after('is_win'); // Whether the bid is a snipe bid
+            $table->boolean('is_sniping')->default(0); // Whether the bid is a snipe bid
         });
     }
 
