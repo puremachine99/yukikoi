@@ -21,7 +21,7 @@ class ExtraTimeAdded implements ShouldBroadcastNow
 
     public function broadcastOn()
     {
-        return new Channel('koi.' . $this->auctionCode);
+        return new Channel('auction.' . $this->auctionCode);
     }
 
     public function broadcastWith()

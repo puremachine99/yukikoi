@@ -18,7 +18,6 @@ RUN apt-get update && apt-get install -y \
     libreadline-dev \
     libfreetype6-dev \
     libjpeg62-turbo-dev \
-    libpng-dev \
     libwebp-dev \
     libxpm-dev \
     libvpx-dev \
@@ -30,15 +29,14 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     libcurl4-openssl-dev \
     pkg-config \
-    libssl-dev \
     libgmp-dev \
     libldap2-dev \
-    libpq-dev \
-    libzip-dev \
-    libjpeg-dev \
-    libpng-dev \
-    libfreetype6-dev \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
+    && docker-php-ext-configure gd --with-jpeg --with-freetype \
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer

@@ -1,66 +1,54 @@
-# Stage 1 - Build PHP environment
-FROM dunglas/frankenphp:php8.3 as php_base
+# ---------- Base PHP (FrankenPHP) ----------
+FROM dunglas/frankenphp:php8.3 AS php_base
 
 ENV SERVER_NAME=":80"
-
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    zip \
-    libzip-dev \
-    git \
-    unzip \
-    && docker-php-ext-install zip pdo pdo_mysql bcmath \
-    && docker-php-ext-enable zip pdo pdo_mysql bcmath
+# System dependencies + PHP extensions (Postgres, Redis, Intl, PCNTL untuk worker)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      git unzip curl zip libzip-dev libpq-dev libicu-dev \
+  && docker-php-ext-install \
+      zip \
+      pdo \
+      pdo_pgsql \
+      bcmath \
+      intl \
+      pcntl \
+  && pecl install redis \
+  && docker-php-ext-enable redis \
+  && rm -rf /var/lib/apt/lists/*
 
-# Install Composer
-COPY --from=composer:2.2 /usr/bin/composer /usr/bin/composer
+# Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Copy application files
+# Copy source code
 COPY . .
 
-# Install PHP dependencies
-RUN composer install --optimize-autoloader --no-interaction
+# Install dependencies (optimized, no dev)
+# Prefer install with lock; if lock is out-of-sync, fall back to update
+RUN composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader \
+  || composer update --no-dev --prefer-dist --no-interaction --optimize-autoloader
 
-# Stage 2 - Build assets with Node.js
-FROM node:20-bullseye as node_builder
-
+# ---------- Assets build (Vite + Node 24) ----------
+FROM node:24-alpine AS node_builder
 WORKDIR /app
-COPY package.json package-lock.json vite.config.js ./
+COPY package*.json vite.config.js ./
+RUN npm ci --force
 COPY resources/ ./resources/
+RUN npm run build
 
-RUN npm install --force && npm run build
-
-# Final Stage - Production
+# ---------- Final FrankenPHP App ----------
 FROM php_base
 
-# Copy built assets from node_builder
+# Copy built assets from node build
 COPY --from=node_builder /app/public/build ./public/build
+
+# Copy custom Caddy/FrankenPHP config (enable worker mode)
+COPY docker/frankenphp/Caddyfile /etc/caddy/Caddyfile
 
 # Fix permissions
 RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=3s \
-  CMD curl -f http://localhost/health || exit 1
-
-# Stage 3 - Node.js Service
-FROM node:20-bullseye as node_service
-
-WORKDIR /app
-
-# Copy application files
-COPY . .
-
-# Copy node_modules from node_builder
-COPY --from=node_builder /app/node_modules ./node_modules
-
-# Install any additional Node.js dependencies if needed
-RUN npm install --force
-
-# Expose the port Vite will run on
-EXPOSE 5173
-
-# Command to run Vite
-CMD ["npm", "run", "dev"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=5 \
+  CMD curl -fsS http://localhost/health || exit 1

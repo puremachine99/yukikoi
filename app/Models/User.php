@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Support\Media as MediaSupport;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -62,6 +63,7 @@ class User extends Authenticatable
         'google_token',
         'google_refresh_token',
     ];
+    protected $appends = ['profile_photo_url'];
 
     /**
      * Get the attributes that should be cast.
@@ -168,6 +170,13 @@ class User extends Authenticatable
                      AVG(rating_service) as avg_service, 
                      (AVG(rating_quality) + AVG(rating_shipping) + AVG(rating_service)) / 3 as overall_rating')
             ->groupBy('seller_id');
+    }
+
+    public function getProfilePhotoUrlAttribute(): string
+    {
+        return MediaSupport::url($this->profile_photo, [
+            'resize' => ['fill', 256, 256, 1],
+        ], asset('images/logo.png'));
     }
 
     public function checkAndAssignAchievements()

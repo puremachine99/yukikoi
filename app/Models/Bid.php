@@ -10,17 +10,32 @@ class Bid extends Model
     use HasFactory;
 
     protected $fillable = [
-        'auction_id',
         'koi_id',
         'user_id',
         'amount',
-        'is_winner'
+        'is_win',
+        'is_bin',
+        'is_sniping',
+    ];
+
+    protected $casts = [
+        'amount' => 'decimal:2',
+        'is_win' => 'boolean',
+        'is_bin' => 'boolean',
+        'is_sniping' => 'boolean',
     ];
 
     // Model Bid
     public function auction()
     {
-        return $this->belongsTo(Auction::class);
+        return $this->hasOneThrough(
+            Auction::class,
+            Koi::class,
+            'id',
+            'auction_code',
+            'koi_id',
+            'auction_code'
+        );
     }
 
     public function koi()

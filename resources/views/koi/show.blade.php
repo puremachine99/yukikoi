@@ -190,16 +190,16 @@
             // ============================== CONFIGURATIONS ===============================
             const CONFIG = {
                 koiId: "{{ $koi->id }}",
+                auctionCode: "{{ $koi->auction->auction_code }}",
                 userProfilePhoto: "{{ optional(auth()->user())->profile_photo ?: asset('storage/avatar/user-default.png') }}",
                 userId: parseInt('{{ auth()->id() }}'),
                 csrfToken: "{{ csrf_token() }}",
                 openBid: {{ $koi->open_bid }},
                 increment: {{ $koi->kelipatan_bid }},
-                lastBid: {{ $koi->bids->isNotEmpty() ? $koi->bids->last()->amount : 0 }},
+                lastBid: {{ optional($koi->bids->sortByDesc('created_at')->first())->amount ?? 0 }},
                 binPrice: {{ $koi->buy_it_now }},
                 threshold: 0.8 * {{ $koi->buy_it_now }},
                 isAuctionOngoing: @json($isAuctionOngoing),
-                penaltytime: 900,
                 endTime: new Date(
                     "{{ \Carbon\Carbon::parse($koi->auction->end_time)->addMinutes($koi->auction->extra_time)->toDateTimeString() }}"
                 ).getTime(),
@@ -215,12 +215,20 @@
             let minimumBid = CONFIG.lastBid > 0 ? CONFIG.lastBid + CONFIG.increment : CONFIG.openBid;
             let extraTime = 0;
             // ============================== REALTIME LISTENERS ==============================
-            Echo.channel('auctions')
-                .listen('ExtraTimeAdded', (event) => {
-                    extraTime = event.extra_time;
-                    CONFIG.endTime = new Date(event.new_end_time).getTime(); // Update waktu akhir
-                    initializeTimer(); // Re-initialize timer
+            const auctionChannel = Echo.channel(`auction.${CONFIG.auctionCode}`);
+            auctionChannel.listen('ExtraTimeAdded', (event) => {
+                extraTime = event.extra_time;
+                CONFIG.endTime = new Date(event.new_end_time).getTime();
+                initializeTimer();
+
+                Swal.fire({
+                    title: 'Extra Time Ditambahkan',
+                    text: `${event.extra_time} menit tambahan telah diberikan!`,
+                    icon: 'info',
+                    timer: 3000,
+                    timerProgressBar: true
                 });
+            });
 
             Echo.channel(`koi.${CONFIG.koiId}`)
                 .listen('ChatMessage', (event) => appendToHistory('chat', event))
@@ -237,7 +245,7 @@
                     handleAuctionWinner(event.winner.name, event.winner.amount);
                     appendToHistory('bid', {
                         bid: {
-                            id: event.winner.id,
+                            id: event.winner.bid_id,
                             koi_id: CONFIG.koiId,
                             amount: event.winner.amount,
                             user: {
@@ -248,21 +256,6 @@
                             created_at: new Date().toISOString()
                         },
                         isSniping: false
-                    });
-                })
-                .listen('ExtraTimeAdded', (event) => {
-                    extraTime = event.extra_time * CONFIG.penaltytime;
-                    CONFIG.endTime = new Date(event.new_end_time).getTime();
-
-                    // Update timer secara langsung
-                    updateTimer();
-
-                    Swal.fire({
-                        title: 'Extra Time Ditambahkan',
-                        text: `${event.extra_time} menit tambahan telah diberikan!`,
-                        icon: 'info',
-                        timer: 3000,
-                        timerProgressBar: true
                     });
                 });
 

@@ -27,6 +27,7 @@ class Auction extends Model
         'banner',
         'user_id'
     ];
+    protected $appends = ['banner_url'];
     protected $casts = [
         'start_time' => 'datetime',
         'created_at' => 'datetime',
@@ -107,6 +108,13 @@ class Auction extends Model
     public function transactions()
     {
         return $this->hasMany(Transaction::class, 'auction_code', 'auction_code');
+    }
+
+    public function getBannerUrlAttribute(): string
+    {
+        return \App\Support\Media::url($this->banner, [
+            'resize' => ['fill', 1200, 600, 1],
+        ]);
     }
 
 }

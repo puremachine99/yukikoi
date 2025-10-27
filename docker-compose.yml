@@ -1,19 +1,158 @@
-version: '3.8'
-
 services:
+  # === Main Laravel App (FrankenPHP) ===
   app:
     build:
       context: .
-      dockerfile: docker/php/Dockerfile
+      dockerfile: Dockerfile
     container_name: yukikoi-app
+    restart: unless-stopped
     volumes:
-      - .:/var/www/html
-    depends_on:
-      - mysql
-      - redis
-    networks:
-      - app-network
+      - .:/app
+    environment:
+      APP_ENV: local
+      APP_URL: http://localhost:8000
+      # FrankenPHP performance tuning
+      FRANKENPHP_WORKER_COUNT: 8
+      CADDY_GLOBAL_OPTIONS: |
+        servers {
+          protocols h1 h2 h3
+          metrics
+        }
+      OPCACHE_ENABLE: 1
+      OPCACHE_MEMORY_CONSUMPTION: 192
+      OPCACHE_VALIDATE_TIMESTAMPS: 0
 
+      # === Database (Postgres) ===
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: yuki_koi
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+
+      # === Redis ===
+      REDIS_CLIENT: phpredis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      CACHE_DRIVER: redis
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
+
+    ports:
+      - "8000:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      minio:
+        condition: service_started
+    networks: [app-network]
+
+  # === Laravel Reverb (WebSocket) ===
+  reverb:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: yukikoi-reverb
+    entrypoint: ["php", "artisan"]
+    command: ["reverb:start", "--host=0.0.0.0", "--port=8080"]
+    working_dir: /app
+    restart: unless-stopped
+    volumes:
+      - .:/app
+    environment:
+      APP_ENV: local
+      APP_URL: http://localhost:8000
+      REVERB_HOST: reverb
+      REVERB_PORT: 8080
+      REVERB_SCHEME: http
+      REVERB_SERVER_HOST: 0.0.0.0
+      REVERB_SERVER_PORT: 8080
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      minio:
+        condition: service_started
+    networks: [app-network]
+
+  # === Scheduler (cron replacement) ===
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: yukikoi-scheduler
+    entrypoint: ["php", "artisan"]
+    command: ["schedule:work"]
+    working_dir: /app
+    restart: unless-stopped
+    volumes:
+      - .:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      minio:
+        condition: service_started
+    networks: [app-network]
+
+  # === Worker Queue (Redis-based jobs) ===
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: yukikoi-worker
+    working_dir: /app
+    command: php artisan queue:work --sleep=1 --timeout=60 --tries=3 --max-time=3600
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks: [app-network]
+
+  # === MinIO (S3-compatible storage) ===
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    command: server /data --console-address ":9001"
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin123}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    networks: [app-network]
+
+  # === Imgproxy (on-the-fly image processing) ===
+  imgproxy:
+    image: darthsim/imgproxy:latest
+    container_name: imgproxy
+    restart: unless-stopped
+    environment:
+      IMGPROXY_KEY: "cd5cab84bfa047b082c40b7331dadf8a25b6d0290368c464e4a2dc610292d902"
+      IMGPROXY_SALT: "4ef4fa7c80d4945a680a91c9fcec36cd"
+      IMGPROXY_SOURCE_URL_BASE: ${IMGPROXY_SOURCE_URL_BASE:-http://minio:9000/}
+      IMGPROXY_ENABLE_WEBP_DETECTION: "true"
+      IMGPROXY_STRIP_COLOR_PROFILE: "true"
+      IMGPROXY_AUTO_ROTATE: "true"
+      IMGPROXY_ALLOW_INSECURE_URLS: ${IMGPROXY_ALLOW_INSECURE_URLS:-true}
+    ports:
+      - "8090:8080"
+    depends_on:
+      - minio
+    networks: [app-network]
+
+  # === WhatsApp Bot (Node.js 24) ===
   node-bot:
     build:
       context: .
@@ -24,46 +163,41 @@ services:
       - .:/app
     ports:
       - "3000:3000"
-    networks:
-      - app-network
+    networks: [app-network]
 
-  nginx:
-    image: nginx:alpine
-    container_name: nginx
-    ports:
-      - "8000:80"
-    volumes:
-      - .:/var/www/html
-      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
-    depends_on:
-      - app
-    networks:
-      - app-network
-
-  mysql:
-    image: mysql:8.0
-    container_name: mysql
+  # === PostgreSQL ===
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
     restart: unless-stopped
     environment:
-      MYSQL_DATABASE: yuki_koi
-      MYSQL_ROOT_PASSWORD: ""
-    ports:
-      - "3306:3306"
+      POSTGRES_DB: yuki_koi
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     volumes:
-      - mysql-data:/var/lib/mysql
-    networks:
-      - app-network
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d yuki_koi"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [app-network]
 
+  # === Redis (cache, session, queue) ===
   redis:
-    image: redis:alpine
+    image: redis:7-alpine
     container_name: redis
+    command: ["redis-server", "--appendonly", "yes"]
     ports:
       - "6379:6379"
-    networks:
-      - app-network
+    volumes:
+      - redis-data:/data
+    networks: [app-network]
 
 volumes:
-  mysql-data:
+  postgres-data:
+  redis-data:
+  minio-data:
 
 networks:
   app-network:

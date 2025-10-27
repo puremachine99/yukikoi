@@ -11,8 +11,16 @@ document.addEventListener('DOMContentLoaded', function () {
     const darkIcon = document.getElementById('theme-toggle-dark-icon');
     const lightIcon = document.getElementById('theme-toggle-light-icon');
 
+    // Skip theme toggle wiring on pages that don't include the controls.
+    if (!themeToggleBtn || !darkIcon || !lightIcon) {
+        return;
+    }
+
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const storedTheme = typeof localStorage !== 'undefined' ? localStorage.getItem('theme') : null;
+
     // Load initial theme
-    if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    if (storedTheme === 'dark' || (!storedTheme && prefersDark)) {
         document.documentElement.classList.add('dark');
         darkIcon.classList.remove('hidden');
     } else {
@@ -24,12 +32,9 @@ document.addEventListener('DOMContentLoaded', function () {
         darkIcon.classList.toggle('hidden');
         lightIcon.classList.toggle('hidden');
 
-        if (document.documentElement.classList.contains('dark')) {
-            document.documentElement.classList.remove('dark');
-            localStorage.setItem('theme', 'light');
-        } else {
-            document.documentElement.classList.add('dark');
-            localStorage.setItem('theme', 'dark');
+        const isDark = document.documentElement.classList.toggle('dark');
+        if (typeof localStorage !== 'undefined') {
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
         }
     });
 });

@@ -21,12 +21,19 @@ use App\Http\Controllers\{
     EventController,
     WishlistController,
     ComplaintController,
+    MediaProxyController,
 };
 // use App\Http\Controllers\Admin\{
 //     DashboardController
 // };
 //test whatsapp
 use App\Http\Controllers\WhatsAppController;
+
+Route::get('/health', fn() => response('OK', 200));
+
+Route::get('/storage/{path}', MediaProxyController::class)
+    ->where('path', '.*')
+    ->name('media.proxy');
 
 Route::get('/send-wa', function () {
     return view('send-wa');
@@ -137,7 +144,6 @@ Route::middleware(['auth'])->group(function () {
         }
         return response()->json(['success' => false], 400);
     })->name('upload.cancel.video');
-
 });
 
 

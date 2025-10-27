@@ -115,7 +115,7 @@ class TransactionController extends Controller
 
         // Cek cara kemenangan (Buy It Now atau Natural)
         $winningMethod = 'Natural'; // Default ke Natural
-        $lastBid = $transaction->koi->bids->last(); // Ambil bid terakhir
+        $lastBid = $transaction->koi->bids->sortByDesc('created_at')->first();
 
         if ($lastBid && $lastBid->is_bin) {
             $winningMethod = 'By Buy It Now';

@@ -20,7 +20,7 @@ class BidController extends Controller
     {
         $userId = Auth::id();
 
-        // Rate limiter untuk mencegah abuse dalam melakukan request
+        // Rate limiter cek gak abuse pas request
         $key = 'user-bids:' . $userId;
         if (RateLimiter::tooManyAttempts($key, 30)) {
             return response()->json([
@@ -105,7 +105,7 @@ class BidController extends Controller
         $user = Auth::user();
 
         // Cek threshold 80% dari BIN
-        $latestBid = $koi->bids->last();
+        $latestBid = $koi->bids()->latest('created_at')->first();
         $threshold = 0.8 * (float) ($koi->buy_it_now ?? 0);
 
         if ($latestBid && $latestBid->amount >= $threshold) {
@@ -177,7 +177,7 @@ class BidController extends Controller
             return response()->json(['success' => false, 'message' => 'Auction tidak aktif'], 400);
         }
 
-        $latestBid  = $koi->bids->last();
+        $latestBid  = $koi->bids()->latest('created_at')->first();
         $minimumBid = $latestBid ? ($latestBid->amount + (int) $koi->kelipatan_bid) : (int) $koi->open_bid;
         $bidAmount  = (int) $request->input('bid_amount');
 

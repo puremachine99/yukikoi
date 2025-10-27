@@ -27,7 +27,7 @@
     <div class="py-6 max-w-7xl mx-auto space-y-8 px-4 sm:px-6 lg:px-8">
         <!-- Promo Carousel -->
         <section class="relative rounded-2xl overflow-hidden shadow-xl">
-            <div x-data="{ activeSlide: 0, slides: {{ $carouselAds->toJson() }}, interval: null }" 
+            <div x-data="{ activeSlide: 0, slides: {!! $carouselSlides->toJson() !!}, interval: null }" 
                  x-init="interval = setInterval(() => { activeSlide = (activeSlide + 1) % slides.length }, 5000)"
                  @mouseover="clearInterval(interval)" 
                  @mouseleave="interval = setInterval(() => { activeSlide = (activeSlide + 1) % slides.length }, 5000)"
@@ -39,7 +39,7 @@
                          x-transition:leave="transition ease-in duration-300" x-transition:leave-start="opacity-100"
                          x-transition:leave-end="opacity-0" class="absolute inset-0">
                         <a :href="slide.link" target="_blank" class="block h-full w-full group">
-                            <img :src="`/storage/${slide.image}`" :alt="slide.title" 
+                            <img :src="slide.image" :alt="slide.title" 
                                  class="w-full h-full object-cover transform group-hover:scale-105 transition duration-500">
                             <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
                                 <h3 x-text="slide.title" class="text-xl font-bold text-white"></h3>

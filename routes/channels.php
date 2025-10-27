@@ -32,6 +32,6 @@ Broadcast::channel('user.{userId}', function ($user, $userId) {
 });
 
 
-Broadcast::channel('auctions', function () {
-    return true;  // Atur hak akses channel sesuai kebutuhan
+Broadcast::channel('auction.{auctionCode}', function ($user, $auctionCode) {
+    return true;
 });

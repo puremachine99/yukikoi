@@ -3,7 +3,6 @@
 namespace App\Events;
 
 use App\Models\Bid;
-use App\Models\Auction;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Broadcasting\PrivateChannel;
@@ -18,9 +17,9 @@ class AuctionWon implements ShouldBroadcastNow
     use Dispatchable, InteractsWithSockets, SerializesModels;
     public $bid;
 
-    public function __construct($bid)
+    public function __construct(Bid $bid)
     {
-        $this->bid = $bid;
+        $this->bid = $bid->loadMissing('user');
     }
 
     public function broadcastOn()
@@ -32,8 +31,9 @@ class AuctionWon implements ShouldBroadcastNow
     {
         return [
             'winner' => [
+                'bid_id' => $this->bid->id,
                 'koi_id' => $this->bid->koi_id,
-                'id' => $this->bid->user->id,
+                'user_id' => $this->bid->user->id,
                 'name' => $this->bid->user->name,
                 'amount' => $this->bid->amount,
                 'pp' => $this->bid->user->profile_photo,

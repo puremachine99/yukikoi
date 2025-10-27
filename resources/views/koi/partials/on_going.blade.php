@@ -9,6 +9,10 @@
     </div>
 
     <!-- Bid Section -->
+    @php
+        $latestBid = $koi->bids->sortByDesc('created_at')->first();
+        $nextBid = $latestBid ? $latestBid->amount + $koi->kelipatan_bid : $koi->open_bid;
+    @endphp
     <div class="flex items-center space-x-2">
         @if (!$isSeller)
             <!-- BIN Button -->
@@ -23,8 +27,8 @@
             </button>
             <!-- Bid Amount (Input) -->
             <input id="bid-amount" type="number" step="{{ $koi->kelipatan_bid }}"
-                value="{{ number_format($koi->bids->isNotEmpty() ? $koi->bids->last()->amount + $koi->kelipatan_bid : $koi->open_bid, 0, ',', '.') }}"
-                min="{{ number_format($koi->bids->isNotEmpty() ? $koi->bids->last()->amount + $koi->kelipatan_bid : $koi->open_bid, 0, ',', '.') }}"
+                value="{{ number_format($nextBid, 0, ',', '.') }}"
+                min="{{ number_format($nextBid, 0, ',', '.') }}"
                 class="text-center bg-white border border-gray-300 rounded-md text-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-500 flex-grow px-2 py-2 min-w-0 dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600">
 
 

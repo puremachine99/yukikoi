@@ -2,17 +2,19 @@
 
 namespace App\Providers;
 
+use App\Models\Ad;
 use App\Models\Cart;
 use App\Models\User;
-use App\Models\Order;
+use App\Models\Auction;
 use App\Models\TransactionItem;
-use App\Observers\OrderObserver;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use App\Observers\TransactionItemObserver;
+use App\Observers\AuctionObserver;
+use App\Observers\AdObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -30,6 +32,8 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         TransactionItem::observe(TransactionItemObserver::class);
+        Auction::observe(AuctionObserver::class);
+        Ad::observe(AdObserver::class);
 
         // Jika menggunakan Xendit
         \Xendit\Configuration::setXenditKey(env('XENDIT_API_KEY'));
