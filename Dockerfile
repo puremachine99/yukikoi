@@ -25,9 +25,7 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 COPY . .
 
 # Install dependencies (optimized, no dev)
-# Prefer install with lock; if lock is out-of-sync, fall back to update
-RUN composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader \
-  || composer update --no-dev --prefer-dist --no-interaction --optimize-autoloader
+RUN composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
 
 # ---------- Assets build (Vite + Node 24) ----------
 FROM node:24-alpine AS node_builder

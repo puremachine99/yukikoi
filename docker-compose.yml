@@ -64,6 +64,15 @@ services:
     environment:
       APP_ENV: local
       APP_URL: http://localhost:8000
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: yuki_koi
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      REDIS_CLIENT: phpredis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
       REVERB_HOST: reverb
       REVERB_PORT: 8080
       REVERB_SCHEME: http
@@ -92,6 +101,21 @@ services:
     restart: unless-stopped
     volumes:
       - .:/app
+    environment:
+      APP_ENV: local
+      APP_URL: http://localhost:8000
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: yuki_koi
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      REDIS_CLIENT: phpredis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      CACHE_DRIVER: redis
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
     depends_on:
       postgres:
         condition: service_healthy
@@ -110,6 +134,23 @@ services:
     working_dir: /app
     command: php artisan queue:work --sleep=1 --timeout=60 --tries=3 --max-time=3600
     restart: unless-stopped
+    volumes:
+      - .:/app
+    environment:
+      APP_ENV: local
+      APP_URL: http://localhost:8000
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: yuki_koi
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      REDIS_CLIENT: phpredis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      CACHE_DRIVER: redis
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
     depends_on:
       postgres:
         condition: service_healthy
