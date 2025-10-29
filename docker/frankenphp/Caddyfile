@@ -1,0 +1,26 @@
+{
+    skip_install_trust
+
+    {$CADDY_GLOBAL_OPTIONS}
+
+    frankenphp {
+        {$FRANKENPHP_CONFIG}
+    }
+}
+
+{$CADDY_EXTRA_CONFIG}
+
+{$SERVER_NAME:localhost} {
+    root {$SERVER_ROOT:public/}
+    encode zstd br gzip
+
+    {$CADDY_SERVER_EXTRA_DIRECTIVES}
+
+    php_server {
+        # Keep Laravel bootstrapped between requests for speed.
+        worker /app/public/index.php {$FRANKENPHP_WORKER_COUNT:4}
+        staticindex index.php
+    }
+}
+
+import Caddyfile.d/*.caddyfile

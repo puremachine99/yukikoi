@@ -7,7 +7,6 @@ use App\Models\Auction;
 use App\Models\Koi;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
 
@@ -28,7 +27,6 @@ class UpdateAuctionStatusTest extends TestCase
 
     public function test_job_marks_auction_as_completed_when_deadline_passed(): void
     {
-        Broadcast::fake();
         Event::fake();
 
         $seller = User::factory()->create([

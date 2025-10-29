@@ -9,7 +9,6 @@ use App\Models\Transaction;
 use App\Models\TransactionItem;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Notification;
 use Mockery;
 use Tests\TestCase;
@@ -47,7 +46,6 @@ class BidPaymentFlowTest extends TestCase
 
     public function test_successful_buy_now_checkout_and_xendit_payment_webhook_flow(): void
     {
-        Broadcast::fake();
         Notification::fake();
 
         // Fake InvoiceApi so we never hit the real Xendit sandbox during tests.

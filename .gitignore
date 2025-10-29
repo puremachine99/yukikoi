@@ -22,6 +22,6 @@ yarn-error.log
 /.wwebjs_auth
 /.wwebjs_cache
 
-**/caddy
-frankenphp
-frankenphp-worker.php
+# **/caddy
+# frankenphp
+# frankenphp-worker.php

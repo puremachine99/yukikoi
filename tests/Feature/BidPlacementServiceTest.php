@@ -10,7 +10,6 @@ use App\Models\User;
 use App\Services\BidPlacementService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
 
@@ -31,7 +30,6 @@ class BidPlacementServiceTest extends TestCase
 
     public function test_sniping_bid_adds_extra_time_and_broadcasts_event(): void
     {
-        Broadcast::fake();
         Event::fake([ExtraTimeAdded::class]);
 
         $seller = User::factory()->create([
