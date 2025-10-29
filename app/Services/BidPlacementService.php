@@ -23,7 +23,7 @@ class BidPlacementService
     /**
      * Process a regular bid placement.
      */
-    public function placeBid(User $user, int $koiId, int $amount): array
+    public function placeBid(User $user, string $koiId, int $amount): array
     {
         try {
             $result = DB::transaction(function () use ($user, $koiId, $amount) {
@@ -108,7 +108,12 @@ class BidPlacementService
                     broadcast(new PlaceBid($bid, $payload['is_sniping']))->toOthers();
 
                     if ($payload['extra_time_updated']) {
-                        broadcast(new ExtraTimeAdded($auction->auction_code, $auction->extra_time))->toOthers();
+                        broadcast(new ExtraTimeAdded(
+                            $auction->auction_code,
+                            (int) $auction->extra_time,
+                            $payload['end_time']->toDateTimeString(),
+                            10
+                        ))->toOthers();
                     }
 
                     if ($previousTopBid && $previousTopBid->user_id !== $bid->user_id) {
@@ -138,7 +143,7 @@ class BidPlacementService
     /**
      * Handle Buy-It-Now confirmation.
      */
-    public function confirmBuyNow(User $user, int $koiId): array
+    public function confirmBuyNow(User $user, string $koiId): array
     {
         try {
             $result = DB::transaction(function () use ($user, $koiId) {

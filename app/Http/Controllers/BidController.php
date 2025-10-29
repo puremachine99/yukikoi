@@ -2,20 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use Carbon\Carbon;
+use App\Http\Requests\ConfirmBinRequest;
+use App\Http\Requests\StoreBidRequest;
 use App\Models\Bid;
-use App\Models\Koi;
-use App\Models\Cart;
-use App\Events\PlaceBid;
 use App\Models\Wishlist;
-use App\Events\AuctionWon;
-use Illuminate\Http\Request;
-use App\Events\ExtraTimeAdded;
+use App\Services\BidPlacementService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 class BidController extends Controller
 {
+    public function __construct(private readonly BidPlacementService $placementService)
+    {
+    }
+
     public function userBids(Request $request)
     {
         $userId = Auth::id();
@@ -95,56 +100,37 @@ class BidController extends Controller
         return response()->json(['success' => true, 'message' => 'PIN valid']);
     }
 
-    public function confirmBIN(Request $request)
+    public function confirmBIN(ConfirmBinRequest $request)
     {
-        $request->validate([
-            'koi_id' => 'required|exists:kois,id',
-        ]);
-
-        $koi = Koi::with(['bids', 'auction'])->findOrFail($request->input('koi_id'));
-        $user = Auth::user();
-
-        // Cek threshold 80% dari BIN
-        $latestBid = $koi->bids()->latest('created_at')->first();
-        $threshold = 0.8 * (float) ($koi->buy_it_now ?? 0);
-
-        if ($latestBid && $latestBid->amount >= $threshold) {
+        try {
+            $result = $this->placementService->confirmBuyNow($request->user(), $request->validated('koi_id'));
+        } catch (AuthorizationException $exception) {
             return response()->json([
                 'success' => false,
-                'message' => 'BIN tidak valid, bid telah mencapai 80% dari nilai BIN',
-            ], 400);
+                'message' => $exception->getMessage(),
+            ], Response::HTTP_FORBIDDEN);
+        } catch (ValidationException $exception) {
+            return response()->json([
+                'success' => false,
+                'message' => $exception->getMessage(),
+                'errors' => $exception->errors(),
+            ], Response::HTTP_BAD_REQUEST);
+        } catch (Throwable $throwable) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan ketika memproses BIN.',
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
-
-        // Simpan bid sebagai BIN (menang)
-        $bid = new Bid();
-        $bid->koi_id = $koi->id;
-        $bid->user_id = $user->id;
-        $bid->amount = (int) $koi->buy_it_now;
-        $bid->is_win = true;
-        $bid->is_bin = true;
-        $bid->save();
-
-        // Simpan ke cart (contoh konversi nominal)
-        $baseAmount = (int) ($koi->buy_it_now * 1000);
-
-        $cart = new Cart();
-        $cart->user_id = $user->id;
-        $cart->koi_id = $koi->id;
-        $cart->auction_name = optional($koi->auction)->title ?? '';
-        $cart->price = $baseAmount;
-        $cart->save();
-
-        // Broadcast pemenang
-        broadcast(new AuctionWon($bid))->toOthers();
 
         return response()->json([
             'success' => true,
             'message' => 'BIN berhasil, koi telah dimasukkan ke keranjang',
-            'cart'    => $cart,
+            'cart' => $result['cart'],
+            'bid' => $result['bid'],
         ]);
     }
 
-    public function store(Request $request)
+    public function store(StoreBidRequest $request)
     {
         $key = 'bid-action:' . Auth::id();
         $bid_attempt = 10;
@@ -157,76 +143,40 @@ class BidController extends Controller
             ], 429);
         }
 
-        $request->validate([
-            'koi_id'     => 'required|exists:kois,id',
-            'bid_amount' => 'required|numeric|min:1',
+        try {
+            $result = $this->placementService->placeBid(
+                $request->user(),
+                $request->validated('koi_id'),
+                (int) $request->validated('bid_amount')
+            );
+        } catch (AuthorizationException $exception) {
+            return response()->json([
+                'success' => false,
+                'message' => $exception->getMessage(),
+            ], Response::HTTP_FORBIDDEN);
+        } catch (ValidationException $exception) {
+            return response()->json([
+                'success' => false,
+                'message' => $exception->getMessage(),
+                'errors' => $exception->errors(),
+            ], Response::HTTP_BAD_REQUEST);
+        } catch (Throwable $throwable) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat memasang bid.',
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        RateLimiter::hit($key);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Bid berhasil dipasang',
+            'bid' => $result['bid'],
+            'end' => $result['end_time']->toDateTimeString(),
+            'isSniping' => $result['is_sniping'],
+            'remainingTime' => $result['remaining_time'],
+            'extraTime' => $result['auction']->extra_time,
         ]);
-
-        $koi = Koi::with('auction', 'bids')->findOrFail($request->input('koi_id'));
-        $auction = $koi->auction;
-
-        if (!Auth::check()) {
-            return response()->json(['success' => false, 'message' => 'Anda harus login untuk melakukan bid.'], 401);
-        }
-
-        if ($auction && Auth::id() == $auction->user_id) {
-            return response()->json(['success' => false, 'message' => 'Seller tidak dapat melakukan bid di lelang mereka sendiri.'], 403);
-        }
-
-        if (!$auction || $auction->status !== 'on going') {
-            return response()->json(['success' => false, 'message' => 'Auction tidak aktif'], 400);
-        }
-
-        $latestBid  = $koi->bids()->latest('created_at')->first();
-        $minimumBid = $latestBid ? ($latestBid->amount + (int) $koi->kelipatan_bid) : (int) $koi->open_bid;
-        $bidAmount  = (int) $request->input('bid_amount');
-
-        if ($bidAmount < $minimumBid) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Minimal bid harus Rp ' . number_format($minimumBid, 0, ',', '.') . ' atau lebih tinggi',
-            ], 400);
-        }
-
-        if ((($bidAmount - (int) $koi->open_bid) % (int) $koi->kelipatan_bid) != 0) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Nilai bid harus sesuai kelipatan bid Rp ' . number_format((int) $koi->kelipatan_bid, 0, ',', '.'),
-            ], 400);
-        }
-
-        $end_time = Carbon::parse($auction->end_time)->addMinutes((int) $auction->extra_time);
-        $remainingTime = $end_time->diffInMinutes(Carbon::now(), false);
-        $isSniping = $remainingTime >= -60 && $remainingTime <= 0;
-
-        if ($isSniping) {
-            $auction->extra_time = (int) $auction->extra_time + 10;
-            $auction->save();
-            broadcast(new ExtraTimeAdded($auction->auction_code, $auction->extra_time))->toOthers();
-        }
-
-        $bid = new Bid();
-        $bid->koi_id = $koi->id;
-        $bid->user_id = Auth::id();
-        $bid->amount = $bidAmount;
-        $bid->is_sniping = $isSniping;
-        $bid->is_win = 0;
-
-        if ($bid->save()) {
-            RateLimiter::hit($key);
-            broadcast(new PlaceBid($bid, $isSniping))->toOthers();
-
-            return response()->json([
-                'success'       => true,
-                'message'       => 'Bid berhasil dipasang',
-                'bid'           => $bid,
-                'end'           => $end_time,
-                'isSniping'     => $isSniping,
-                'remainingTime' => $remainingTime,
-                'extraTime'     => $auction->extra_time
-            ]);
-        }
-
-        return response()->json(['success' => false, 'message' => 'Gagal menyimpan bid'], 500);
     }
 }

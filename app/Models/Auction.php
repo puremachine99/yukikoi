@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
-use Carbon\Carbon;
 use App\Models\Bid;
 use App\Models\Koi;
 use App\Models\User;
 use App\Events\ExtraTimeAdded;
+use App\Support\AuctionCodeGenerator;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -23,6 +24,7 @@ class Auction extends Model
         'start_time',
         'end_time',
         'status',
+        'extra_time',
         'auction_code',
         'banner',
         'user_id'
@@ -30,62 +32,53 @@ class Auction extends Model
     protected $appends = ['banner_url'];
     protected $casts = [
         'start_time' => 'datetime',
+        'end_time' => 'datetime',
         'created_at' => 'datetime',
+        'extra_time' => 'integer',
     ];
     protected static function boot()
     {
         parent::boot();
 
-        static::creating(function ($auction) {
-            // Tentukan prefix berdasarkan jenis lelang
-            $prefix = match ($auction->jenis) {
-                'azukari' => 'AZ',
-                'keeping_contest' => 'KC',
-                'grow_out' => 'GO',
-                default => 'RG', // Default untuk reguler
-            };
+        static::creating(function (self $auction) {
+            if ($auction->auction_code) {
+                return;
+            }
 
-            $year = date('y');
-            $month = date('m');
-
-            // Hitung total lelang pada bulan dan tahun ini
-            $count = Auction::whereYear('created_at', date('Y'))->whereMonth('created_at', date('m'))->count() + 1;
-
-            do {
-                // Generate auction_code
-                $auctionCode = $prefix . $year . $month . str_pad($count, 3, '0', STR_PAD_LEFT);
-
-                // Cek apakah auction_code sudah ada di database
-                $exists = Auction::where('auction_code', $auctionCode)->exists();
-
-                if ($exists) {
-                    $count++; // Jika sudah ada, tambah nomor urutnya dan ulangi
-                }
-            } while ($exists);
-
-            // Set auction_code jika belum ada bentrokan
-            $auction->auction_code = $auctionCode;
+            $generator = app(AuctionCodeGenerator::class);
+            $auction->auction_code = $generator->generate($auction->jenis);
         });
     }
-    public function checkAndAddExtraTime()
+    public function checkAndAddExtraTime(): void
     {
+        if (!$this->end_time instanceof Carbon) {
+            return;
+        }
+
         $now = Carbon::now();
         $remainingTime = $this->end_time->diffInMinutes($now);
 
-        // Jika waktu tersisa <= 10 menit dan ada bid, tambahkan 10 menit ke extra_time
-        if ($this->status === 'on going' && $remainingTime <= 10) {
-            // Hitung total waktu tersisa (end_time + extra_time)
-            $totalTimeRemaining = $remainingTime + $this->extra_time;
-
-            if ($totalTimeRemaining <= 10) {
-                // Tambahkan 10 menit ke extra_time
-                $this->extra_time += 10;
-                $this->save();
-
-                // Broadcast pesan admin tentang extra time di chat
-                event(new ExtraTimeAdded($this, 10));  // 10 menit tambahan waktu
-            }
+        if ($this->status !== 'on going' || $remainingTime > 10) {
+            return;
         }
+
+        $totalTimeRemaining = $remainingTime + (int) $this->extra_time;
+
+        if ($totalTimeRemaining > 10) {
+            return;
+        }
+
+        $this->extra_time = (int) $this->extra_time + 10;
+        $this->save();
+
+        $newEndTime = $this->end_time->copy()->addMinutes($this->extra_time)->toDateTimeString();
+
+        event(new ExtraTimeAdded(
+            $this->auction_code,
+            (int) $this->extra_time,
+            $newEndTime,
+            10
+        ));
     }
 
 

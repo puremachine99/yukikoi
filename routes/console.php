@@ -12,9 +12,9 @@ Artisan::command('inspire', function () {
 
  
 Schedule::call(function () {
-    $auctions = Auction::all();  // Ambil semua lelang dari database
-    
-    foreach ($auctions as $auction) {
-        UpdateAuctionStatus::dispatch($auction->auction_code);  // Dispatch job untuk setiap auction
-    }
+    Auction::query()
+        ->whereIn('status', ['ready', 'on going'])
+        ->each(function (Auction $auction) {
+            UpdateAuctionStatus::dispatch($auction->auction_code);
+        });
 })->everyMinute();

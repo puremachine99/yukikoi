@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use App\Models\Auction;
 use Xendit\Configuration;
 use App\Models\Transaction;
+use App\Notifications\AuctionWonNotification;
 use Illuminate\Support\Str;
 use App\Events\AuctionEnded;
 use Illuminate\Bus\Queueable;
@@ -18,7 +19,7 @@ use Xendit\Invoice\CreateInvoiceRequest;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 
-class UpdateAuctionStatus
+class UpdateAuctionStatus implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 

@@ -180,8 +180,8 @@ services:
     container_name: imgproxy
     restart: unless-stopped
     environment:
-      IMGPROXY_KEY: "cd5cab84bfa047b082c40b7331dadf8a25b6d0290368c464e4a2dc610292d902"
-      IMGPROXY_SALT: "4ef4fa7c80d4945a680a91c9fcec36cd"
+      IMGPROXY_KEY: ${IMGPROXY_KEY:-}
+      IMGPROXY_SALT: ${IMGPROXY_SALT:-}
       IMGPROXY_SOURCE_URL_BASE: ${IMGPROXY_SOURCE_URL_BASE:-http://minio:9000/}
       IMGPROXY_ENABLE_WEBP_DETECTION: "true"
       IMGPROXY_STRIP_COLOR_PROFILE: "true"

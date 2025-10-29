@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Support\Media as MediaSupport;
+use App\Support\AchievementConditionEvaluator;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -183,17 +184,11 @@ class User extends Authenticatable
     {
         $achievements = Achievement::all();
         foreach ($achievements as $achievement) {
-            // Evaluasi condition
-            if ($this->evaluateAchievementCondition($achievement->condition)) {
-                // Tambahkan achievement ke user
-                $this->achievements()->syncWithoutDetaching([$achievement->id]);
+            if (!AchievementConditionEvaluator::meets($this, $achievement->condition)) {
+                continue;
             }
-        }
-    }
 
-    protected function evaluateAchievementCondition($condition)
-    {
-        // Contoh parsing condition (gunakan eval untuk hal simpel, atau buat parser sendiri untuk complex)
-        return eval ("return {$condition};");
+            $this->achievements()->syncWithoutDetaching([$achievement->id]);
+        }
     }
 }
