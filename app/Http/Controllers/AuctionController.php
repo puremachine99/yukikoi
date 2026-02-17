@@ -3,15 +3,17 @@
 namespace App\Http\Controllers;
 
 use Log;
-use App\Models\Koi;
 use App\Models\User;
 use App\Models\Ember;
 use App\Models\Auction;
-
+use App\Models\Koi;
+use App\Models\Media;
+use App\Models\Certificate;
 use App\Models\Wishlist;
 use Illuminate\Http\Request;
 use App\Services\KoiEnricher;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class AuctionController extends Controller
 {
@@ -169,19 +171,56 @@ class AuctionController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'jenis' => 'required|string',
             'start_time' => 'required|date',
-            'end_time' => 'nullable|date',
+            'end_time' => 'required|date|after:start_time',
             'banner' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'judul' => 'required|array|min:1',
+            'judul.*' => 'required|string|max:255',
+            'jenis_koi' => 'required|array',
+            'jenis_koi.*' => 'required|string|max:255',
+            'ukuran' => 'required|array',
+            'ukuran.*' => 'required|numeric|min:0',
+            'gender' => 'required|array',
+            'gender.*' => 'required|in:Male,Female,Unchecked',
+            'open_bid' => 'required|array',
+            'open_bid.*' => 'required|numeric|min:0',
+            'kelipatan_bid' => 'required|array',
+            'kelipatan_bid.*' => 'required|numeric|min:0',
+            'buy_it_now' => 'nullable|array',
+            'buy_it_now.*' => 'nullable|numeric|min:0',
+            'keterangan' => 'required|array',
+            'keterangan.*' => 'required|string',
+            'breeder' => 'required|array',
+            'breeder.*' => 'required|string|max:255',
+            'video_koi' => 'nullable|array',
+            'video_koi.*' => 'nullable|mimetypes:video/mp4,video/quicktime,video/x-msvideo|max:51200',
+            'gambar_koi' => 'nullable|array',
+            'gambar_koi.*' => 'nullable|array',
+            'gambar_koi.*.*' => 'nullable|image|mimes:jpeg,png|max:10240',
+            'sertifikat_koi' => 'nullable|array',
+            'sertifikat_koi.*' => 'nullable|array',
+            'sertifikat_koi.*.*' => 'nullable|file|mimes:jpeg,png,pdf|max:10240',
         ]);
 
-        // Proses upload banner jika ada file yang diunggah
+        $koiCount = count($request->input('judul', []));
+        $relatedFields = ['jenis_koi', 'ukuran', 'gender', 'open_bid', 'kelipatan_bid', 'keterangan', 'breeder'];
+
+        foreach ($relatedFields as $field) {
+            if (count($request->input($field, [])) !== $koiCount) {
+                return back()
+                    ->withInput()
+                    ->withErrors([$field => 'Jumlah data koi tidak konsisten. Pastikan setiap koi memiliki data lengkap.']);
+            }
+        }
+
+        $buyItNow = $request->input('buy_it_now', []);
+
         $bannerPath = $request->hasFile('banner') ? $request->file('banner')->store('banner_auctions', 'public') : null;
 
-        // Tentukan prefix berdasarkan jenis lelang
         $prefix = match ($request->input('jenis')) {
             'reguler' => 'RG',
             'azukari' => 'AZ',
@@ -190,34 +229,81 @@ class AuctionController extends Controller
             default => 'XX',
         };
 
-        // Format untuk tahun dan bulan
         $tahunBulan = date('ym');
 
-        // Generate nomor urut auction berdasarkan jenis dan tanggal
         $maxAuction = Auction::where('jenis', $request->input('jenis'))
             ->whereYear('created_at', date('Y'))
             ->whereMonth('created_at', date('m'))
             ->max('auction_code');
 
-        // Ambil nomor urut dari kode lelang terakhir (3 digit terakhir)
         $nomorUrut = $maxAuction ? intval(substr($maxAuction, -3)) + 1 : 1;
         $formattedUrut = str_pad($nomorUrut, 3, '0', STR_PAD_LEFT);
 
-        // Buat kode lelang (auction_code)
         $auctionCode = $prefix . $tahunBulan . $formattedUrut;
 
-        // Simpan data lelang ke database
-        Auction::create([
-            'title' => $request->input('title'),
-            'description' => $request->input('description'),
-            'jenis' => $request->input('jenis'),
-            'start_time' => $request->input('start_time'),
-            'end_time' => $request->input('end_time'),
-            'status' => 'draft',
-            'auction_code' => $auctionCode, // Set auction_code di sini
-            'banner' => $bannerPath,
-            'user_id' => Auth::id(),
-        ]);
+        DB::transaction(function () use ($request, $bannerPath, $auctionCode, $buyItNow) {
+            $auction = Auction::create([
+                'title' => $request->input('title'),
+                'description' => $request->input('description'),
+                'jenis' => $request->input('jenis'),
+                'start_time' => $request->input('start_time'),
+                'end_time' => $request->input('end_time'),
+                'status' => 'draft',
+                'auction_code' => $auctionCode,
+                'banner' => $bannerPath,
+                'user_id' => Auth::id(),
+            ]);
+
+            foreach ($request->input('judul') as $index => $judulKoi) {
+                $kodeIkan = $this->generateKoiCode($index);
+                $koiId = $auction->auction_code . $kodeIkan;
+
+                $koi = Koi::create([
+                    'id' => $koiId,
+                    'auction_code' => $auction->auction_code,
+                    'kode_ikan' => $kodeIkan,
+                    'judul' => $judulKoi,
+                    'jenis_koi' => $request->input("jenis_koi.{$index}"),
+                    'ukuran' => $request->input("ukuran.{$index}"),
+                    'gender' => $request->input("gender.{$index}"),
+                    'open_bid' => $request->input("open_bid.{$index}"),
+                    'kelipatan_bid' => $request->input("kelipatan_bid.{$index}"),
+                    'buy_it_now' => filled($buyItNow[$index] ?? null) ? $buyItNow[$index] : null,
+                    'keterangan' => $request->input("keterangan.{$index}"),
+                    'breeder' => $request->input("breeder.{$index}"),
+                ]);
+
+                if ($request->hasFile("video_koi.{$index}")) {
+                    $videoPath = $request->file("video_koi.{$index}")->store('koi_videos', 'public');
+                    Media::create([
+                        'koi_id' => $koi->id,
+                        'url_media' => $videoPath,
+                        'media_type' => 'video',
+                    ]);
+                }
+
+                if ($request->hasFile("gambar_koi.{$index}")) {
+                    foreach ($request->file("gambar_koi.{$index}") as $gambar) {
+                        $imagePath = $gambar->store('koi_images', 'public');
+                        Media::create([
+                            'koi_id' => $koi->id,
+                            'url_media' => $imagePath,
+                            'media_type' => 'photo',
+                        ]);
+                    }
+                }
+
+                if ($request->hasFile("sertifikat_koi.{$index}")) {
+                    foreach ($request->file("sertifikat_koi.{$index}") as $certificate) {
+                        $certificatePath = $certificate->store('koi_certificates', 'public');
+                        Certificate::create([
+                            'koi_id' => $koi->id,
+                            'url_gambar' => $certificatePath,
+                        ]);
+                    }
+                }
+            }
+        });
 
         return redirect()->route('auctions.index')->with('success', 'Auction created successfully!');
     }
@@ -356,5 +442,16 @@ class AuctionController extends Controller
 
         $auction->delete();
         return response()->json(['success' => 'Lelang berhasil dihapus.']);
+    }
+
+    private function generateKoiCode(int $index): string
+    {
+        $code = '';
+        while ($index >= 0) {
+            $code = chr($index % 26 + 65) . $code;
+            $index = intdiv($index, 26) - 1;
+        }
+
+        return $code;
     }
 }

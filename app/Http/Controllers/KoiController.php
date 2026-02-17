@@ -28,12 +28,34 @@ class KoiController extends Controller
 
         $auction = Auction::with('user')->where('auction_code', $auction_code)->firstOrFail();
 
-        // Ambil semua koi yang ada di lelang ini, dengan struktur sama seperti di LiveController
-        $kois = $enricher->getLiveAuctionKois($request, $userId)
-            ->filter(fn($koi) => $koi->auction_code === $auction_code)
-            ->values(); // reset index karena filter
+        $query = Koi::with([
+            'auction.user',
+            'media' => fn($q) => $q->whereIn('media_type', ['photo', 'video']),
+            'bids' => fn($q) => $q->latest(),
+        ])->where('auction_code', $auction_code);
 
-        // Ambil data wishlist user
+        if ($search = $request->input('q')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('judul', 'like', "%{$search}%")
+                    ->orWhere('jenis_koi', 'like', "%{$search}%");
+            });
+        }
+
+        if ($gender = $request->input('gender')) {
+            $query->where('gender', $gender);
+        }
+
+        if ($minPrice = $request->input('min_price')) {
+            $query->where('open_bid', '>=', $minPrice);
+        }
+
+        if ($maxPrice = $request->input('max_price')) {
+            $query->where('open_bid', '<=', $maxPrice);
+        }
+
+        $kois = $query->orderByDesc('created_at')->get();
+        $kois = $enricher->enrichCollection($kois, $userId);
+
         $wishlist = Wishlist::where('user_id', $userId)->pluck('koi_id')->toArray();
 
         return view('koi.index', compact('kois', 'auction', 'auction_code', 'wishlist'));

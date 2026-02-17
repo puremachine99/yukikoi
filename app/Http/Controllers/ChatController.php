@@ -60,11 +60,13 @@ namespace App\Http\Controllers;
 use App\Models\Koi;
 use Illuminate\Support\Facades\RateLimiter;
 
-use App\Models\Chat;
 use App\Events\ChatMessage;
+use App\Models\Chat;
 use Illuminate\Http\Request;
+use Illuminate\Broadcasting\BroadcastException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Broadcast;
+use Illuminate\Support\Facades\Log;
 
 class ChatController extends Controller
 {
@@ -95,7 +97,16 @@ class ChatController extends Controller
     if ($chat->save()) {
         // Broadcast pesan chat
         $chat = Chat::with('user')->find($chat->id);
-        broadcast(new ChatMessage($chat))->toOthers();
+
+        try {
+            broadcast(new ChatMessage($chat))->toOthers();
+        } catch (BroadcastException $exception) {
+            Log::warning('Broadcast chat failed', [
+                'koi_id' => $chat->koi_id,
+                'chat_id' => $chat->id,
+                'error' => $exception->getMessage(),
+            ]);
+        }
 
         // Hit rate limiter untuk mencatat percobaan
         RateLimiter::hit($key, 60); // Batas reset setelah 60 detik

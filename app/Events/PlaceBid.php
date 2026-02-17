@@ -51,7 +51,7 @@ class PlaceBid implements ShouldBroadcastNow
                     'id' => $this->bid->user->id,
                     'name' => $this->bid->user->name,
                     'pp' => $this->bid->user->profile_photo,
-                    'phone_number' => substr($this->bid->user->phone_number, 0, 4) . 'XX' . substr($this->bid->user->phone_number, -2),
+                    'phone_number' => $this->maskPhoneNumber($this->bid->user->phone_number),
                 ],
                 'created_at' => $this->bid->created_at->toDateTimeString(),
             ],
@@ -60,5 +60,23 @@ class PlaceBid implements ShouldBroadcastNow
 
     }
 
+    private function maskPhoneNumber(?string $phoneNumber): ?string
+    {
+        if (!$phoneNumber) {
+            return null;
+        }
+
+        $digitsOnly = preg_replace('/\D+/', '', $phoneNumber);
+        $length = strlen($digitsOnly);
+
+        if ($length <= 4) {
+            return $digitsOnly;
+        }
+
+        $prefix = substr($digitsOnly, 0, min(4, $length));
+        $suffix = $length > 2 ? substr($digitsOnly, -2) : '';
+
+        return $suffix ? "{$prefix}XX{$suffix}" : $prefix;
+    }
 
 }

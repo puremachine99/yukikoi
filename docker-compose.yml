@@ -1,5 +1,5 @@
 services:
-  # === Main Laravel App (FrankenPHP) ===
+  # === Main Laravel App (PHP-FPM) ===
   app:
     build:
       context: .
@@ -7,21 +7,10 @@ services:
     container_name: yukikoi-app
     restart: unless-stopped
     volumes:
-      - .:/app
+      - .:/var/www/html
     environment:
       APP_ENV: local
       APP_URL: http://localhost:8000
-      # FrankenPHP performance tuning
-      FRANKENPHP_WORKER_COUNT: 8
-      CADDY_GLOBAL_OPTIONS: |
-        servers {
-          protocols h1 h2 h3
-          metrics
-        }
-      OPCACHE_ENABLE: 1
-      OPCACHE_MEMORY_CONSUMPTION: 192
-      OPCACHE_VALIDATE_TIMESTAMPS: 1
-
       # === Database (Postgres) ===
       DB_CONNECTION: pgsql
       DB_HOST: postgres
@@ -38,14 +27,29 @@ services:
       SESSION_DRIVER: redis
       QUEUE_CONNECTION: redis
 
-    ports:
-      - "8000:80"
+    expose:
+      - "9000"
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_started
       minio:
+        condition: service_started
+    networks: [app-network]
+
+  # === Nginx (front web server) ===
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: yukikoi-nginx
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      app:
         condition: service_started
     networks: [app-network]
 
@@ -57,10 +61,10 @@ services:
     container_name: yukikoi-reverb
     entrypoint: ["php", "artisan"]
     command: ["reverb:start", "--host=0.0.0.0", "--port=8080"]
-    working_dir: /app
+    working_dir: /var/www/html
     restart: unless-stopped
     volumes:
-      - .:/app
+      - .:/var/www/html
     environment:
       APP_ENV: local
       APP_URL: http://localhost:8000
@@ -97,10 +101,10 @@ services:
     container_name: yukikoi-scheduler
     entrypoint: ["php", "artisan"]
     command: ["schedule:work"]
-    working_dir: /app
+    working_dir: /var/www/html
     restart: unless-stopped
     volumes:
-      - .:/app
+      - .:/var/www/html
     environment:
       APP_ENV: local
       APP_URL: http://localhost:8000
@@ -131,11 +135,11 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: yukikoi-worker
-    working_dir: /app
+    working_dir: /var/www/html
     command: php artisan queue:work --sleep=1 --timeout=60 --tries=3 --max-time=3600
     restart: unless-stopped
     volumes:
-      - .:/app
+      - .:/var/www/html
     environment:
       APP_ENV: local
       APP_URL: http://localhost:8000

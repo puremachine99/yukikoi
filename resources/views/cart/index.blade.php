@@ -310,7 +310,7 @@
                     <p class="text-gray-500 dark:text-gray-400 mt-2 max-w-md mx-auto">
                         Belum ada ikan koi di keranjang Anda. Yuk, ikuti lelang dan menangkan ikan impian Anda!
                     </p>
-                    <a href="{{ route('auction.index') }}"
+                    <a href="{{ route('live.index') }}"
                         class="inline-block mt-6 px-6 py-2 bg-cyan-600 text-white rounded-full hover:bg-cyan-700 transition-colors">
                         Jelajahi Lelang
                     </a>

@@ -15,7 +15,9 @@ use App\Notifications\OutbidNotification;
 use Carbon\Carbon;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Broadcasting\BroadcastException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class BidPlacementService
@@ -99,21 +101,27 @@ class BidPlacementService
                     'end_time' => $endTime,
                 ];
 
-                DB::afterCommit(function () use ($payload) {
+                $service = $this;
+                DB::afterCommit(function () use ($payload, $service) {
                     /** @var \App\Models\Bid $bid */
                     $bid = $payload['bid'];
                     $auction = $payload['auction'];
                     $previousTopBid = $payload['previous_top_bid'];
 
-                    broadcast(new PlaceBid($bid, $payload['is_sniping']))->toOthers();
+                    $service->broadcastSafely(new PlaceBid($bid, $payload['is_sniping']), [
+                        'koi_id' => $bid->koi_id,
+                        'auction_code' => $auction->auction_code,
+                    ]);
 
                     if ($payload['extra_time_updated']) {
-                        broadcast(new ExtraTimeAdded(
+                        $service->broadcastSafely(new ExtraTimeAdded(
                             $auction->auction_code,
                             (int) $auction->extra_time,
                             $payload['end_time']->toDateTimeString(),
                             10
-                        ))->toOthers();
+                        ), [
+                            'auction_code' => $auction->auction_code,
+                        ]);
                     }
 
                     if ($previousTopBid && $previousTopBid->user_id !== $bid->user_id) {
@@ -197,8 +205,12 @@ class BidPlacementService
                 $auction->loadMissing('user');
                 $previousTopBid?->load('user', 'koi');
 
-                DB::afterCommit(function () use ($bid, $cart, $auction, $previousTopBid) {
-                    broadcast(new AuctionWon($bid))->toOthers();
+                $service = $this;
+                DB::afterCommit(function () use ($bid, $cart, $auction, $previousTopBid, $service) {
+                    $service->broadcastSafely(new AuctionWon($bid), [
+                        'koi_id' => $bid->koi_id,
+                        'auction_code' => $auction->auction_code,
+                    ]);
 
                     $bid->user->notify(new AuctionWonNotification($bid));
 
@@ -218,5 +230,18 @@ class BidPlacementService
         }
 
         return $result;
+    }
+
+    private function broadcastSafely($event, array $context = []): void
+    {
+        try {
+            broadcast($event)->toOthers();
+        } catch (BroadcastException $exception) {
+            Log::warning('Broadcast failed', array_merge([
+                'event' => get_class($event),
+            ], $context, [
+                'error' => $exception->getMessage(),
+            ]));
+        }
     }
 }

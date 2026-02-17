@@ -11,6 +11,7 @@ use Xendit\Invoice\Invoice;
 use Illuminate\Http\Request;
 use Xendit\Invoice\InvoiceApi;
 use App\Models\TransactionItem;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Xendit\Invoice\CreateInvoiceRequest;
 
@@ -44,8 +45,6 @@ class CartController extends Controller
 
         return view('cart.index', compact('cartsBySeller'));
     }
-
-
     public function checkout(Request $request)
     {
         $validated = $request->validate([
@@ -68,22 +67,32 @@ class CartController extends Controller
         }
 
         // Kelompokkan item berdasarkan penjual
-        $cartsBySeller = $cartItems->groupBy(fn($cart) => $cart->koi->auction->user->farm_name ?? 'Tanpa Nama');
+        $cartsBySeller = $cartItems->groupBy(fn($cart) => $cart->koi->auction->user_id)
+            ->map(function ($items) {
+                $seller = $items->first()->koi->auction->user;
+
+                return [
+                    'seller' => $seller,
+                    'items' => $items,
+                ];
+            });
 
         // Ambil alamat milik user saat ini
-        $userAddresses = auth()->user()->addresses()->orderByDesc('is_default')->get();
+        $userAddresses = Auth::user()->addresses()->orderByDesc('is_default')->get();
         $defaultAddress = $userAddresses->first(); // Ambil alamat default pengguna
 
         // Ambil alamat seller berdasarkan penjual
         $sellerAddresses = $cartItems->map(function ($cart) {
+            $seller = $cart->koi->auction->user;
+
             return [
-                'farm_name' => $cart->koi->auction->user->farm_name ?? 'Tidak Diketahui',
-                'nama' => $cart->koi->auction->user->name,
-                'phone' => $cart->koi->auction->user->phone_number ?? '-',
-                'full_address' => $cart->koi->auction->user->city ?? 'Tidak Diketahui',
-                'id' => $cart->koi->auction->user->id,
+                'id' => $seller->id,
+                'farm_name' => $seller->farm_name ?? 'Tidak Diketahui',
+                'nama' => $seller->name,
+                'phone' => $seller->phone_number ?? '-',
+                'full_address' => $seller->city ?? 'Tidak Diketahui',
             ];
-        })->unique('id'); // Hapus duplikat seller berdasarkan ID
+        })->unique('id')->keyBy('id'); // Hapus duplikat seller berdasarkan ID dan gunakan ID sebagai key
 
         $paymentGatewayFee = 2500;
         $applicationFee = 1000;
@@ -95,9 +104,9 @@ class CartController extends Controller
             'sellerAddresses' => $sellerAddresses, // Alamat dari seller
             'paymentGatewayFee' => $paymentGatewayFee,
             'applicationFee' => $applicationFee,
+            'user' => Auth::user(),
         ]);
     }
-
     public function confirmCheckout(Request $request)
     {
         // Ambil semua input dari request
@@ -119,9 +128,14 @@ class CartController extends Controller
 
         try {
             // Hitung biaya
-            $baseAmount = $cartItems->sum('price');
-            $shippingFees = collect($request->input('shipping_fees'))->sum();
-            $rekberFee = $request->input('rekber_fee');
+            $baseAmount = (int) $cartItems->sum('price');
+
+            $shippingFeeInput = (array) $request->input('shipping_fees', []);
+            $shippingFees = array_reduce($shippingFeeInput, function (int $carry, $fee) {
+                return $carry + (int) str_replace([',', '.'], '', (string) $fee);
+            }, 0);
+
+            $rekberFee = (int) str_replace([',', '.'], '', (string) $request->input('rekber_fee', 0));
             $paymentGatewayFee = 2500;
             $applicationFee = 1000;
             $totalAmount = $baseAmount + $shippingFees + $rekberFee + $paymentGatewayFee + $applicationFee;
@@ -168,8 +182,20 @@ class CartController extends Controller
                 $shippingGroup = Str::uuid();
 
                 foreach ($items as $cart) {
-                    $addressData = $request->input("addresses.{$seller}");
-                    $address = json_decode($addressData['address_id'] ?? '{}', true); // Decode JSON format untuk buyer/seller
+                    $addressData = (array) $request->input("addresses");
+                    $addressRow = (array) ($addressData[$seller] ?? []);
+
+                    $selectedAddress = $addressRow['address_id'] ?? null;
+                    $address = [];
+
+                    if ($selectedAddress && $selectedAddress !== 'other') {
+                        $address = json_decode($selectedAddress, true) ?: [];
+                    }
+
+                    $addressType = $address['type'] ?? ($addressRow['type'] ?? null);
+                    if ($selectedAddress === 'other') {
+                        $addressType = 'custom';
+                    }
 
                     // Variabel default
                     $shippingAddress = null;
@@ -177,8 +203,8 @@ class CartController extends Controller
                     $phoneNumber = null;
 
                     // Tentukan berdasarkan type
-                    if (isset($address['type'])) {
-                        switch ($address['type']) {
+                    if ($addressType) {
+                        switch ($addressType) {
                             case 'buyer':
                             case 'seller':
                                 // Gunakan data buyer/seller
@@ -189,9 +215,9 @@ class CartController extends Controller
 
                             case 'custom':
                                 // Gunakan custom address dari input form
-                                $shippingAddress = $addressData['custom_address'] ?? 'Alamat tidak tersedia';
-                                $recipientName = $addressData['custom_name'] ?? 'Nama tidak tersedia';
-                                $phoneNumber = $addressData['custom_phone'] ?? 'No HP tidak tersedia';
+                                $shippingAddress = $addressRow['custom_address'] ?? 'Alamat tidak tersedia';
+                                $recipientName = $addressRow['custom_recipient'] ?? 'Nama tidak tersedia';
+                                $phoneNumber = $addressRow['custom_phone'] ?? 'No HP tidak tersedia';
                                 break;
 
                             default:
@@ -209,28 +235,21 @@ class CartController extends Controller
                     }
 
                     //Buat instance TransactionItem
-                    // $transactionItem = [
-                    //     'transaction_id' => $transaction->id,
-                    //     'koi_id' => $cart->koi_id,
-                    //     'price' => $cart->price,
-                    //     'farm' => $cart->koi->auction->user->farm_name,
-                    //     'shipping_fee' => $request->input("shipping_fees.{$seller}") ?? 0,
-                    //     'shipping_address' => $shippingAddress,
-                    //     'farm_owner_name' => $recipientName,
-                    //     'farm_phone_number' => $phoneNumber,
-                    //     'shipping_group' => $shippingGroup,
-                    // ];
-                    // $transactionItemsArray[] = $transactionItem;
+
 
                     // Simpan TransactionItem
                     $transactionItem = new TransactionItem();
                     $transactionItem->transaction_id = $transaction->id;
                     $transactionItem->koi_id = $cart->koi_id;
                     $transactionItem->seller_id = $cart->koi->auction->user_id; // Tambahkan ini
-                    $transactionItem->buyer_id = $user->id; 
+                    $transactionItem->buyer_id = $user->id;
                     $transactionItem->price = $cart->price;
                     $transactionItem->farm = $cart->koi->auction->user->farm_name;
-                    $transactionItem->shipping_fee = $request->input("shipping_fees.{$seller}") ?? 0;
+                    $transactionItem->shipping_fee = (int) str_replace(
+                        [',', '.'],
+                        '',
+                        (string) ($shippingFeeInput[$seller] ?? 0)
+                    );
                     $transactionItem->shipping_address = $shippingAddress;
                     $transactionItem->seller_name = $cart->koi->auction->user->name;
                     $transactionItem->seller_phone = $cart->koi->auction->user->phone_number;
@@ -242,7 +261,18 @@ class CartController extends Controller
             // Hapus item dari cart
             // Tambahkan reply dari webhook xendit untuk acc confirm checkout
             $cartItems->each->delete();
-
+            // $transactionItem = [
+            //     'transaction_id' => $transaction->id,
+            //     'koi_id' => $cart->koi_id,
+            //     'price' => $cart->price,
+            //     'farm' => $cart->koi->auction->user->farm_name,
+            //     'shipping_fee' => $request->input("shipping_fees.{$seller}") ?? 0,
+            //     'shipping_address' => $shippingAddress,
+            //     'farm_owner_name' => $recipientName,
+            //     'farm_phone_number' => $phoneNumber,
+            //     'shipping_group' => $shippingGroup,
+            // ];
+            // $transactionItemsArray[] = $transactionItem;
             // Redirect ke Xendit payment link
             return redirect()->away($invoice['invoice_url']);
 
@@ -253,10 +283,15 @@ class CartController extends Controller
             //     'groupedCarts' => $groupedCarts,    // Grup item per penjual
             //     'transaction' => $transaction,      // Simulasi data transaksi
             //     'transactionItems' => $transactionItemsArray,      // Simulasi data transaksi
-            //     'orders' => $ordersArray,           // Simulasi data pesanan
+            //     // 'orders' => $ordersArray,           // Simulasi data pesanan
             //     'invoice' => $invoice,              // Simulasi invoice Xendit
             // ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            Log::error('Checkout confirmation failed', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
             return redirect()->route('cart.failed')->with('errorMessage', $e->getMessage());
         }
     }

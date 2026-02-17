@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Transaction;
-use Illuminate\Http\Request;
 use App\Events\PaymentCompleted;
+use App\Models\Transaction;
+use Illuminate\Broadcasting\BroadcastException;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class XenditWebhookController extends Controller
@@ -33,7 +34,14 @@ class XenditWebhookController extends Controller
                 Log::info("Transaksi dengan ID {$transaction->id} berhasil diperbarui menjadi 'completed'.");
 
                 // Broadcast notifikasi real-time hanya ke user yang melakukan transaksi
-                broadcast(new PaymentCompleted($transaction))->toOthers();
+                try {
+                    broadcast(new PaymentCompleted($transaction))->toOthers();
+                } catch (BroadcastException $exception) {
+                    Log::warning('Broadcast payment notification failed', [
+                        'transaction_id' => $transaction->id,
+                        'error' => $exception->getMessage(),
+                    ]);
+                }
 
                 return response()->json(['message' => 'Transaksi berhasil diperbarui'], 200);
             } else {

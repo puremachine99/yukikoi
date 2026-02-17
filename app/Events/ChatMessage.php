@@ -37,11 +37,29 @@ class ChatMessage implements ShouldBroadcastNow
                     'id' => $this->chat->user->id,
                     'name' => $this->chat->user->name,
                     'pp' => $this->chat->user->profile_photo ?: 'https://via.placeholder.com/40',
-                    'phone_number' => substr($this->chat->user->phone_number, 0, 4) . 'XX' . substr($this->chat->user->phone_number, -2),
+                    'phone_number' => $this->maskPhoneNumber($this->chat->user->phone_number),
                 ],
                 'created_at' => $this->chat->created_at->toDateTimeString(),
             ],
         ];
     }
 
+    private function maskPhoneNumber(?string $phoneNumber): ?string
+    {
+        if (!$phoneNumber) {
+            return null;
+        }
+
+        $digitsOnly = preg_replace('/\D+/', '', $phoneNumber);
+        $length = strlen($digitsOnly);
+
+        if ($length <= 4) {
+            return $digitsOnly;
+        }
+
+        $prefix = substr($digitsOnly, 0, min(4, $length));
+        $suffix = $length > 2 ? substr($digitsOnly, -2) : '';
+
+        return $suffix ? "{$prefix}XX{$suffix}" : $prefix;
+    }
 }

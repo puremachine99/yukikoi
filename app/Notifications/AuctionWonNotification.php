@@ -4,7 +4,6 @@ namespace App\Notifications;
 
 use App\Models\Bid;
 use Illuminate\Bus\Queueable;
-use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
@@ -42,11 +41,6 @@ class AuctionWonNotification extends Notification implements ShouldQueue
     public function toBroadcast($notifiable): BroadcastMessage
     {
         return new BroadcastMessage($this->toArray($notifiable));
-    }
-
-    public function broadcastOn($notifiable): PrivateChannel
-    {
-        return new PrivateChannel('user.' . $notifiable->getKey());
     }
 
     public function broadcastType(): string

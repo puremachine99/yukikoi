@@ -11,8 +11,10 @@
                 <form action="{{ route('cart.confirmCheckout') }}" method="POST">
                     @csrf
                     <!-- Hidden Input for Cart IDs -->
-                    @foreach ($cartsBySeller->flatten() as $cart)
+                    @foreach ($cartsBySeller as $group)
+                        @foreach ($group['items'] as $cart)
                         <input type="hidden" name="cart_ids[]" value="{{ $cart->id }}">
+                        @endforeach
                     @endforeach
 
                     <!-- Hidden Input untuk Cart IDs -->
@@ -20,10 +22,15 @@
                     <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-6">Checkout</h3>
 
                     <!-- Loop Penjual -->
-                    @foreach ($cartsBySeller as $sellerName => $carts)
+                    @foreach ($cartsBySeller as $sellerId => $group)
+                        @php
+                            /** @var \Illuminate\Support\Collection $carts */
+                            $carts = $group['items'];
+                            $seller = $group['seller'];
+                            $sellerName = $seller->farm_name ?? 'Tanpa Nama';
+                        @endphp
                         <div class="mb-8 border-b pb-6">
-                            <h4 class="text-lg font-semibold text-blue-600">Penjual: {{ $sellerName ?? 'Tanpa Nama' }}
-                            </h4>
+                            <h4 class="text-lg font-semibold text-blue-600">Penjual: {{ $sellerName }}</h4>
                             <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 mt-4">
                                 @foreach ($carts as $cart)
                                     <div
@@ -90,7 +97,7 @@
 
                                 {{-- Dropdown daftar alamat --}}
                                 <x-select id="address-select-{{ $loop->index }}"
-                                    name="addresses[{{ $sellerName }}][address_id]"
+                                    name="addresses[{{ $sellerId }}][address_id]"
                                     class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:bg-gray-900 dark:border-gray-700"
                                     onchange="toggleCustomAddress(this, 'custom-address-{{ $loop->index }}')">
 
@@ -112,7 +119,7 @@
                                     {{-- Add Seller Addresses --}}
                                     @foreach ($sellerAddresses as $sellerAddress)
                                         {{-- Filter untuk tidak menampilkan alamat seller itu sendiri --}}
-                                        @if ($sellerAddress['farm_name'] !== $sellerName)
+                                        @if ($sellerAddress['id'] !== $seller->id)
                                             <option
                                                 value="{{ json_encode([
                                                     'type' => 'seller',
@@ -133,52 +140,34 @@
                                     <option value="other">Alamat Lain</option>
                                 </x-select>
 
-                                {{-- Custom Address Input --}}
-                                <div id="custom-address-{{ $loop->index }}" class="mt-2 hidden">
-                                    <x-textarea id="address-{{ $loop->index }}"
-                                        name="addresses[{{ $sellerName }}][custom_address]" rows="3"
-                                        class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:bg-gray-900 dark:border-gray-700"></x-textarea>
-                                    <x-text-input id="phone-{{ $loop->index }}"`
-                                        name="addresses[{{ $sellerName }}][custom_phone]" placeholder="Nomor Telepon"
-                                        class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:bg-gray-900 dark:border-gray-700" />
-                                    <x-text-input id="recipient-{{ $loop->index }}"
-                                        name="addresses[{{ $sellerName }}][custom_recipient]"
-                                        placeholder="Nama Penerima"
-                                        class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:bg-gray-900 dark:border-gray-700" />
-                                </div>
-
-
                                 {{-- Custom Address Fields --}}
-                                <div id="custom-address-{{ $loop->index }}" class="mt-2 hidden">
-                                    <input type="hidden" name="addresses[{{ $sellerName }}][type]" value="custom">
-
-                                    <div class="mb-2">
+                                <div id="custom-address-{{ $loop->index }}" class="mt-2 hidden space-y-2">
+                                    <input type="hidden" name="addresses[{{ $sellerId }}][type]" value="custom">
+                                    <div>
                                         <label for="custom-recipient-{{ $loop->index }}"
                                             class="block text-sm font-medium text-gray-600 dark:text-gray-400">
                                             Nama Penerima
                                         </label>
                                         <x-text-input id="custom-recipient-{{ $loop->index }}"
-                                            name="addresses[{{ $sellerName }}][custom_name]" type="text"
+                                            name="addresses[{{ $sellerId }}][custom_recipient]" type="text"
                                             class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:bg-gray-900 dark:border-gray-700" />
                                     </div>
-
-                                    <div class="mb-2">
+                                    <div>
                                         <label for="custom-phone-{{ $loop->index }}"
                                             class="block text-sm font-medium text-gray-600 dark:text-gray-400">
                                             Nomor Telepon Penerima
                                         </label>
                                         <x-text-input id="custom-phone-{{ $loop->index }}"
-                                            name="addresses[{{ $sellerName }}][custom_phone]" type="text"
+                                            name="addresses[{{ $sellerId }}][custom_phone]" type="text"
                                             class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:bg-gray-900 dark:border-gray-700" />
                                     </div>
-
-                                    <div class="mb-2">
+                                    <div>
                                         <label for="custom-address-{{ $loop->index }}"
                                             class="block text-sm font-medium text-gray-600 dark:text-gray-400">
                                             Alamat Penerima
                                         </label>
                                         <x-textarea id="custom-address-{{ $loop->index }}"
-                                            name="addresses[{{ $sellerName }}][custom_address]" rows="3"
+                                            name="addresses[{{ $sellerId }}][custom_address]" rows="3"
                                             class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:bg-gray-900 dark:border-gray-700"></x-textarea>
                                     </div>
                                 </div>
@@ -194,7 +183,7 @@
                                     <span
                                         class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600 dark:text-gray-400">Rp</span>
                                     <x-number-input id="shipping_fee-{{ $loop->index }}"
-                                        name="shipping_fees[{{ $sellerName }}]" min="0" step="500"
+                                        name="shipping_fees[{{ $sellerId }}]" min="0" step="500"
                                         value="0"
                                         class="block w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                         onchange="validateShippingFee(this)"></x-number-input>
@@ -212,7 +201,7 @@
                                 <td class="py-2 font-semibold text-gray-600 dark:text-gray-400">Subtotal Semua Penjual
                                 </td>
                                 <td class="py-2 text-right text-gray-800 dark:text-gray-200">
-                                    Rp {{ number_format($cartsBySeller->flatten()->sum('price'), 0, ',', '.') }}
+                                    Rp {{ number_format($cartsBySeller->pluck('items')->flatten()->sum('price'), 0, ',', '.') }}
                                 </td>
                             </tr>
                             <tr>
@@ -251,7 +240,7 @@
                                 <td class="py-2 text-right">
                                     <h4 class="text-lg font-bold text-gray-900 dark:text-gray-200">Rp
                                         <span id="total_price_display">
-                                            {{ number_format($cartsBySeller->flatten()->sum('price') + $applicationFee + $paymentGatewayFee, 0, ',', '.') }}
+                                            {{ number_format($cartsBySeller->pluck('items')->flatten()->sum('price') + $applicationFee + $paymentGatewayFee, 0, ',', '.') }}
                                         </span>
                                     </h4>
                                 </td>
@@ -284,7 +273,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             const applicationFee = {{ $applicationFee }};
             const paymentGatewayFee = {{ $paymentGatewayFee }};
-            const basePrice = {{ $cartsBySeller->flatten()->sum('price') }};
+            const basePrice = {{ $cartsBySeller->pluck('items')->flatten()->sum('price') }};
 
             function calculateTotal() {
                 let rekberFee = parseFloat(document.getElementById('rekber_fee').value) || 0;
